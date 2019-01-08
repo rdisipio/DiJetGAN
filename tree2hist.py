@@ -11,6 +11,9 @@ gROOT.SetBatch(1)
 
 filelistname = sys.argv[1]
 
+n_events_max = -1
+if len(sys.argv) > 2: n_events_max = int( sys.argv[2] )
+
 tree_name = "nominal"
 tree = TChain( tree_name, tree_name )
 f = open( filelistname, 'r' )
@@ -72,6 +75,9 @@ _h['ljet2_pt_vs_ljet1_pt'] = TH2F( "ljet1_pt_vs_ljet2_pt", ";Leading large-R jet
 _h['ljet2_m_vs_ljet1_m']   = TH2F( "ljet2_m_vs_ljet1_m",   ";Leading large-R jet m [GeV];2nd leading large-R jet m [GeV]", 30, 0., 300., 30, 0., 300. )
 
 for h in _h.values(): h.Sumw2()
+
+if n_events_max > 0: n_entries = min( n_events_max, n_entries )
+print "INFO: starting event loop:", n_entries
 
 for ientry in range(n_entries):
 
