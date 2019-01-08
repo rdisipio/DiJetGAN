@@ -236,15 +236,17 @@ def DrawRatio( data, prediction, xtitle = "", yrange=[0.4,1.6] ):
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 obs = "ljet1_pt"
-dsid = "410471"
+dsid = "361024"
+preselection = "incl"
 
 if len(sys.argv) > 1: obs = sys.argv[1]
 if len(sys.argv) > 2: dsid = sys.argv[2]
+if len(sys.argv) > 3: preselection = sys.argv[3]
 
 hname = "%s" % (obs)
 
-infilename_GAN  = "output/GAN/GAN.mc16a.%s.GAN.root"     % ( dsid )
-infilename_MC   = "output/GAN/GAN.mc16a.%s.2b_incl.root" % ( dsid )
+infilename_GAN  = "histograms/histograms.mc16a.%s.GAN.%s.root" % ( dsid, preselection )
+infilename_MC   = "histograms/histograms.mc16a.%s.MC.%s.root" % ( dsid, preselection )
 
 infile_GAN = TFile.Open( infilename_GAN )
 infile_MC  = TFile.Open( infilename_MC )
