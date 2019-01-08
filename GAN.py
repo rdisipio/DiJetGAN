@@ -24,8 +24,6 @@ from keras.callbacks import *
 
 import pandas as pd
 
-from models import *
-
 ############
 
 known_classifiers = [ "rnn:GAN", "rnn:highlevel", "rnn:PxPyPzMBwNtrk" ]
@@ -35,18 +33,16 @@ parser.add_argument( '-i', '--training_filename', default="" )
 parser.add_argument( '-c', '--classifier',        default=known_classifiers[0] )
 parser.add_argument( '-p', '--preselection',      default="incl" )
 parser.add_argument( '-s', '--systematic',        default="nominal" ) 
-parser.add_argument( '-g', '--gpus_n',            default=1, type=int )
 parser.add_argument( '-d', '--dsid',              default="361024" )
-parser.add_argument( '-n', '--nepochs',           default=1000 )
+parser.add_argument( '-e', '--epochs',            default=1000 )
 args         = parser.parse_args()
 
 classifier        = args.classifier
 training_filename = args.training_filename
 preselection      = args.preselection
 systematic        = args.systematic
-gpus_n            = args.gpus_n
 dsid              = args.dsid
-n_epochs          = int(args.nepochs)
+n_epochs          = int(args.epochs)
 
 classifier_arch, classifier_feat = classifier.split(':')
 
@@ -62,7 +58,7 @@ print "INFO: training systematic: %s" % systematic
 #scaler = StandardScaler()
 scaler = MinMaxScaler( (-1,1) )
 
-from features_GAN import *
+from features import *
 
 #features = [
 #   "ljet1_px", "ljet1_py", "ljet1_pz", "ljet1_M", #"ljet1_tau32",
@@ -75,7 +71,9 @@ features = [
    "jj_pt", "jj_eta", "jj_M", "jj_dPhi",
 ]
 
-n_features = len(features) 
+n_features = len(features)
+print "INFO: input features:"
+print features
 print "INFO: total number of input features:     ", n_features
 
 # read in input file
@@ -117,19 +115,21 @@ print event_weights
 
 #~~~~~~~~~~~~~~~~~~~~~~
 
+from models import *
+
 def make_generator():
-   return make_generator_mlp()
-   #return make_generator_rnn()
-   #return make_generator_cnn()
+   return make_generator_mlp( GAN_noise_size, n_features )
+   #return make_generator_rnn( GAN_noise_size, n_features )
+   #return make_generator_cnn( GAN_noise_size, n_features )
 
 def make_discriminator():
-   #return make_discriminator_mlp()
-   #return make_discriminator_rnn()
-   return make_discriminator_cnn()
+   #return make_discriminator_mlp( n_features )
+   #return make_discriminator_rnn( n_features )
+   return make_discriminator_cnn( n_features )
 
 #~~~~~~~~~~~~~~~~~~~~~~
 
-GAN_input_size = 64 # number of random numbers (input noise)
+GAN_noise_size = 64 # number of random numbers (input noise)
 
 d_optimizer   = Adam(0.0001) #(0.0001, 0.5)
 g_optimizer   = Adam(0.0001) #(0.0001, 0.5)
@@ -150,7 +150,7 @@ generator.summary()
 # For the combined model we will only train the generator
 discriminator.trainable = False
 
-GAN_input  = Input( shape=(GAN_input_size,) )
+GAN_input  = Input( shape=(GAN_noise_size,) )
 GAN_hidden = generator(GAN_input)
 GAN_output = discriminator(GAN_hidden)
 GAN = Model( GAN_input, GAN_output )
@@ -168,7 +168,7 @@ ntrain = 10000
 train_idx = random.sample( range(0,X_train.shape[0]), ntrain)
 X_train_real = X_train[train_idx,:]
 
-X_noise = np.random.uniform(0,1,size=[X_train_real.shape[0], GAN_input_size])
+X_noise = np.random.uniform(0,1,size=[X_train_real.shape[0], GAN_noise_size])
 X_train_fake = generator.predict(X_noise)
 
 # create GAN training dataset
@@ -202,7 +202,7 @@ def train_loop(nb_epoch=1000, BATCH_SIZE=32):
         X_train_real = X_train[train_idx,:]
 
         # generate fake events
-        X_noise = np.random.uniform(0,1,size=[X_train_real.shape[0], GAN_input_size])
+        X_noise = np.random.uniform(0,1,size=[X_train_real.shape[0], GAN_noise_size])
         X_train_fake = generator.predict(X_noise)
 
         # Train the discriminator (real classified as ones and generated as zeros)
@@ -218,7 +218,7 @@ def train_loop(nb_epoch=1000, BATCH_SIZE=32):
 
         # Train the generator
         # create new (statistically independent) random noise sample
-        #X_noise = np.random.uniform(0,1,size=[X_train_real.shape[0], GAN_input_size])
+        #X_noise = np.random.uniform(0,1,size=[X_train_real.shape[0], GAN_noise_size])
         X_train_fake = generator.predict(X_noise)
 
         # we want discriminator to mistake images as real
@@ -295,12 +295,3 @@ h_g_loss.Write( "g_loss")
 training_root.Write()
 training_root.Close()
 print "INFO: training history saved to file:", training_root.GetName()
-
-
- 
-   
-  
-
-   
-
-

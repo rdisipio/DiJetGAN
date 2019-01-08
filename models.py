@@ -12,10 +12,10 @@ from keras.layers.merge import *
 from keras.optimizers import *
 from keras.regularizers import *
 
-def make_generator_mlp():
+def make_generator_mlp( GAN_noise_size, GAN_output_size ):
    # Build Generative model ...
 
-   G_input = Input( shape=(GAN_input_size,) )
+   G_input = Input( shape=(GAN_noise_size,) )
 
    G = Dense( 64, kernel_initializer='glorot_normal' )(G_input)
    G = Activation('tanh')(G)
@@ -28,7 +28,7 @@ def make_generator_mlp():
    G = Dense( 16 )(G)
    G = Activation('tanh')(G)
 
-   G = Dense( n_features, activation="tanh" )(G)
+   G = Dense( GAN_output_size, activation="tanh" )(G)
 
    generator = Model( G_input, G )
 
@@ -36,7 +36,7 @@ def make_generator_mlp():
 
 #~~~~~~~~~~~~~~~~~~~~~~
 
-def make_discriminator_mlp():
+def make_discriminator_mlp( GAN_output_size ):
    # Build Discriminative model ...
    inshape = ( n_features, )
    D_input = Input( shape=inshape, name='D_input' )
@@ -68,12 +68,14 @@ def make_discriminator_mlp():
    
    return discriminator
 
-#~~~~~~~~~~~~~~~~~~~~~~
 
-def make_generator_cnn():
+##########################
+
+
+def make_generator_cnn( GAN_noise_size, GAN_output_size ):
    # Build Generative model ...
    
-   G_input = Input( shape=(GAN_input_size,) )
+   G_input = Input( shape=(GAN_noise_size,) )
    
    G = Dense( 64, kernel_initializer='glorot_uniform' )(G_input)
    G = Activation('tanh')(G)
@@ -111,7 +113,7 @@ def make_generator_cnn():
    #G = MaxPooling2D( (2,2) )(G)
    
    G = Flatten()(G)
-   G = Dense( n_features, activation="tanh" )(G)
+   G = Dense( GAN_output_size, activation="tanh" )(G)
    #G = Dropout(0.2)(G)
    
    generator = Model( G_input, G )
@@ -120,35 +122,39 @@ def make_generator_cnn():
 
 #~~~~~~~~~~~~~~~~~~~~~~
 
-def make_discriminator_cnn():
+def make_discriminator_cnn( GAN_output_size ):
    # Build Discriminative model ...
-   inshape = ( n_features, )
-   D_input = Input( shape=inshape, name='D_input' )
+    print "DEBUG: discriminator: input features:", GAN_output_size
+    
+    inshape = ( GAN_output_size, )
+    D_input = Input( shape=inshape, name='D_input' )
 
-   #D = Reshape( (-1,n_fso_max, n_features_per_fso) )(D_input)
-   D = Dense(256)(D_input)
-   D = Reshape( (1,16,16) )(D)
+    #D = Reshape( (-1,n_fso_max, n_features_per_fso) )(D_input)
+    D = Dense(256)(D_input)
+    D = Reshape( (1,16,16) )(D)
    
-   D = Conv2D( 128, 1, strides=1 )(D)
-   D = Activation('tanh')(D)
+    D = Conv2D( 128, 1, strides=1 )(D)
+    D = Activation('tanh')(D)
 
-   D = Conv2D( 64, 1, strides=1 )(D)
-   D = Activation('tanh')(D)
+    D = Conv2D( 64, 1, strides=1 )(D)
+    D = Activation('tanh')(D)
 
-   D = Flatten()(D)
-   D = Dropout(0.2)(D)
+    D = Flatten()(D)
+    D = Dropout(0.2)(D)
    
-   #D_output = Dense( 2, activation="softmax")(D)
-   D_output = Dense( 1, activation="sigmoid")(D)
-   discriminator = Model( D_input, D_output )
+    #D_output = Dense( 2, activation="softmax")(D)
+    D_output = Dense( 1, activation="sigmoid")(D)
+    discriminator = Model( D_input, D_output )
    
-   return discriminator
+    return discriminator
 
-#~~~~~~~~~~~~~~~~~~~~~~
 
-def make_generator_rnn():
+##########################
 
-   G_input = Input( shape=(GAN_input_size,) )
+
+def make_generator_rnn( GAN_noise_size, GAN_output_size ):
+
+   G_input = Input( shape=(GAN_noise_size,) )
 
    G = Dense( 128, kernel_initializer='glorot_normal' )(G_input)
    G = Activation('tanh')(G)
@@ -162,7 +168,7 @@ def make_generator_rnn():
    G = LSTM( 16, return_sequences=False )(G) #kernel_regularizer=regularizers.l2(0.01)
    G = Activation('tanh')(G)
 
-   G = Dense( n_features, activation="tanh" )(G)
+   G = Dense( GAN_output_size, activation="tanh" )(G)
 
    generator = Model( G_input, G )
 
@@ -172,7 +178,7 @@ def make_generator_rnn():
 
 
 
-def make_discriminator_rnn():
+def make_discriminator_rnn( GAN_output_size ):
 
    inshape = ( n_features, )
    D_input = Input( shape=inshape, name='D_input' )
@@ -193,5 +199,5 @@ def make_discriminator_rnn():
    
    return discriminator
 
-#~~~~~~~~~~~~~~~~~~~~~~
 
+##########################
