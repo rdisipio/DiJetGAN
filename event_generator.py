@@ -1,9 +1,14 @@
+#!/usr/bin/env python
+
+import os, sys, argparse
+
 from common import GeV, TeV
 from ROOT import *
 from array import array
 
 import cPickle as pickle
 from keras.models import load_model
+import numpy as np
 
 known_classifiers = [ "rnn:GAN", "rnn:highlevel", "rnn:PxPyPzMBwNtrk" ]
 
@@ -16,13 +21,15 @@ parser.add_argument( '-n', '--nevents',           default=10000 )
 args         = parser.parse_args()
 
 classifier        = args.classifier
-training_filename = args.training_filename
 preselection      = args.preselection
 systematic        = args.systematic
 dsid              = args.dsid
+syst              = args.systematic
 n_events          = int(args.nevents)
+classifier_arch, classifier_feat = classifier.split(':')
 
 ljets_n_max = 2
+
 
 ##################
 # Load Keras stuff
@@ -34,15 +41,18 @@ print "INFO: Using classifier:", ( classifier_arch, classifier_feat )
 model_filename  = "GAN/generator.%s.%s.%s.%s.%s.h5" % (dsid,classifier_arch, classifier_feat, preselection, systematic)
 scaler_filename = "GAN/scaler.%s.%s.%s.%s.%s.pkl" % (dsid,classifier_arch, classifier_feat, preselection, systematic)
 
-print "INFO: loading model from", model_filename
-dnn = load_model( model_filename )
-print dnn.summary()
+print "INFO: loading generator model from", model_filename
+generator = load_model( model_filename )
+print generator.summary()
 
 print "INFO: loading scaler from", scaler_filename
 with open( scaler_filename, "rb" ) as file_scaler:
   scaler    = pickle.load( file_scaler )
 
-outfname = "GAN/histograms.%s.%s.%s.%s.%s.root" % (dsid,classifier_arch, classifier_feat, preselection, systematic)  
+GAN_noise_size = generator.layers[0].input_shape[1]
+print "GAN noise size:", GAN_noise_size
+
+outfname = "GAN/tree.%s.%s.%s.%s.%s.root" % (dsid,classifier_arch, classifier_feat, preselection, systematic)  
 outfile = TFile.Open( outfname, "RECREATE" )
 
 b_eventNumber     = array( 'l', [ 0 ] )
@@ -83,7 +93,7 @@ outtree.Branch( 'abcd16',             b_abcd16, 'abcd16/I' )
 
 print "INFO: generating %i events..." % n_events
 
-X_noise = np.random.uniform(0,1,size=[ n_events, GAN_input_size])
+X_noise = np.random.uniform(0,1,size=[ n_events, GAN_noise_size])
 X_generated = generator.predict(X_noise)
 
 print "INFO: generated %i events" % n_events
@@ -105,41 +115,52 @@ for ievent in range(n_events):
 
    b_eventNumber[0] = ievent
 
-   ljets = []
-   for i in range(ljets_n_max):
-      ljets += [ TLorentzVector() ]
-      lj = ljets[-1]
-   
-      pt    = X_generated[ievent][i][0]
-      eta   = X_generated[ievent][i][1]
-      phi   = X_generated[ievent][i][2]
-      E     = max( 0., X_generated[ievent][i][3] )
-      m     = max( 0., X_generated[ievent][i][4] )
-      #tau32 = -1. #max( X_generated[ievent][i][4], 0. )
-      lj.SetPtEtaPhiM( pt, eta, phi, m )
-           
-      #px    = X_generated[ievent][i][0]
-      #py    = X_generated[ievent][i][1]
-      #pz    = X_generated[ievent][i][2]
-      #pt    = max( 0., X_generated[ievent][i][3] )
-      #E     = max( 0., X_generated[ievent][i][3] )
-      #m     = max( 0., X_generated[ievent][i][3] )
-      #E     = TMath.Sqrt( px*px + py*py + pz*pz + m*m )
-      #lj.SetPxPyPzE( px, py, pz, E )
-     
-      lj.tau2 = -1.
-      lj.tau3 = -1.
-      lj.tau32 = -1
-      lj.isTopTagged80 = 0 # TopSubstructureTagger( lj )
-      lj.bmatch70_dR = 10.
-      lj.bmatch70    = -1
-
-   # sort jets by pT
-   ljets.sort( key=lambda jet: jet.Pt(), reverse=True )
+   ljets = [ TLorentzVector(), TLorentzVector() ]
    lj1 = ljets[0]
    lj2 = ljets[1]
 
-    # Fill branches
+   # sort jets by pT
+   #ljets.sort( key=lambda jet: jet.Pt(), reverse=True )
+
+   lj1_pt    = X_generated[ievent][0]
+   lj1_eta   = X_generated[ievent][1]
+   lj1_phi   = X_generated[ievent][2]
+   lj1_E     = max( 0., X_generated[ievent][3] )
+   lj1_m     = max( 0., X_generated[ievent][4] )
+   
+   lj2_pt    = X_generated[ievent][5]
+   lj2_eta   = X_generated[ievent][6]
+   lj2_phi   = X_generated[ievent][7]
+   lj2_E     = max( 0., X_generated[ievent][8] )
+   lj2_m     = max( 0., X_generated[ievent][9] )
+
+   jj_pt = max( 0., X_generated[ievent][10] )
+   jj_eta = X_generated[ievent][11]
+   jj_dPhi = X_generated[ievent][12]
+   
+   lj1.SetPtEtaPhiM( lj1_pt, lj1_eta, lj1_phi, lj1_m )
+   lj1.tau2 = -1.
+   lj1.tau3 = -1.
+   lj1.tau32 = -1
+   lj1.isTopTagged80 = 0 # TopSubstructureTagger( lj )
+   lj1.bmatch70_dR = 10.
+   lj1.bmatch70    = -1
+      
+   lj2.SetPtEtaPhiM( lj2_pt, lj2_eta, lj2_phi, lj2_m )
+   lj2.tau2 = -1.
+   lj2.tau3 = -1.
+   lj2.tau32 = -1
+   lj2.isTopTagged80 = 0 # TopSubstructureTagger( lj )
+   lj2.bmatch70_dR = 10.
+   lj2.bmatch70    = -1
+
+   jj = lj1 + lj2
+   jj.dEta = lj1.Eta() - lj2.Eta()
+   jj.dPhi = lj1.DeltaPhi( lj2 )
+   jj.dR   = lj1.DeltaR( lj2 )
+   
+
+   # Fill branches
    b_ljet_px[0]  = lj1.Px()*GeV
    b_ljet_py[0]  = lj1.Py()*GeV
    b_ljet_pz[0]  = lj1.Pz()*GeV
