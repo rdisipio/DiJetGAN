@@ -20,7 +20,7 @@ for fname in f.readlines():
 n_entries = tree.GetEntries()
 print "INFO: entries found:", n_entries
 
-outfilename = "output/GAN/GAN." + filelistname.split("/")[-1].replace( ".txt", ".root" ) 
+outfilename = "histograms/histograms." + filelistname.split("/")[-1].replace( ".txt", ".root" ) 
 outfile = TFile.Open( outfilename, "RECREATE" )
 
 _h = {}
@@ -47,6 +47,18 @@ _h['ljet2_m']  = TH1F( "ljet2_m",  ";2nd leading large-R jet m [GeV];Events / Bi
 _h['ljet2_tau2']  = TH1F( "ljet2_tau2",  ";2nd leading large-R jet #tau_{2};Events / Bin Width",  20, 0., 0.1 )
 _h['ljet2_tau3']  = TH1F( "ljet2_tau3",  ";2nd leading large-R jet #tau_{3};Events / Bin Width",  20, 0., 0.1 )
 _h['ljet2_tau32'] = TH1F( "ljet2_tau32", ";2nd leading large-R jet #tau_{32};Events / Bin Width", 20, 0., 1. )
+
+_h['jj_px'] = TH1F( "jj_px", ";Dijet system p_{x} [GeV];Events / Bin Width", 40, -1000, 1000 )
+_h['jj_py'] = TH1F( "jj_py", ";Dijet system p_{y} [GeV];Events / Bin Width", 40, -1000, 1000 )
+_h['jj_pz'] = TH1F( "jj_pz", ";Dijet system p_{z} [GeV];Events / Bin Width", 40, -2000, 2000 )
+_h['jj_pt'] = TH1F( "jj_pt", ";Dijet system p_{T} [GeV];Events / Bin Width", 30,    0., 1500 )
+_h['jj_eta'] = TH1F( "jj_eta", ";Dijet system #eta;Events / Bin Width", 40, -2.0, 2.0 )
+_h['jj_phi'] = TH1F( "jj_phi", ";Dijet system #phi;Events / Bin Width", 32, 0., 3.1415 )
+_h['jj_E']  = TH1F( "jj_E",  ";Dijet system E [GeV];Events / Bin Width", 20, 0., 2000 )
+_h['jj_m']  = TH1F( "jj_m",  ";Dijet system m [GeV];Events / Bin Width", 30, 0., 300. )
+_h['jj_dPhi'] = TH1F( "jj_dPhi", ";Dijet system #Delta#phi;Events / Bin Width", 20, 0., 3.1415 )
+_h['jj_dEta'] = TH1F( "jj_dEta", ";Dijet system #Delta#eta;Events / Bin Width", 30, -3., 3. )
+_h['jj_dR']   = TH1F( "jj_dR",   ";Dijet system #Delta R;Events / Bin Width",   25, 0., 5 )
 
 _h['ljet1_E_vs_pt']  = TH2F( "ljet1_E_vs_pt",  ";Leading large-R jet p_{T} [GeV];Leading large-R jet E [GeV]", 20, 0., 2000, 50, 0., 2000 )
 _h['ljet1_m_vs_pt']  = TH2F( "ljet1_m_vs_pt",  ";Leading large-R jet p_{T} [GeV];Leading large-R jet m [GeV]", 20, 0., 2000, 30, 0., 300. )
@@ -98,42 +110,59 @@ for ientry in range(n_entries):
     if lj1.Pt() < 500*GeV: continue
     if lj2.Pt() < 350*GeV: continue
 
+    jj = lj1 + lj2
+    jj.dPhi = lj1.DeltaPhi( lj2 )
+    jj.dEta = lj1.Eta() - lj2.Eta()
+    jj.dR   = lj1.DeltaR( lj2 )
+
     #abcd16 = tree.abcd16
 
-    _h['ljet1_px'].Fill( lj1.Px()/GeV, w )
-    _h['ljet1_py'].Fill( lj1.Py()/GeV, w )
-    _h['ljet1_pz'].Fill( lj1.Pz()/GeV, w )
-    _h['ljet1_pt'].Fill( lj1.Pt()/GeV, w )
+    _h['ljet1_px'].Fill( lj1.Px(), w )
+    _h['ljet1_py'].Fill( lj1.Py(), w )
+    _h['ljet1_pz'].Fill( lj1.Pz(), w )
+    _h['ljet1_pt'].Fill( lj1.Pt(), w )
     _h['ljet1_eta'].Fill( lj1.Eta(), w )
     _h['ljet1_phi'].Fill( lj1.Phi(), w )
-    _h['ljet1_E'].Fill( lj1.E()/GeV, w )
-    _h['ljet1_m'].Fill( lj1.M()/GeV, w )
+    _h['ljet1_E'].Fill( lj1.E(), w )
+    _h['ljet1_m'].Fill( lj1.M(), w )
     _h['ljet1_tau2'].Fill( lj1.tau2, w )
     _h['ljet1_tau3'].Fill( lj1.tau3, w )
     _h['ljet1_tau32'].Fill( lj1.tau32, w )
 
-    _h['ljet2_px'].Fill( lj2.Px()/GeV, w )
-    _h['ljet2_py'].Fill( lj2.Py()/GeV, w )
-    _h['ljet2_pz'].Fill( lj2.Pz()/GeV, w )
-    _h['ljet2_pt'].Fill( lj2.Pt()/GeV, w )
+    _h['ljet2_px'].Fill( lj2.Px(), w )
+    _h['ljet2_py'].Fill( lj2.Py(), w )
+    _h['ljet2_pz'].Fill( lj2.Pz(), w )
+    _h['ljet2_pt'].Fill( lj2.Pt(), w )
     _h['ljet2_eta'].Fill( lj2.Eta(), w )
     _h['ljet2_phi'].Fill( lj2.Phi(), w )
-    _h['ljet2_E'].Fill( lj2.E()/GeV, w )
-    _h['ljet2_m'].Fill( lj2.M()/GeV, w )
+    _h['ljet2_E'].Fill( lj2.E(), w )
+    _h['ljet2_m'].Fill( lj2.M(), w )
     _h['ljet2_tau2'].Fill( lj2.tau2, w )
     _h['ljet2_tau3'].Fill( lj2.tau3, w )
     _h['ljet2_tau32'].Fill( lj2.tau32, w )
 
-    _h['ljet1_E_vs_pt'].Fill(  lj1.Pt()/GeV, lj1.E()/GeV, w )
-    _h['ljet1_m_vs_pt'].Fill(  lj1.Pt()/GeV, lj1.M()/GeV, w )
-    _h['ljet1_m_vs_eta'].Fill( lj1.Eta(),    lj1.M()/GeV, w )
+    _h['jj_px'].Fill( jj.Px(), w )
+    _h['jj_py'].Fill( jj.Py(), w )
+    _h['jj_pz'].Fill( jj.Pz(), w )
+    _h['jj_pt'].Fill( jj.Pt(), w )
+    _h['jj_eta'].Fill( jj.Eta(), w )
+    _h['jj_phi'].Fill( jj.Phi(), w )
+    _h['jj_E'].Fill( jj.E(), w )
+    _h['jj_m'].Fill( jj.M(), w )
+    _h['jj_dPhi'].Fill( jj.dPhi, w )
+    _h['jj_dEta'].Fill( jj.dEta, w )
+    _h['jj_dR'].Fill( jj.dR, w )
+    
+    _h['ljet1_E_vs_pt'].Fill(  lj1.Pt(), lj1.E(), w )
+    _h['ljet1_m_vs_pt'].Fill(  lj1.Pt(), lj1.M(), w )
+    _h['ljet1_m_vs_eta'].Fill( lj1.Eta(),    lj1.M(), w )
 
-    _h['ljet2_E_vs_pt'].Fill(  lj2.Pt()/GeV, lj2.E()/GeV, w )
-    _h['ljet2_m_vs_pt'].Fill(  lj2.Pt()/GeV, lj2.M()/GeV, w )
-    _h['ljet2_m_vs_eta'].Fill( lj2.Eta(),    lj2.M()/GeV, w )
+    _h['ljet2_E_vs_pt'].Fill(  lj2.Pt(), lj2.E(), w )
+    _h['ljet2_m_vs_pt'].Fill(  lj2.Pt(), lj2.M(), w )
+    _h['ljet2_m_vs_eta'].Fill( lj2.Eta(),    lj2.M(), w )
 
-    _h['ljet2_pt_vs_ljet1_pt'].Fill( lj1.Pt()/GeV, lj2.Pt()/GeV, w )
-    _h['ljet2_m_vs_ljet1_m'].Fill( lj1.M()/GeV, lj2.M()/GeV, w )
+    _h['ljet2_pt_vs_ljet1_pt'].Fill( lj1.Pt(), lj2.Pt(), w )
+    _h['ljet2_m_vs_ljet1_m'].Fill( lj1.M(), lj2.M(), w )
 
 
 outfile.Write()
