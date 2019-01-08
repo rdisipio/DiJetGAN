@@ -314,4 +314,4 @@ gPad.RedrawAxis()
 
 c.cd()
 
-c.SaveAs( "img/GAN/GAN_%s_%s.png" % (dsid,hname) )
+c.SaveAs( "img/GAN_%s_%s.png" % (dsid,hname) )
