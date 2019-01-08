@@ -7,7 +7,7 @@ from math import pow, sqrt
 from ROOT import *
 
 from common import *
-from features_GAN import *
+from features import *
 import helper_functions
 import numpy as np
 
@@ -23,8 +23,7 @@ parser.add_argument( '-i', '--filelistname', default="filelists/data.txt" )
 parser.add_argument( '-o', '--outfilename',  default="" )
 parser.add_argument( '-c', '--classifier',   default="rnn:GAN" )
 parser.add_argument( '-s', '--systematic',   default="nominal" )
-parser.add_argument( '-p', '--preselection', default='2b_incl' )
-parser.add_argument( '-a', '--data-augmentation',  default=0 )
+parser.add_argument( '-p', '--preselection', default='incl' )
 parser.add_argument( '-f', '--tranining_fraction', default=1.0 )
 
 args            = parser.parse_args()
@@ -34,7 +33,6 @@ classifier      = args.classifier
 classifier_arch, classifier_feat = classifier.split(':')
 syst            = args.systematic
 preselection    = args.preselection
-data_aug        = int( args.data_augmentation )
 tranining_fraction = abs(float(args.tranining_fraction))
 if tranining_fraction > 1: tranining_fraction = 1.0
 
@@ -53,8 +51,6 @@ print "INFO: classifier arch:    ", classifier_arch
 print "INFO: classifier features:", classifier_feat
 print "INFO: training fraction:  ", tranining_fraction
 print "INFO: output file:        ", outfilename
-if data_aug > 0:
-   print "INFO: using data augmentation:", data_aug
 
 outfile = open( outfilename, "wt" )
 csvwriter = csv.writer( outfile )
@@ -133,59 +129,47 @@ for ientry in range(n_entries):
    runNumber       = tree.runNumber
    eventNumber     = tree.eventNumber
 
-   jets, bjets, ljets = helper_functions.MakeEventJets( tree )
-   bjets_n = len( bjets )
+   ljets = helper_functions.MakeEventJets( tree )
    ljets_n = len( ljets )
 
-   if preselection == "1b_incl": 
-      if bjets_n == 0: continue
-   if preselection == "2b_incl": 
-      if bjets_n < 2: continue
-
    # apply training/testing filter
-   u = rng.Uniform( 0, 1 ) 
-   if u > tranining_fraction: continue
+   u = 0.
+   if training_fraction < 1.0:
+     u = rng.Uniform( 0, 1 ) 
+     if u > tranining_fraction: continue
 
    # sort by b-tagging weight 
-   jets.sort( key=lambda jet: jet.mv2c10, reverse=True )
+   # jets.sort( key=lambda jet: jet.mv2c10, reverse=True )
 
-   phi = 0.
-   for i in range(data_aug+1):
+   phi = helper_functions.RotateJets( ljets )
 
-      flip_eta = True if rng.Uniform()>0.5 else False
+   jj = ljets[0] + ljets[1]
+   jj.dPhi = ljets[0].DeltaPhi( ljets[1] )
+   jj.dEta = ljets[0].Eta() - ljets[1].Eta()
+   jj.dR   = TMath.Sqrt( jj.dPhi*jj.dPhi + jj.dEta*jj.dEta )
+     
+   csvwriter.writerow( (
+     "%i" % tree.runNumber, "%i" % tree.eventNumber, "%.3f" % w,
 
-      jets_new, bjets_new, ljets_new = helper_functions.RotateEvent( jets, bjets, ljets, phi, flip_eta=flip_eta )
+     # leading jet
+     "%4.1f" % ljets[0].Px(),  "%4.1f" % ljets[0].Py(), "%4.1f" % ljets[0].Pz(), "%4.1f" % ljets[0].Pt(),
+     "%.2f"  % ljets[0].Eta(), "%.2f"  % ljets[0].Phi(),
+     "%4.1f" % ljets[0].E(),   "%4.1f" % ljets[0].M(),
+     "%.3f"  % ljets[0].tau2,  "%.3f"  % ljets[0].tau3, "%.3f" % ljets[0].tau32, 
 
-      shape = ( n_fso_max, n_features_per_fso )
-      event = helper_functions.make_rnn_input_GAN( ljets_new, shape, do_linearize=False )
+     # subleading jet
+     "%4.1f" % ljets[1].Px(),  "%4.1f" % ljets[1].Py(), "%4.1f" % ljets[1].Pz(), "%4.1f" % ljets[1].Pt(),
+     "%.2f"  % ljets[1].Eta(), "%.2f"  % ljets[1].Phi(),
+     "%4.1f" % ljets[1].E(),   "%4.1f" % ljets[1].M(),
+     "%.3f"  % ljets[1].tau2,  "%.3f"  % ljets[1].tau3, "%.3f" % ljets[1].tau32,
 
-      csvwriter.writerow( (
-            "%i" % tree.runNumber, "%i" % tree.eventNumber, "%.3f" % w,
-
-            # Leading jet
-            # px                   py                     pz                     pt
-            "%4.1f" % event[0][0], "%4.1f" % event[0][1], "%4.1f" % event[0][2], "%4.1f" % event[0][3],
-            #eta                  phi
-            "%.2f" % event[0][4], "%.2f" % event[0][5],
-            #E 
-            "%4.1f" % event[0][6], "%4.1f" % event[0][7],
-            #tau2                 #tau3                 #tau32
-            "%.3f" % event[0][8], "%.3f" % event[0][9], "%.3f" % event[0][10],  
-
-            # Subleading jet
-            # px                   py                     pz                     pt
-            "%4.1f" % event[1][0], "%4.1f" % event[1][1], "%4.1f" % event[1][2], "%4.1f" % event[1][3],
-            #eta                  phi
-            "%.2f" % event[1][4], "%.2f" % event[1][5],
-            #E 
-            "%4.1f" % event[1][6], "%4.1f" % event[1][7],
-            #tau2                 #tau3                 #tau32
-            "%.3f" % event[1][8], "%.3f" % event[1][9], "%.3f" % event[1][10],  
-
-            "@CATEGORY@"
-      ) )     
-
-      phi = rng.Uniform( -TMath.Pi(), TMath.Pi() )
+     # dijet system
+     "%4.1f" % jj.Px(),  "%4.1f" % jj.Py(), "%4.1f" % jj.Pz(), "%4.1f" % jj.Pt(),
+     "%.2f"  % jj.Eta(), "%.2f"  % jj.Phi(),
+     "%4.1f" % jj.E(),   "%4.1f" % jj.M(),
+     "%.2f"  % jj.dPhi,  "%.2f"  % jj.dEta, "%.2f" % jj.dR,
+                  
+   ) )
 
    n_good += 1 
 
