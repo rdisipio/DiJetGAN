@@ -64,11 +64,11 @@ def MakeEventJets( tree, b_tag_cut=0.83 ):
        lj.tau2  = tree.ljet_tau2[i]
        lj.tau3  = tree.ljet_tau3[i]
        lj.tau32 = tree.ljet_tau32[i]
-       lj.tau21 = tree.ljet_tau21[i]
-       lj.sd12  = tree.ljet_sd12[i]
-       lj.sd23  = tree.ljet_sd23[i]
-       lj.Qw    = tree.ljet_Qw[i]
-       lj.ntrk  = tree.ljet_QGTaggerNTrack[i]
+       #lj.tau21 = tree.ljet_tau21[i]
+       #lj.sd12  = tree.ljet_sd12[i]
+       #lj.sd23  = tree.ljet_sd23[i]
+       #lj.Qw    = tree.ljet_Qw[i]
+       #lj.ntrk  = tree.ljet_QGTaggerNTrack[i]
 
     return ljets
 
@@ -80,7 +80,7 @@ def RotateJets( ljets = [] ):
    phi = ljets[0].Phi()
    
    for lj in ljets:
-      lj_new.RotateZ( -phi )
+      lj.RotateZ( -phi )
 
    return phi
 

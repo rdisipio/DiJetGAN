@@ -33,8 +33,8 @@ classifier      = args.classifier
 classifier_arch, classifier_feat = classifier.split(':')
 syst            = args.systematic
 preselection    = args.preselection
-tranining_fraction = abs(float(args.tranining_fraction))
-if tranining_fraction > 1: tranining_fraction = 1.0
+training_fraction = abs(float(args.tranining_fraction))
+if training_fraction > 1: training_fraction = 1.0
 
 if outfilename == "":
   fpath = filelistname.split("/")[-1]
@@ -49,7 +49,7 @@ if outfilename == "":
 print "INFO: preselection:       ", preselection
 print "INFO: classifier arch:    ", classifier_arch
 print "INFO: classifier features:", classifier_feat
-print "INFO: training fraction:  ", tranining_fraction
+print "INFO: training fraction:  ", training_fraction
 print "INFO: output file:        ", outfilename
 
 outfile = open( outfilename, "wt" )
@@ -75,7 +75,6 @@ print "INFO: entries found:", n_entries
 # switch on only useful branches
 branches_active = []
 branches_active += branches_eventInfo
-branches_active += branches_jets
 branches_active += branches_ljets
 
 sumw = None
@@ -111,15 +110,6 @@ for ientry in range(n_entries):
    
    dsid = tree.mcChannelNumber
 
-   category = -1
-   if dsid == 0:
-      # real data
-      category = 0
-      #category = ( tree.eventNumber % 2 == 0 )
-   else:
-      # mc signal
-      category = 1
-
    w = 1.
    if not dsid == 0:
 #      w *= tree.weight_mc
@@ -141,7 +131,7 @@ for ientry in range(n_entries):
    # sort by b-tagging weight 
    # jets.sort( key=lambda jet: jet.mv2c10, reverse=True )
 
-   phi = helper_functions.RotateJets( ljets )
+   #phi = helper_functions.RotateJets( ljets )
 
    jj = ljets[0] + ljets[1]
    jj.dPhi = ljets[0].DeltaPhi( ljets[1] )
@@ -176,5 +166,5 @@ for ientry in range(n_entries):
 outfile.close()
 
 f_good = 100. * n_good / n_entries
-print "INFO: %i entries written (%.2f %%)" % ( (data_aug+1)*n_good, f_good) 
+print "INFO: %i entries written (%.2f %%)" % ( n_good, f_good) 
 
