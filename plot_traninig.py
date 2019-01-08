@@ -44,8 +44,8 @@ d_loss_f = infile.Get( "d_loss_f")
 g_loss = infile.Get( "g_loss" )
 
 n_epochs = d_loss.GetN()
-frame_d_loss = TH1F( "frame_d_loss", ";Training Epoch;Discriminator loss", 10, 0, n_epochs )
-frame_g_loss = TH1F( "frame_g_loss", ";Training Epoch;Generator loss", 10, 0, n_epochs )
+frame_d_loss = TH1F( "frame_d_loss", ";Training Epoch;Discriminator Loss", 10, 0, n_epochs )
+frame_g_loss = TH1F( "frame_g_loss", ";Training Epoch;Generator Loss", 10, 0, n_epochs )
 
 hmax = 1.3
 frame_d_loss.SetMaximum( hmax )

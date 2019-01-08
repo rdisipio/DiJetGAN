@@ -23,10 +23,10 @@ def make_generator_mlp( GAN_noise_size, GAN_output_size ):
 
    G = Dense( 32 )(G)
    G = Activation('tanh')(G)
-   G = BatchNormalization(momentum=0.8)(G) #0.8
+   #G = BatchNormalization(momentum=0.8)(G) #0.8
 
-   G = Dense( 16 )(G)
-   G = Activation('tanh')(G)
+   #G = Dense( 16 )(G)
+   #G = Activation('tanh')(G)
 
    G = Dense( GAN_output_size, activation="tanh" )(G)
 

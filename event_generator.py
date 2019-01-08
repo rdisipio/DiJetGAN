@@ -104,7 +104,7 @@ print "INFO: ...done."
 print
 
 print "INFO: starting event loop:", n_events
-
+n_good = 0
 for ievent in range(n_events):
    if ( n_events < 10 ) or ( (ievent+1) % int(float(n_events)/10.)  == 0 ):
       perc = 100. * ievent / float(n_events)
@@ -126,19 +126,20 @@ for ievent in range(n_events):
    lj1_eta   = X_generated[ievent][1]
    lj1_phi   = X_generated[ievent][2]
    lj1_E     = max( 0., X_generated[ievent][3] )
-   lj1_m     = max( 0., X_generated[ievent][4] )
+   lj1_M     = max( 0., X_generated[ievent][4] )
    
    lj2_pt    = X_generated[ievent][5]
    lj2_eta   = X_generated[ievent][6]
    lj2_phi   = X_generated[ievent][7]
    lj2_E     = max( 0., X_generated[ievent][8] )
-   lj2_m     = max( 0., X_generated[ievent][9] )
+   lj2_M     = max( 0., X_generated[ievent][9] )
 
-   jj_pt = max( 0., X_generated[ievent][10] )
-   jj_eta = X_generated[ievent][11]
+   jj_pt   = max( 0., X_generated[ievent][10] )
+   jj_eta  = X_generated[ievent][11]
    jj_dPhi = X_generated[ievent][12]
+   jj_dR   = X_generated[ievent][13]
    
-   lj1.SetPtEtaPhiM( lj1_pt, lj1_eta, lj1_phi, lj1_m )
+   lj1.SetPtEtaPhiM( lj1_pt, lj1_eta, lj1_phi, lj1_M )
    lj1.tau2 = -1.
    lj1.tau3 = -1.
    lj1.tau32 = -1
@@ -146,7 +147,7 @@ for ievent in range(n_events):
    lj1.bmatch70_dR = 10.
    lj1.bmatch70    = -1
       
-   lj2.SetPtEtaPhiM( lj2_pt, lj2_eta, lj2_phi, lj2_m )
+   lj2.SetPtEtaPhiM( lj2_pt, lj2_eta, lj2_phi, lj2_M )
    lj2.tau2 = -1.
    lj2.tau3 = -1.
    lj2.tau32 = -1
@@ -154,6 +155,10 @@ for ievent in range(n_events):
    lj2.bmatch70_dR = 10.
    lj2.bmatch70    = -1
 
+   if lj1.Pt() < lj2.Pt(): continue
+
+   n_good += 1
+   
    jj = lj1 + lj2
    jj.dEta = lj1.Eta() - lj2.Eta()
    jj.dPhi = lj1.DeltaPhi( lj2 )
@@ -203,6 +208,9 @@ for ievent in range(n_events):
    
 outtree.Write()
 outfile.Close()
+
+f_good = 100. * float(n_good) / float(n_events)
+print "INFO: saved %i events (%i%%)" % ( n_good, f_good )
 
 print "INFO: output file created:", outfname
 print "INFO: done."

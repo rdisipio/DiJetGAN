@@ -55,7 +55,6 @@ else:
    
 print "INFO: training systematic: %s" % systematic
 
-#scaler = StandardScaler()
 scaler = MinMaxScaler( (-1,1) )
 
 from features import *
@@ -68,7 +67,7 @@ from features import *
 features = [
    "ljet1_pt", "ljet1_eta", "ljet1_phi", "ljet1_E", "ljet1_M",# "ljet1_tau32",
    "ljet2_pt", "ljet2_eta", "ljet2_phi", "ljet2_E", "ljet2_M",# "ljet2_tau32",
-   "jj_pt", "jj_eta", "jj_M", "jj_dPhi",
+   "jj_pt",    "jj_eta",    "jj_phi",    "jj_M",    "jj_dPhi", "jj_dR",
 ]
 
 n_features = len(features)
@@ -129,10 +128,10 @@ def make_discriminator():
 
 #~~~~~~~~~~~~~~~~~~~~~~
 
-GAN_noise_size = 64 # number of random numbers (input noise)
+GAN_noise_size = 100 # number of random numbers (input noise)
 
-d_optimizer   = Adam(0.0001) #(0.0001, 0.5)
-g_optimizer   = Adam(0.0001) #(0.0001, 0.5)
+d_optimizer   = Adam(0.001, 0.5) #(0.0001, 0.5)
+g_optimizer   = Adam(0.001, 0.5) #(0.0001, 0.5)
 
 discriminator = make_discriminator()
 discriminator.name = "Discriminator"
@@ -232,14 +231,8 @@ def train_loop(nb_epoch=1000, BATCH_SIZE=32):
  
 #######################
 
-print "INFO: Train for %i epochs at original learning rates" % ( n_epochs )
+print "INFO: Train for %i epochs" % ( n_epochs )
 train_loop( nb_epoch=n_epochs, BATCH_SIZE=128 )
-
-#print "INFO: train with larger batch size"
-#train_loop( nb_epoch=int(n_epochs/5), BATCH_SIZE=512 )
-
-#print "INFO: train with larger batch size"
-#train_loop( nb_epoch=int(n_epochs/10), BATCH_SIZE=1024 )
 
 # save model to file
 model_filename = "GAN/generator.%s.%s.%s.%s.%s.h5" % (dsid,classifier_arch, classifier_feat, preselection, systematic)
@@ -272,6 +265,7 @@ h_g_acc    = TGraphErrors()
 h_d_loss.SetLineColor(kRed)
 h_g_loss.SetLineColor(kBlue)
 
+n_epochs = len(history['d_loss'])
 for i in range( n_epochs ):
       d_loss = history['d_loss'][i]
       d_loss_r = history['d_loss_r'][i]
