@@ -10,6 +10,8 @@ import cPickle as pickle
 from keras.models import load_model
 import numpy as np
 
+rng = TRandom3()
+
 known_classifiers = [ "rnn:GAN", "rnn:highlevel", "rnn:PxPyPzMBwNtrk" ]
 
 parser = argparse.ArgumentParser(description="GAN event generator")
@@ -49,8 +51,10 @@ print "INFO: loading scaler from", scaler_filename
 with open( scaler_filename, "rb" ) as file_scaler:
   scaler    = pickle.load( file_scaler )
 
-GAN_noise_size = generator.layers[0].input_shape[1]
+GAN_noise_size  = generator.layers[0].input_shape[1]
+GAN_output_size = generator.layers[-1].output_shape[1]
 print "GAN noise size:", GAN_noise_size
+print "GAN output size:", GAN_output_size
 
 outfname = "GAN/tree.%s.%s.%s.%s.%s.root" % (dsid,classifier_arch, classifier_feat, preselection, systematic)  
 outfile = TFile.Open( outfname, "RECREATE" )
@@ -124,22 +128,46 @@ for ievent in range(n_events):
 
    lj1_pt    = X_generated[ievent][0]
    lj1_eta   = X_generated[ievent][1]
-   lj1_phi   = X_generated[ievent][2]
+   #lj1_phi   = X_generated[ievent][2]
+   lj1_phi   = rng.Uniform( -TMath.Pi(), TMath.Pi() )
    lj1_E     = max( 0., X_generated[ievent][3] )
    lj1_M     = max( 0., X_generated[ievent][4] )
-   
+   lj1.SetPtEtaPhiM( lj1_pt, lj1_eta, lj1_phi, lj1_M )
+   #lj1.SetPtEtaPhiE( lj1_pt, lj1_eta, lj1_phi, lj1_E )
+
+   jj_pt     = X_generated[ievent][10]
+   jj_eta    = X_generated[ievent][11]
+   jj_pz     = X_generated[ievent][12]
+   jj_E      = X_generated[ievent][13]
+   jj_M      = X_generated[ievent][14]
+   jj_dPhi   = X_generated[ievent][15]
+   jj_dEta   = X_generated[ievent][16]
+   jj_dR     = X_generated[ievent][17]
+
    lj2_pt    = X_generated[ievent][5]
    lj2_eta   = X_generated[ievent][6]
-   lj2_phi   = X_generated[ievent][7]
+   lj2_phi   = lj1_phi + jj_dPhi
    lj2_E     = max( 0., X_generated[ievent][8] )
    lj2_M     = max( 0., X_generated[ievent][9] )
+   lj2.SetPtEtaPhiM( lj2_pt, lj2_eta, lj2_phi, lj2_M )
+   #lj2.SetPtEtaPhiE( lj2_pt, lj2_eta, lj2_phi, lj2_E )
 
-   jj_pt   = max( 0., X_generated[ievent][10] )
-   jj_eta  = X_generated[ievent][11]
-   jj_dPhi = X_generated[ievent][12]
-   jj_dR   = X_generated[ievent][13]
-   
-   lj1.SetPtEtaPhiM( lj1_pt, lj1_eta, lj1_phi, lj1_M )
+   #lj1_px = X_generated[ievent][0]
+   #lj1_py = X_generated[ievent][1]
+   #lj1_pz = X_generated[ievent][2]
+   #lj1_E  = X_generated[ievent][3]
+   #lj1_M  = X_generated[ievent][4]
+   #lj1_E = TMath.Sqrt( lj1_px*lj1_px + lj1_py*lj1_py + lj1_pz*lj1_pz + lj1_E*lj1_E )
+   #lj1.SetPxPyPzE( lj1_px, lj1_py, lj1_pz, lj1_E )
+
+   #lj2_px = X_generated[ievent][5]
+   #lj2_py = X_generated[ievent][6]
+   #lj2_pz = X_generated[ievent][7]
+   #lj2_E  = X_generated[ievent][8]
+   #lj2_M  = X_generated[ievent][9]
+   #lj1_E = TMath.Sqrt( lj2_px*lj2_px + lj2_py*lj2_py + lj2_pz*lj2_pz + lj2_E*lj2_E )
+   #lj2.SetPxPyPzE( lj2_px, lj2_py, lj2_pz, lj2_E )
+
    lj1.tau2 = -1.
    lj1.tau3 = -1.
    lj1.tau32 = -1
@@ -147,7 +175,6 @@ for ievent in range(n_events):
    lj1.bmatch70_dR = 10.
    lj1.bmatch70    = -1
       
-   lj2.SetPtEtaPhiM( lj2_pt, lj2_eta, lj2_phi, lj2_M )
    lj2.tau2 = -1.
    lj2.tau3 = -1.
    lj2.tau32 = -1

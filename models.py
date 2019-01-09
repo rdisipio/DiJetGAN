@@ -4,13 +4,83 @@ from keras.layers import Dense, Activation, Input, LSTM, Permute, Reshape, Maski
 from keras.layers.merge import *
 from keras.layers import Lambda
 from keras.layers import Dropout
-from keras.layers import concatenate, maximum, dot, average
+from keras.layers import concatenate, maximum, dot, average, add, subtract
 from keras.layers.normalization import BatchNormalization
 from keras.layers.advanced_activations import LeakyReLU, PReLU, ELU
 from keras.layers import Conv1D, GlobalMaxPooling1D, Conv2D, UpSampling2D, Conv2DTranspose, MaxPooling2D
 from keras.layers.merge import *
 from keras.optimizers import *
 from keras.regularizers import *
+
+def make_generator_mlp_PtEtaPhiM( GAN_noise_size ):
+   G_input = Input( shape=(GAN_noise_size,) )
+
+   G = Dense( GAN_noise_size, kernel_initializer='glorot_normal' )(G_input)
+   G = Activation('tanh')(G)
+   G = BatchNormalization()(G) #0.8
+
+   G = Dense( 64, kernel_initializer='glorot_normal' )(G_input)
+   G = Activation('tanh')(G)
+   G = BatchNormalization()(G) #0.8
+
+   G = Dense( 32 )(G)
+   G = Activation('tanh')(G)
+
+   j1 = Dense( 16, activation='tanh' )(G)
+   j1 = Dense(  8, activation='tanh' )(j1)
+   j1 = Dense(  4 )(j1)
+
+   j2 = Dense( 16, activation='tanh' )(G)
+   j2 = Dense(  8, activation='tanh' )(j2)
+   j2 = Dense(  4 )(j2)
+
+   jj = concatenate( [j1, j2 ] )
+   jj = Dense( 16, activation='tanh' )(jj)
+   jj = Dense(  8, activation='tanh' )(jj)
+   jj = Dense(  4 )(jj)
+
+   G_output = concatenate( [j1, j2, jj] )
+   generator = Model( G_input, G_output )
+
+   return generator
+
+
+def make_generator_mlp_PxPyPzE( GAN_noise_size ):
+   G_input = Input( shape=(GAN_noise_size,) )
+
+   G = Dense( GAN_noise_size, kernel_initializer='glorot_normal' )(G_input)
+   G = Activation('tanh')(G)
+   G = BatchNormalization()(G) #0.8
+
+   G = Dense( 64, kernel_initializer='glorot_normal' )(G_input)
+   G = Activation('tanh')(G)
+   G = BatchNormalization()(G) #0.8
+
+   G = Dense( 32 )(G)
+   G = Activation('tanh')(G)
+   G = BatchNormalization()(G) #0.8
+
+#   G = Dense( 16 )(G)
+#   G = Activation('tanh')(G)
+
+   j1 = Dense( 16, activation='tanh' )(G)
+   j1 = BatchNormalization()(j1)
+   j1 = Dense(  8, activation='tanh' )(j1)
+   j1 = Dense(  5 )(j1)
+
+   j2 = Dense( 16, activation='tanh' )(G)
+   j2 = BatchNormalization()(j2)
+   j2 = Dense(  8, activation='tanh' )(j2)
+   j2 = Dense(  5 )(j2)
+
+   #jj = add( [j1, j2] )
+
+   G_output = concatenate( [ j1, j2 ] )
+
+   generator = Model( G_input, G_output )
+
+   return generator
+
 
 def make_generator_mlp( GAN_noise_size, GAN_output_size ):
    # Build Generative model ...
@@ -38,7 +108,7 @@ def make_generator_mlp( GAN_noise_size, GAN_output_size ):
 
 def make_discriminator_mlp( GAN_output_size ):
    # Build Discriminative model ...
-   inshape = ( n_features, )
+   inshape = ( GAN_output_size, )
    D_input = Input( shape=inshape, name='D_input' )
 
    D = Dense( 64 )(D_input)

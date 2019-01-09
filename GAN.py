@@ -52,7 +52,7 @@ if training_filename == "":
    print "INFO: training file:", training_filename
 else:
    systematic = training_filename.split("/")[-1].split('.')[-2]
-   
+
 print "INFO: training systematic: %s" % systematic
 
 scaler = MinMaxScaler( (-1,1) )
@@ -64,11 +64,19 @@ from features import *
 #   "ljet2_px", "ljet2_py", "ljet2_pz", "ljet2_M", #"ljet2_tau32",
 #]
 
+#features = [
+#   "ljet1_pt", "ljet1_eta", "ljet1_phi", "ljet1_E", "ljet1_M",
+#   "ljet2_pt", "ljet2_eta", "ljet2_phi", "ljet2_E", "ljet2_M",
+#   "jj_pt",    "jj_eta",    "jj_phi",    "jj_E",    "jj_M"
+#   "jj_pt",    "jj_eta",    "jj_phi",    "jj_M",    "jj_dPhi", "jj_dR",
+#]
+
 features = [
-   "ljet1_pt", "ljet1_eta", "ljet1_phi", "ljet1_E", "ljet1_M",# "ljet1_tau32",
-   "ljet2_pt", "ljet2_eta", "ljet2_phi", "ljet2_E", "ljet2_M",# "ljet2_tau32",
-   "jj_pt",    "jj_eta",    "jj_phi",    "jj_M",    "jj_dPhi", "jj_dR",
-]
+   "ljet1_pt", "ljet1_eta", "ljet1_pz", "ljet1_E", "ljet1_M",
+   "ljet2_pt", "ljet2_eta", "ljet2_pz", "ljet2_E", "ljet2_M",
+   "jj_pt",    "jj_eta",    "jj_pz",    "jj_E",    "jj_M",
+   "jj_dPhi",  "jj_dEta",   "jj_dR",
+   ]
 
 n_features = len(features)
 print "INFO: input features:"
@@ -89,8 +97,6 @@ data.dropna(inplace=True)
 
 print "INFO: number of good events:", len(data)
 
-print "INFO: input features:"
-print features
 X_train = data[features].values
 
 print "INFO: X_train before standardization:"
@@ -117,6 +123,8 @@ print event_weights
 from models import *
 
 def make_generator():
+   #return make_generator_mlp_PtEtaPhiM( GAN_noise_size )
+   #return make_generator_mlp_PxPyPzE( GAN_noise_size )
    return make_generator_mlp( GAN_noise_size, n_features )
    #return make_generator_rnn( GAN_noise_size, n_features )
    #return make_generator_cnn( GAN_noise_size, n_features )
@@ -128,10 +136,12 @@ def make_discriminator():
 
 #~~~~~~~~~~~~~~~~~~~~~~
 
-GAN_noise_size = 100 # number of random numbers (input noise)
+GAN_noise_size = 128 # number of random numbers (input noise)
 
 d_optimizer   = Adam(0.001, 0.5) #(0.0001, 0.5)
 g_optimizer   = Adam(0.001, 0.5) #(0.0001, 0.5)
+#d_optimizer  = Adam(0.0001)
+#g_optimizer  = Adam(0.0001)
 
 discriminator = make_discriminator()
 discriminator.name = "Discriminator"
@@ -158,7 +168,7 @@ GAN.compile( loss='binary_crossentropy',
              optimizer=g_optimizer )
 GAN.summary()
 
-# Training: 
+# Training:
 # 1) pick up ntrain events from real dataset
 # 2) generate ntrain fake events
 

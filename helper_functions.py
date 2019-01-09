@@ -76,12 +76,20 @@ def MakeEventJets( tree, b_tag_cut=0.83 ):
 ###############################
 
 
-def RotateJets( ljets = [] ):
-   phi = ljets[0].Phi()
-   
+def RotateJets( ljets = [], phi=None ):
+   if phi == None: 
+     phi = -ljets[0].Phi()
+
    for lj in ljets:
-      lj.RotateZ( -phi )
+      lj.RotateZ( phi )
 
    return phi
 
+#~~~~~~~~~~~~~~~~~~~~~~
+
+def FlipEta( ljets = [] ):
+   for lj in ljets:
+      lj.SetPtEtaPhiE( lj.Pt(), -lj.Eta(), lj.Phi(), lj.E() )
+
 ####################
+
