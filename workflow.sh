@@ -11,6 +11,8 @@ case $1 in
 esac
 done
 
+echo
+echo "---------------"
 echo "1) Training GAN"
 echo "---------------"
 echo
@@ -19,9 +21,9 @@ echo
 ./plot_training.py
 
 echo
-echo "---------------"
+echo "------------------"
 echo "2) Generate events"
-echo "---------------"
+echo "------------------"
 echo
 
 ./generate_events.py -n $nevents
@@ -35,9 +37,9 @@ echo
 ./fill_histograms.py  filelists/mc16a.$dsid.GAN.incl.txt $nevents
 
 echo
-echo "------------------"
+echo "-------------"
 echo "3) Make plots"
-echo "------------------"
+echo "-------------"
 echo
 
 cat observables.txt | parallel ./plot_observables.py {} $dsid
