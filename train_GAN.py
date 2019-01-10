@@ -24,6 +24,7 @@ from keras.callbacks import *
 
 import pandas as pd
 
+
 ############
 
 known_classifiers = [ "rnn:GAN", "rnn:highlevel", "rnn:PxPyPzMBwNtrk" ]
@@ -71,11 +72,17 @@ from features import *
 #   "jj_pt",    "jj_eta",    "jj_phi",    "jj_M",    "jj_dPhi", "jj_dR",
 #]
 
+#features = [
+#   "ljet1_pt", "ljet1_eta", "ljet1_pz", "ljet1_E", "ljet1_M",
+#   "ljet2_pt", "ljet2_eta", "ljet2_pz", "ljet2_E", "ljet2_M",
+#   #"jj_pt",    "jj_eta",    "jj_pz",    "jj_E",    "jj_M",
+#   "jj_dPhi",  #"jj_dEta",   "jj_dR",
+#   ]
+
 features = [
-   "ljet1_pt", "ljet1_eta", "ljet1_pz", "ljet1_E", "ljet1_M",
-   "ljet2_pt", "ljet2_eta", "ljet2_pz", "ljet2_E", "ljet2_M",
-   "jj_pt",    "jj_eta",    "jj_pz",    "jj_E",    "jj_M",
-   "jj_dPhi",  "jj_dEta",   "jj_dR",
+   "ljet1_pt", "ljet1_eta", "ljet1_E", "ljet1_M",
+   "ljet2_pt", "ljet2_eta", "ljet2_E", "ljet2_M",
+   "jj_dPhi"
    ]
 
 n_features = len(features)
@@ -136,12 +143,12 @@ def make_discriminator():
 
 #~~~~~~~~~~~~~~~~~~~~~~
 
-GAN_noise_size = 128 # number of random numbers (input noise)
+GAN_noise_size = 100 # number of random numbers (input noise)
 
-d_optimizer   = Adam(0.001, 0.5) #(0.0001, 0.5)
-g_optimizer   = Adam(0.001, 0.5) #(0.0001, 0.5)
-#d_optimizer  = Adam(0.0001)
-#g_optimizer  = Adam(0.0001)
+#d_optimizer   = Adam(0.001, 0.3) #(0.0001, 0.5)
+#g_optimizer   = Adam(0.001, 0.3) #(0.0001, 0.5)
+d_optimizer  = Adam(0.0001)
+g_optimizer  = Adam(0.0001)
 
 discriminator = make_discriminator()
 discriminator.name = "Discriminator"

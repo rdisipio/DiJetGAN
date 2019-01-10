@@ -24,7 +24,7 @@ Train the generative-adversarial network (GAN):
 
 ```
 mkdir -p GAN
-./GAN.py -e 5000 -d 361024
+./train_GAN.py -e 5000 -d 361024
 ```
 This saved the generator model and the scaler.
 
@@ -36,7 +36,7 @@ mkdir -p img
 
 Generate events:
 ```
-./event_generator.py -n 200000
+./generate_events.py -n 200000
 ls GAN/tree.361024.rnn.GAN.incl.nominal.root > filelists/mc16a.361024.GAN.incl.txt
 ```
 

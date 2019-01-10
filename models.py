@@ -199,20 +199,18 @@ def make_discriminator_cnn( GAN_output_size ):
     inshape = ( GAN_output_size, )
     D_input = Input( shape=inshape, name='D_input' )
 
-    #D = Reshape( (-1,n_fso_max, n_features_per_fso) )(D_input)
     D = Dense(256)(D_input)
     D = Reshape( (1,16,16) )(D)
    
-    D = Conv2D( 128, 1, strides=1 )(D)
+    D = Conv2D( 64, 1, strides=1 )(D)
     D = Activation('tanh')(D)
 
-    D = Conv2D( 64, 1, strides=1 )(D)
+    D = Conv2D( 32, 1, strides=1 )(D)
     D = Activation('tanh')(D)
 
     D = Flatten()(D)
     D = Dropout(0.2)(D)
    
-    #D_output = Dense( 2, activation="softmax")(D)
     D_output = Dense( 1, activation="sigmoid")(D)
     discriminator = Model( D_input, D_output )
    

@@ -107,7 +107,7 @@ X_generated = scaler.inverse_transform( X_generated )
 print "INFO: ...done."
 print
 
-print "INFO: starting event loop:", n_events
+print "INFO: filling tree..."
 n_good = 0
 for ievent in range(n_events):
    if ( n_events < 10 ) or ( (ievent+1) % int(float(n_events)/10.)  == 0 ):
@@ -130,25 +130,25 @@ for ievent in range(n_events):
    lj1_eta   = X_generated[ievent][1]
    #lj1_phi   = X_generated[ievent][2]
    lj1_phi   = rng.Uniform( -TMath.Pi(), TMath.Pi() )
-   lj1_E     = max( 0., X_generated[ievent][3] )
-   lj1_M     = max( 0., X_generated[ievent][4] )
+   lj1_E     = max( 0., X_generated[ievent][2] )
+   lj1_M     = max( 0., X_generated[ievent][3] )
    lj1.SetPtEtaPhiM( lj1_pt, lj1_eta, lj1_phi, lj1_M )
    #lj1.SetPtEtaPhiE( lj1_pt, lj1_eta, lj1_phi, lj1_E )
 
-   jj_pt     = X_generated[ievent][10]
-   jj_eta    = X_generated[ievent][11]
-   jj_pz     = X_generated[ievent][12]
-   jj_E      = X_generated[ievent][13]
-   jj_M      = X_generated[ievent][14]
-   jj_dPhi   = X_generated[ievent][15]
-   jj_dEta   = X_generated[ievent][16]
-   jj_dR     = X_generated[ievent][17]
+   #jj_pt     = X_generated[ievent][10]
+   #jj_eta    = X_generated[ievent][11]
+   #jj_pz     = X_generated[ievent][12]
+   #jj_E      = X_generated[ievent][13]
+   #jj_M      = X_generated[ievent][14]
+   jj_dPhi   = X_generated[ievent][8]
+   #jj_dEta   = X_generated[ievent][16]
+   #jj_dR     = X_generated[ievent][17]
 
-   lj2_pt    = X_generated[ievent][5]
-   lj2_eta   = X_generated[ievent][6]
+   lj2_pt    = X_generated[ievent][4]
+   lj2_eta   = X_generated[ievent][5]
    lj2_phi   = lj1_phi + jj_dPhi
-   lj2_E     = max( 0., X_generated[ievent][8] )
-   lj2_M     = max( 0., X_generated[ievent][9] )
+   lj2_E     = max( 0., X_generated[ievent][6] )
+   lj2_M     = max( 0., X_generated[ievent][7] )
    lj2.SetPtEtaPhiM( lj2_pt, lj2_eta, lj2_phi, lj2_M )
    #lj2.SetPtEtaPhiE( lj2_pt, lj2_eta, lj2_phi, lj2_E )
 

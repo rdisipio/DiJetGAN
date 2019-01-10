@@ -51,13 +51,13 @@ hmax = 1.3
 frame_d_loss.SetMaximum( hmax )
 frame_d_loss.SetMinimum( 0. )
 
-hmax = 6.0
+hmax = 1.3*TMath.MaxElement( g_loss.GetN(), g_loss.GetY() )
 frame_g_loss.SetMaximum( hmax )
 frame_g_loss.SetMinimum( 0. )
 
 SetHistogramStyle( d_loss_f, color=kRed )
 SetHistogramStyle( d_loss_r, color=kBlue )
-    
+
 c = TCanvas( "C", "C", 800, 1200 )
 c.Divide( 1, 2 )
 
