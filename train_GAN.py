@@ -82,7 +82,7 @@ from features import *
 features = [
    "ljet1_pt", "ljet1_eta", "ljet1_E", "ljet1_M",
    "ljet2_pt", "ljet2_eta", "ljet2_E", "ljet2_M",
-   "jj_dPhi"
+   "jj_pt", "jj_M", "jj_dPhi"
    ]
 
 n_features = len(features)

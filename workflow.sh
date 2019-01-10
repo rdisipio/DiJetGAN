@@ -11,8 +11,33 @@ case $1 in
 esac
 done
 
-./GAN.py -e $nepochs -d $dsid
+echo "1) Training GAN"
+echo "---------------"
+echo
 
-./event_generator.py -n $nevents
-./tree2hist.py  filelists/mc16a.$dsid.GAN.incl.txt $nevents
+./train_GAN.py -e $nepochs -d $dsid
+./plot_training.py
+
+echo
+echo "---------------"
+echo "2) Generate events"
+echo "---------------"
+echo
+
+./generate_events.py -n $nevents
+
+echo
+echo "------------------"
+echo "3) Fill histograms"
+echo "------------------"
+echo
+
+./fill_histograms.py  filelists/mc16a.$dsid.GAN.incl.txt $nevents
+
+echo
+echo "------------------"
+echo "3) Make plots"
+echo "------------------"
+echo
+
 cat observables.txt | parallel ./plot_observables.py {} $dsid
