@@ -1,6 +1,6 @@
 #!/bin/bash
 
-nepochs=3000
+nepochs=5000
 nevents=200000
 dsid=361024
 while [ $# -gt 0 ] ; do

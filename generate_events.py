@@ -128,61 +128,42 @@ for ievent in range(n_events):
 
    lj1_pt    = X_generated[ievent][0]
    lj1_eta   = X_generated[ievent][1]
-   #lj1_phi   = X_generated[ievent][2]
-   lj1_phi   = rng.Uniform( -TMath.Pi(), TMath.Pi() )
-   lj1_E     = max( 0., X_generated[ievent][2] )
-   lj1_M     = max( 0., X_generated[ievent][3] )
+   lj1_phi   = 0.
+   lj1_M     = max( 0., X_generated[ievent][4] )
    lj1.SetPtEtaPhiM( lj1_pt, lj1_eta, lj1_phi, lj1_M )
-   #lj1.SetPtEtaPhiE( lj1_pt, lj1_eta, lj1_phi, lj1_E )
-
-   jj_pt     = X_generated[ievent][8]
-   jj_eta    = X_generated[ievent][9]
-   #jj_pz     = X_generated[ievent][12]
-   #jj_E      = X_generated[ievent][13]
-   jj_M      = X_generated[ievent][10]
-   jj_dPhi   = X_generated[ievent][11]
-   #jj_dEta   = X_generated[ievent][16]
-   #jj_dR     = X_generated[ievent][17]
-
-   lj2_pt    = X_generated[ievent][4]
-   lj2_eta   = X_generated[ievent][5]
-   lj2_phi   = lj1_phi + jj_dPhi
-   lj2_E     = max( 0., X_generated[ievent][6] )
-   lj2_M     = max( 0., X_generated[ievent][7] )
+   
+   lj2_pt    = X_generated[ievent][5]
+   lj2_eta   = X_generated[ievent][6]
+   lj2_phi   = 0.
+   lj2_M     = max( 0., X_generated[ievent][9] )
    lj2.SetPtEtaPhiM( lj2_pt, lj2_eta, lj2_phi, lj2_M )
-   #lj2.SetPtEtaPhiE( lj2_pt, lj2_eta, lj2_phi, lj2_E )
 
-   #lj1_px = X_generated[ievent][0]
-   #lj1_py = X_generated[ievent][1]
-   #lj1_pz = X_generated[ievent][2]
-   #lj1_E  = X_generated[ievent][3]
-   #lj1_M  = X_generated[ievent][4]
-   #lj1_E = TMath.Sqrt( lj1_px*lj1_px + lj1_py*lj1_py + lj1_pz*lj1_pz + lj1_E*lj1_E )
-   #lj1.SetPxPyPzE( lj1_px, lj1_py, lj1_pz, lj1_E )
+   jj_dPhi   = X_generated[ievent][15]
 
-   #lj2_px = X_generated[ievent][5]
-   #lj2_py = X_generated[ievent][6]
-   #lj2_pz = X_generated[ievent][7]
-   #lj2_E  = X_generated[ievent][8]
-   #lj2_M  = X_generated[ievent][9]
-   #lj1_E = TMath.Sqrt( lj2_px*lj2_px + lj2_py*lj2_py + lj2_pz*lj2_pz + lj2_E*lj2_E )
-   #lj2.SetPxPyPzE( lj2_px, lj2_py, lj2_pz, lj2_E )
-
-   lj1.tau2 = -1.
-   lj1.tau3 = -1.
-   lj1.tau32 = -1
+   # rotate jets' P4's:
+   phi = rng.Uniform( -TMath.Pi(), TMath.Pi() )
+   lj1.RotateZ( phi )
+   lj2.RotateZ( phi + jj_dPhi )
+   
+   lj1.tau2  = 0.
+   lj1.tau3  = 0.
+   lj1.tau32 = lj1.tau3 / lj1.tau2 if lj1.tau2 > 0. else -1.
    lj1.isTopTagged80 = 0 # TopSubstructureTagger( lj )
    lj1.bmatch70_dR = 10.
    lj1.bmatch70    = -1
       
-   lj2.tau2 = -1.
-   lj2.tau3 = -1.
-   lj2.tau32 = -1
+   lj2.tau2  = 0.
+   lj2.tau3  = 0.
+   lj2.tau32 = lj2.tau3 / lj2.tau2 if lj2.tau2 > 0. else -1.
    lj2.isTopTagged80 = 0 # TopSubstructureTagger( lj )
    lj2.bmatch70_dR = 10.
    lj2.bmatch70    = -1
 
    if lj1.Pt() < lj2.Pt(): continue
+   if lj1.Pt() < 500: continue
+   if lj2.Pt() < 350: continue
+   if abs(lj1.Eta()) > 2.0: continue
+   if abs(lj2.Eta()) > 2.0: continue
 
    n_good += 1
    

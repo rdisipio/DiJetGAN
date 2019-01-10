@@ -60,29 +60,11 @@ scaler = MinMaxScaler( (-1,1) )
 
 from features import *
 
-#features = [
-#   "ljet1_px", "ljet1_py", "ljet1_pz", "ljet1_M", #"ljet1_tau32",
-#   "ljet2_px", "ljet2_py", "ljet2_pz", "ljet2_M", #"ljet2_tau32",
-#]
-
-#features = [
-#   "ljet1_pt", "ljet1_eta", "ljet1_phi", "ljet1_E", "ljet1_M",
-#   "ljet2_pt", "ljet2_eta", "ljet2_phi", "ljet2_E", "ljet2_M",
-#   "jj_pt",    "jj_eta",    "jj_phi",    "jj_E",    "jj_M"
-#   "jj_pt",    "jj_eta",    "jj_phi",    "jj_M",    "jj_dPhi", "jj_dR",
-#]
-
-#features = [
-#   "ljet1_pt", "ljet1_eta", "ljet1_pz", "ljet1_E", "ljet1_M",
-#   "ljet2_pt", "ljet2_eta", "ljet2_pz", "ljet2_E", "ljet2_M",
-#   #"jj_pt",    "jj_eta",    "jj_pz",    "jj_E",    "jj_M",
-#   "jj_dPhi",  #"jj_dEta",   "jj_dR",
-#   ]
-
 features = [
-   "ljet1_pt", "ljet1_eta", "ljet1_E", "ljet1_M",
-   "ljet2_pt", "ljet2_eta", "ljet2_E", "ljet2_M",
-   "jj_pt", "jj_eta", "jj_M", "jj_dPhi"
+   "ljet1_pt", "ljet1_eta", "ljet1_pz", "ljet1_E", "ljet1_M",
+   "ljet2_pt", "ljet2_eta", "ljet2_pz", "ljet2_E", "ljet2_M",
+   "jj_pt", "jj_eta", "jj_pz", "jj_E", "jj_M",
+   "jj_dPhi", "jj_dEta", "jj_dR",
    ]
 
 n_features = len(features)
@@ -143,10 +125,10 @@ def make_discriminator():
 
 #~~~~~~~~~~~~~~~~~~~~~~
 
-GAN_noise_size = 100 # number of random numbers (input noise)
+GAN_noise_size = 200 # number of random numbers (input noise)
 
-#d_optimizer   = Adam(0.001, 0.3) #(0.0001, 0.5)
-#g_optimizer   = Adam(0.001, 0.3) #(0.0001, 0.5)
+#d_optimizer   = Adam(0.001, 0.5) #(0.0001, 0.5)
+#g_optimizer   = Adam(0.001, 0.5) #(0.0001, 0.5)
 d_optimizer  = Adam(0.0001)
 g_optimizer  = Adam(0.0001)
 
@@ -200,7 +182,10 @@ discriminator.fit(X,y, epochs=1, batch_size=128)
 y_hat = discriminator.predict(X)
 
 # set up loss storage vector
-history = { "d_loss":[], "d_loss_r":[], "d_loss_f":[], "g_loss":[], "d_acc":[], "g_acc":[] }
+history = {
+   "d_loss":[], "d_loss_r":[], "d_loss_f":[],
+   "g_loss":[],
+   "d_acc":[], "d_acc_r":[], "d_acc_f":[] }
 
 #######################
 
@@ -231,10 +216,12 @@ def train_loop(nb_epoch=1000, BATCH_SIZE=32):
         history["d_loss_r"].append(d_loss_real)
         history["d_loss_f"].append(d_loss_fake)
         history["d_acc"].append(d_acc)
+        history["d_acc_f"].append(d_acc_fake)
+        history["d_acc_r"].append(d_acc_real)
 
         # Train the generator
         # create new (statistically independent) random noise sample
-        #X_noise = np.random.uniform(0,1,size=[X_train_real.shape[0], GAN_noise_size])
+        X_noise = np.random.uniform(0,1,size=[X_train_real.shape[0], GAN_noise_size])
         X_train_fake = generator.predict(X_noise)
 
         # we want discriminator to mistake images as real
@@ -277,10 +264,9 @@ h_d_loss_r = TGraphErrors()
 h_d_loss_f = TGraphErrors()
 h_d_acc    = TGraphErrors()
 h_g_loss   = TGraphErrors()
-h_g_acc    = TGraphErrors()
-
-h_d_loss.SetLineColor(kRed)
-h_g_loss.SetLineColor(kBlue)
+h_d_acc    = TGraphErrors()
+h_d_acc_f  = TGraphErrors()
+h_d_acc_r  = TGraphErrors()
 
 n_epochs = len(history['d_loss'])
 for i in range( n_epochs ):
@@ -288,20 +274,24 @@ for i in range( n_epochs ):
       d_loss_r = history['d_loss_r'][i]
       d_loss_f = history['d_loss_f'][i]
       d_acc  = history['d_acc'][i]
+      d_acc_f = history['d_acc_f'][i]
+      d_acc_r = history['d_acc_r'][i]
       g_loss = history['g_loss'][i]
-      #h_d_loss.SetBinContent( i+1, d_loss )
-      #h_d_acc.SetBinContent( i+1,  d_acc )
-      #h_g_loss.SetBinContent( i+1, g_loss )
+      
       h_d_loss.SetPoint( i, i, d_loss )
       h_d_loss_r.SetPoint( i, i, d_loss_r )
       h_d_loss_f.SetPoint( i, i, d_loss_f )
       h_d_acc.SetPoint( i, i, d_acc )
+      h_d_acc_f.SetPoint( i, i, d_acc_f )
+      h_d_acc_r.SetPoint( i, i, d_acc_r )
       h_g_loss.SetPoint( i, i, g_loss )
 h_d_loss.Write( "d_loss" )
 h_d_loss_r.Write( "d_loss_r" )
 h_d_loss_f.Write( "d_loss_f" )
-h_d_acc.Write( "d_acc" )
 h_g_loss.Write( "g_loss")
+h_d_acc.Write( "d_acc" )
+h_d_acc_f.Write( "d_acc_f" )
+h_d_acc_r.Write( "d_acc_r" )
 
 training_root.Write()
 training_root.Close()

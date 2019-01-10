@@ -31,7 +31,7 @@ _h['ljet1_px'] = TH1F( "ljet1_px", ";Leading large-R jet p_{x} [GeV];Events / Bi
 _h['ljet1_py'] = TH1F( "ljet1_py", ";Leading large-R jet p_{y} [GeV];Events / Bin Width", 40, -1000, 1000 )
 _h['ljet1_pz'] = TH1F( "ljet1_pz", ";Leading large-R jet p_{z} [GeV];Events / Bin Width", 40, -2000, 2000 )
 _h['ljet1_pt'] = TH1F( "ljet1_pt", ";Leading large-R jet p_{T} [GeV];Events / Bin Width", 25,   300., 1200 )
-_h['ljet1_eta'] = TH1F( "ljet1_eta", ";Leading large-R jet #eta;Events / Bin Width", 40, -2.0, 2.0 )
+_h['ljet1_eta'] = TH1F( "ljet1_eta", ";Leading large-R jet #eta;Events / Bin Width", 50, -2.5, 2.5 )
 _h['ljet1_phi'] = TH1F( "ljet1_phi", ";Leading large-R jet #phi;Events / Bin Width", 32, 0., 3.1415 )
 _h['ljet1_E']  = TH1F( "ljet1_E",  ";Leading large-R jet E [GeV];Events / Bin Width", 20, 0., 2000 )
 _h['ljet1_m']  = TH1F( "ljet1_m",  ";Leading large-R jet m [GeV];Events / Bin Width", 30, 0., 300. )
@@ -43,7 +43,7 @@ _h['ljet2_px'] = TH1F( "ljet2_px", ";2nd leading large-R jet p_{x} [GeV];Events 
 _h['ljet2_py'] = TH1F( "ljet2_py", ";2nd leading large-R jet p_{y} [GeV];Events / Bin Width", 40, -1000, 1000 )
 _h['ljet2_pz'] = TH1F( "ljet2_pz", ";2nd leading large-R jet p_{z} [GeV];Events / Bin Width", 40, -2000, 2000 )
 _h['ljet2_pt'] = TH1F( "ljet2_pt", ";2nd leading large-R jet p_{T} [GeV];Events / Bin Width", 25,   300., 1200 )
-_h['ljet2_eta'] = TH1F( "ljet2_eta", ";2nd leading large-R jet #eta;Events / Bin Width", 40, -2.0, 2.0 )
+_h['ljet2_eta'] = TH1F( "ljet2_eta", ";2nd leading large-R jet #eta;Events / Bin Width", 50, -2.5, 2.5 )
 _h['ljet2_phi'] = TH1F( "ljet2_phi", ";2nd leading large-R jet #phi;Events / Bin Width", 32, 0., 3.1415 )
 _h['ljet2_E']  = TH1F( "ljet2_E",  ";2nd leading large-R jet E [GeV];Events / Bin Width", 20, 0., 2000 )
 _h['ljet2_m']  = TH1F( "ljet2_m",  ";2nd leading large-R jet m [GeV];Events / Bin Width", 30, 0., 300. )
@@ -92,8 +92,8 @@ for ientry in range(n_entries):
 
     ljets = []
     for k in range(len(tree.ljet_pt)):
-        if tree.ljet_pt[k] < 250*GeV: continue
-        if abs(tree.ljet_eta[k]) > 2.0: continue
+        #if tree.ljet_pt[k] < 350*GeV: continue
+        #if abs(tree.ljet_eta[k]) > 2.0: continue
         ljets += [ TLorentzVector() ]
         lj = ljets[-1]
         lj.SetPtEtaPhiM( tree.ljet_pt[k], tree.ljet_eta[k], tree.ljet_phi[k], tree.ljet_m[k] )            

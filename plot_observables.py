@@ -275,7 +275,7 @@ SetTH1FStyle( h_MC,  color=kBlack, markerstyle=20, markersize=2)
 
 
 #hmax = 1.3 * max( [h_GAN.GetMaximum(), h_MC.GetMaximum() ] )
-hmax = 1.5 * h_MC.GetMaximum()
+hmax = 1.5 * max( [ h_MC.GetMaximum(), h_GAN.GetMaximum() ] )
 h_GAN.SetMaximum( hmax )
 h_MC.SetMaximum( hmax )
 h_GAN.SetMinimum( 0. )

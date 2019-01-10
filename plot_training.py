@@ -38,18 +38,26 @@ if len(sys.argv) > 1: dsid = sys.argv[1]
 infilename = "GAN/training_history.%s.rnn.GAN.%s.nominal.root" % ( dsid, preselection )
 infile = TFile.Open( infilename )
 
-d_loss = infile.Get( "d_loss" )
+d_loss   = infile.Get( "d_loss" )
 d_loss_r = infile.Get( "d_loss_r" )
 d_loss_f = infile.Get( "d_loss_f") 
-g_loss = infile.Get( "g_loss" )
+g_loss   = infile.Get( "g_loss" )
+d_acc    = infile.Get( "d_acc" )
+d_acc_f  = infile.Get( "d_acc_f" )
+d_acc_r  = infile.Get( "d_acc_r" )
 
 n_epochs = d_loss.GetN()
 frame_d_loss = TH1F( "frame_d_loss", ";Training Epoch;Discriminator Loss", 10, 0, n_epochs )
 frame_g_loss = TH1F( "frame_g_loss", ";Training Epoch;Generator Loss", 10, 0, n_epochs )
+frame_d_acc  = TH1F( "frame_d_acc",  ";Training Epoch;Discriminator Accuracy", 10, 0, n_epochs )
 
 hmax = 1.3
 frame_d_loss.SetMaximum( hmax )
 frame_d_loss.SetMinimum( 0. )
+
+hmax = 1.3
+frame_d_acc.SetMaximum( hmax )
+frame_d_acc.SetMinimum( 0. )
 
 hmax = 1.3*TMath.MaxElement( g_loss.GetN(), g_loss.GetY() )
 frame_g_loss.SetMaximum( hmax )
@@ -58,8 +66,11 @@ frame_g_loss.SetMinimum( 0. )
 SetHistogramStyle( d_loss_f, color=kRed )
 SetHistogramStyle( d_loss_r, color=kBlue )
 
-c = TCanvas( "C", "C", 800, 1200 )
-c.Divide( 1, 2 )
+SetHistogramStyle( d_acc_f, color=kRed )
+SetHistogramStyle( d_acc_r, color=kBlue )
+
+c = TCanvas( "C", "C", 800, 1800 )
+c.Divide( 1, 3 )
 
 c.cd(1)
 frame_d_loss.Draw()
@@ -82,6 +93,26 @@ leg1.Draw()
 gPad.RedrawAxis()
 
 c.cd(2)
+frame_d_acc.Draw()
+d_acc_f.Draw("l same")
+d_acc_r.Draw("l same")
+d_acc.Draw("l same" )
+
+leg1 = TLegend( 0.65, 0.90, 0.80, 0.90 )
+leg1.SetFillColor(0)
+leg1.SetFillStyle(0)
+leg1.SetBorderSize(0)
+leg1.SetTextFont(42)
+leg1.SetTextSize(0.05)
+leg1.AddEntry( d_acc,   "Average acc", "l" )
+leg1.AddEntry( d_acc_r, "Real acc", "l" )
+leg1.AddEntry( d_acc_f, "Fake acc", "l" )
+leg1.SetY1( leg1.GetY1() - 0.05 * leg1.GetNRows() )
+leg1.Draw()
+
+gPad.RedrawAxis()
+
+c.cd(3)
 frame_g_loss.Draw()
 g_loss.Draw("l same" )
 
