@@ -59,7 +59,7 @@ _h['jj_eta'] = TH1F( "jj_eta", ";Dijet system #eta;Events / Bin Width", 50, -5.0
 _h['jj_phi'] = TH1F( "jj_phi", ";Dijet system #phi;Events / Bin Width", 32, 0., 3.1415 )
 _h['jj_E']  = TH1F( "jj_E",  ";Dijet system E [GeV];Events / Bin Width", 20, 0., 4000 )
 _h['jj_m']  = TH1F( "jj_m",  ";Dijet system m [GeV];Events / Bin Width", 30, 0., 3000. )
-_h['jj_dPhi'] = TH1F( "jj_dPhi", ";Dijet system #Delta#phi;Events / Bin Width", 16, 1.6, 3.2 )
+_h['jj_dPhi'] = TH1F( "jj_dPhi", ";Dijet system #Delta#phi;Events / Bin Width", 64, -3.2, 3.2 )
 _h['jj_dEta'] = TH1F( "jj_dEta", ";Dijet system #Delta#eta;Events / Bin Width", 30, -3., 3. )
 _h['jj_dR']   = TH1F( "jj_dR",   ";Dijet system #Delta R;Events / Bin Width",   30, 2., 5 )
 

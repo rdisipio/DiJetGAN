@@ -12,6 +12,34 @@ from keras.layers.merge import *
 from keras.optimizers import *
 from keras.regularizers import *
 
+from ROOT import TLorentzVector
+
+
+#######################################
+
+
+def Lorentz(x):
+   p1 = TLorentzVector()
+   p1.SetPtEtaPhiM( x[0][0], x[0][1], x[0][2], x[0][3] )
+
+   p2 = TLorentzVector()
+   p2.SetPtEtaPhiM( x[1][0], x[1][1], x[1][2], x[1][3] )
+
+   jj = p1 + p2
+
+   return ( jj.Pt(), jj.Eta(), jj.Phi(), jj.M() )
+
+#~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+def Lorentz_output_shape( input_shape ):
+   shape = list(input_shape)
+   shape[-1] = 4
+   return tuple(shape)
+
+
+#######################################
+
+
 def make_generator_mlp_PtEtaPhiM( GAN_noise_size ):
    G_input = Input( shape=(GAN_noise_size,) )
 
@@ -95,7 +123,7 @@ def make_generator_mlp( GAN_noise_size, GAN_output_size ):
    G = Activation('tanh')(G)
    #G = BatchNormalization(momentum=0.8)(G) #0.8
 
-   #G = Dense( 16 )(G)
+   #G = Dense( 32 )(G)
    #G = Activation('tanh')(G)
 
    G = Dense( GAN_output_size, activation="tanh" )(G)

@@ -163,10 +163,10 @@ for ientry in range(n_entries):
      "%.2f"  % jj.Eta(), "%.2f"  % jj.Phi(),
      "%4.1f" % jj.E(),   "%4.1f" % jj.M(),
      "%.2f"  % jj.dPhi,  "%.2f"  % jj.dEta, "%.2f" % jj.dR,
-                  
+
    ) )
 
-   n_good += 1 
+   n_good += 1
 
 outfile.close()
 

@@ -17,7 +17,7 @@ ls ntuples/user.pjacka.361024.Pythia8EvtGen.DAOD_TOPQ1.e3668_s3126_r9364_r9315_p
 Convert ROOT file to CSV. This operation includes some pre-processing:
 
 ```
-./root2csv.py -i filelists/mc16a.361024.incl.txt 
+./root2csv.py -i filelists/mc16a.361024.MC.incl.txt 
 ```
 
 Train the generative-adversarial network (GAN): 

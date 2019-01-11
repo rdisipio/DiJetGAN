@@ -125,7 +125,7 @@ def make_discriminator():
 
 #~~~~~~~~~~~~~~~~~~~~~~
 
-GAN_noise_size = 200 # number of random numbers (input noise)
+GAN_noise_size = 100 # number of random numbers (input noise)
 
 #d_optimizer   = Adam(0.001, 0.5) #(0.0001, 0.5)
 #g_optimizer   = Adam(0.001, 0.5) #(0.0001, 0.5)
@@ -221,8 +221,8 @@ def train_loop(nb_epoch=1000, BATCH_SIZE=32):
 
         # Train the generator
         # create new (statistically independent) random noise sample
-        X_noise = np.random.uniform(0,1,size=[X_train_real.shape[0], GAN_noise_size])
-        X_train_fake = generator.predict(X_noise)
+        #X_noise = np.random.uniform(0,1,size=[X_train_real.shape[0], GAN_noise_size])
+        #X_train_fake = generator.predict(X_noise)
 
         # we want discriminator to mistake images as real
         g_loss = GAN.train_on_batch( X_noise, y_real )
