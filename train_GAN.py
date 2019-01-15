@@ -61,10 +61,13 @@ scaler = MinMaxScaler( (-1,1) )
 from features import *
 
 features = [
-   "ljet1_pt", "ljet1_eta", "ljet1_pz", "ljet1_E", "ljet1_M",
-   "ljet2_pt", "ljet2_eta", "ljet2_pz", "ljet2_E", "ljet2_M",
-   "jj_pt", "jj_eta", "jj_pz", "jj_E", "jj_M",
-   "jj_dPhi", "jj_dEta", "jj_dR",
+#   "ljet1_px", "ljet1_py",  "ljet1_pz",  "ljet1_E",
+   "ljet1_pt", "ljet1_eta", "ljet1_phi", "ljet1_M",
+#   "ljet2_px", "ljet2_py",  "ljet2_pz",  "ljet2_E",
+   "ljet2_pt", "ljet2_eta", "ljet2_phi", "ljet2_M",
+#   "jj_px",    "jj_py",     "jj_pz",  "jj_E",
+   "jj_pt",    "jj_eta",    "jj_phi", "jj_M",
+   "jj_dPhi",  "jj_dEta",   "jj_dR",
    ]
 
 n_features = len(features)
@@ -112,8 +115,8 @@ print event_weights
 from models import *
 
 def make_generator():
-   #return make_generator_mlp_PtEtaPhiM( GAN_noise_size )
-   #return make_generator_mlp_PxPyPzE( GAN_noise_size )
+   #return make_generator_mlp_LorentzVector( GAN_noise_size )
+
    return make_generator_mlp( GAN_noise_size, n_features )
    #return make_generator_rnn( GAN_noise_size, n_features )
    #return make_generator_cnn( GAN_noise_size, n_features )
@@ -125,12 +128,12 @@ def make_discriminator():
 
 #~~~~~~~~~~~~~~~~~~~~~~
 
-GAN_noise_size = 100 # number of random numbers (input noise)
+GAN_noise_size = 200 # number of random numbers (input noise)
 
-#d_optimizer   = Adam(0.001, 0.5) #(0.0001, 0.5)
-#g_optimizer   = Adam(0.001, 0.5) #(0.0001, 0.5)
-d_optimizer  = Adam(0.0001)
-g_optimizer  = Adam(0.0001)
+d_optimizer   = Adam(0.0001, 0.5) #(0.0001, 0.5)
+g_optimizer   = Adam(0.0001, 0.5) #(0.0001, 0.5)
+#d_optimizer  = Adam(0.0001)
+#g_optimizer  = Adam(0.0001)
 
 discriminator = make_discriminator()
 discriminator.name = "Discriminator"

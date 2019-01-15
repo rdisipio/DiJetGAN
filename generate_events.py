@@ -17,7 +17,7 @@ known_classifiers = [ "rnn:GAN", "rnn:highlevel", "rnn:PxPyPzMBwNtrk" ]
 parser = argparse.ArgumentParser(description="GAN event generator")
 parser.add_argument( '-c', '--classifier',        default=known_classifiers[0] )
 parser.add_argument( '-p', '--preselection',      default="incl" )
-parser.add_argument( '-s', '--systematic',        default="nominal" ) 
+parser.add_argument( '-s', '--systematic',        default="nominal" )
 parser.add_argument( '-d', '--dsid',              default="361024" )
 parser.add_argument( '-n', '--nevents',           default=10000 )
 args         = parser.parse_args()
@@ -56,7 +56,7 @@ GAN_output_size = generator.layers[-1].output_shape[1]
 print "GAN noise size:", GAN_noise_size
 print "GAN output size:", GAN_output_size
 
-outfname = "GAN/tree.%s.%s.%s.%s.%s.root" % (dsid,classifier_arch, classifier_feat, preselection, systematic)  
+outfname = "ntuples_GAN/tree.%s.%s.%s.%s.%s.root" % (dsid,classifier_arch, classifier_feat, preselection, systematic)
 outfile = TFile.Open( outfname, "RECREATE" )
 
 b_eventNumber     = array( 'l', [ 0 ] )
@@ -128,22 +128,43 @@ for ievent in range(n_events):
 
    lj1_pt    = X_generated[ievent][0]
    lj1_eta   = X_generated[ievent][1]
-   lj1_phi   = 0.
-   lj1_M     = max( 0., X_generated[ievent][4] )
+   lj1_phi   = X_generated[ievent][2]
+   lj1_M     = X_generated[ievent][3]
    lj1.SetPtEtaPhiM( lj1_pt, lj1_eta, lj1_phi, lj1_M )
-   
-   lj2_pt    = X_generated[ievent][5]
-   lj2_eta   = X_generated[ievent][6]
-   lj2_phi   = 0.
-   lj2_M     = max( 0., X_generated[ievent][9] )
+
+   lj2_pt    = X_generated[ievent][4]
+   lj2_eta   = X_generated[ievent][5]
+   lj2_phi   = X_generated[ievent][6]
+   lj2_M     = X_generated[ievent][7]
    lj2.SetPtEtaPhiM( lj2_pt, lj2_eta, lj2_phi, lj2_M )
 
-   jj_dPhi   = X_generated[ievent][15]
+   #lj1_px    = X_generated[ievent][0]
+   #lj1_py    = X_generated[ievent][1]
+   #lj1_pz    = X_generated[ievent][2]
+   #lj1_E     = X_generated[ievent][3]
+   #lj1_M     = X_generated[ievent][6]
+   #lj1_E     = TMath.Sqrt( lj1_px*lj1_px + lj1_py*lj1_py + lj1_pz*lj1_pz + lj1_M*lj1_M )
+   #lj1.SetPxPyPzE( lj1_px, lj1_py, lj1_pz, lj1_E )
+
+   #lj2_px    = X_generated[ievent][4]
+   #lj2_py    = X_generated[ievent][5]
+   #lj2_pz    = X_generated[ievent][6]
+   #lj2_E     = X_generated[ievent][7]
+   #lj2_M     = X_generated[ievent][13]
+   #lj2_E     = TMath.Sqrt( lj2_px*lj2_px + lj2_py*lj2_py + lj2_pz*lj2_pz + lj2_M*lj2_M )
+   #lj2.SetPxPyPzE( lj2_px, lj2_py, lj2_pz, lj2_E )
+
+   #jj_dPhi   = X_generated[ievent][21]
 
    # rotate jets' P4's:
    phi = rng.Uniform( -TMath.Pi(), TMath.Pi() )
    lj1.RotateZ( phi )
-   lj2.RotateZ( phi + jj_dPhi )
+   lj2.RotateZ( phi )#+ jj_dPhi )
+
+   # flip eta?
+   #if rng.Uniform() > 0.5:
+   #  lj1.SetPtEtaPhiM( lj1.Pt(), -lj1.Eta(), lj1.Phi(), lj1.M() )
+   #  lj2.SetPtEtaPhiM( lj2.Pt(), -lj2.Eta(), lj2.Phi(), lj2.M() )
    
    lj1.tau2  = 0.
    lj1.tau3  = 0.
@@ -160,10 +181,10 @@ for ievent in range(n_events):
    lj2.bmatch70    = -1
 
    if lj1.Pt() < lj2.Pt(): continue
-   if lj1.Pt() < 500: continue
-   if lj2.Pt() < 350: continue
-   if abs(lj1.Eta()) > 2.0: continue
-   if abs(lj2.Eta()) > 2.0: continue
+#   if lj1.Pt() < 500: continue
+#   if lj2.Pt() < 350: continue
+#   if abs(lj1.Eta()) > 2.0: continue
+#   if abs(lj2.Eta()) > 2.0: continue
 
    n_good += 1
    

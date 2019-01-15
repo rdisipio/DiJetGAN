@@ -31,3 +31,11 @@ jj_m
 jj_dPhi
 jj_dEta
 jj_dR
+ljet1_E_vs_pt
+ljet1_m_vs_pt
+ljet1_m_vs_eta
+ljet2_E_vs_pt
+ljet2_m_vs_pt
+ljet2_m_vs_eta
+ljet1_pt_vs_ljet2_pt
+ljet2_m_vs_ljet1_m

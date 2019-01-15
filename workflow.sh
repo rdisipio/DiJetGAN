@@ -18,7 +18,7 @@ echo "---------------"
 echo
 
 ./train_GAN.py -e $nepochs -d $dsid
-./plot_training.py
+./plot_training.py $dsid
 
 echo
 echo "------------------"
@@ -26,7 +26,7 @@ echo "2) Generate events"
 echo "------------------"
 echo
 
-./generate_events.py -n $nevents
+./generate_events.py -d $dsid -n $nevents
 
 echo
 echo "------------------"

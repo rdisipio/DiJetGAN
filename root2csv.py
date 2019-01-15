@@ -134,9 +134,9 @@ for ientry in range(n_entries):
    lj1_phi = ljets[0].Phi()
    helper_functions.RotateJets( ljets, -lj1_phi )
 
-#   lj1_eta = ljets[0].Eta()
-#   if lj1_eta < 0:
-#     helper_functions.FlipEta( ljets )
+   #lj1_eta = ljets[0].Eta()
+   #if lj1_eta < 0:
+   #  helper_functions.FlipEta( ljets )
 
    jj = ljets[0] + ljets[1]
    jj.dPhi = ljets[0].DeltaPhi( ljets[1] )

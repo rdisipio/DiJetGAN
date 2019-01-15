@@ -64,15 +64,15 @@ _h['jj_dEta'] = TH1F( "jj_dEta", ";Dijet system #Delta#eta;Events / Bin Width", 
 _h['jj_dR']   = TH1F( "jj_dR",   ";Dijet system #Delta R;Events / Bin Width",   30, 2., 5 )
 
 _h['ljet1_E_vs_pt']  = TH2F( "ljet1_E_vs_pt",  ";Leading large-R jet p_{T} [GeV];Leading large-R jet E [GeV]", 20, 0., 2000, 50, 0., 2000 )
-_h['ljet1_m_vs_pt']  = TH2F( "ljet1_m_vs_pt",  ";Leading large-R jet p_{T} [GeV];Leading large-R jet m [GeV]", 20, 0., 2000, 30, 0., 300. )
-_h['ljet1_m_vs_eta'] = TH2F( "ljet1_m_vs_eta", ";Leading large-R jet #eta;Leading large-R jet m [GeV]", 40, -2.0, 2.0, 30, 0., 300. )
+_h['ljet1_m_vs_pt']  = TH2F( "ljet1_m_vs_pt",  ";Leading large-R jet p_{T} [GeV];Leading large-R jet m [GeV]", 20, 0., 2000, 30, 0., 600. )
+_h['ljet1_m_vs_eta'] = TH2F( "ljet1_m_vs_eta", ";Leading large-R jet #eta;Leading large-R jet m [GeV]", 40, -2.0, 2.0, 30, 0., 600. )
 
 _h['ljet2_E_vs_pt']  = TH2F( "ljet2_E_vs_pt",  ";2nd leading large-R jet p_{T} [GeV];2nd leading large-R jet E [GeV]", 50, 0., 2000, 50, 0., 2000 )
-_h['ljet2_m_vs_pt']  = TH2F( "ljet2_m_vs_pt",  ";2nd leading large-R jet p_{T} [GeV];2nd leading large-R jet m [GeV]", 50, 0., 2000, 30, 0., 300. )
-_h['ljet2_m_vs_eta'] = TH2F( "ljet2_m_vs_eta", ";2nd leading large-R jet #eta;2nd leading large-R jet m [GeV]", 40, -2.0, 2.0, 30, 0., 300. )
+_h['ljet2_m_vs_pt']  = TH2F( "ljet2_m_vs_pt",  ";2nd leading large-R jet p_{T} [GeV];2nd leading large-R jet m [GeV]", 50, 0., 2000, 30, 0., 600. )
+_h['ljet2_m_vs_eta'] = TH2F( "ljet2_m_vs_eta", ";2nd leading large-R jet #eta;2nd leading large-R jet m [GeV]", 40, -2.0, 2.0, 30, 0., 600. )
 
 _h['ljet2_pt_vs_ljet1_pt'] = TH2F( "ljet1_pt_vs_ljet2_pt", ";Leading large-R jet p_{T} [GeV];2nd leading large-R jet p_{T} [GeV]", 50, 0., 2000, 50, 0., 2000 )
-_h['ljet2_m_vs_ljet1_m']   = TH2F( "ljet2_m_vs_ljet1_m",   ";Leading large-R jet m [GeV];2nd leading large-R jet m [GeV]", 30, 0., 300., 30, 0., 300. )
+_h['ljet2_m_vs_ljet1_m']   = TH2F( "ljet2_m_vs_ljet1_m",   ";Leading large-R jet m [GeV];2nd leading large-R jet m [GeV]", 30, 0., 600., 30, 0., 600. )
 
 for h in _h.values(): h.Sumw2()
 
@@ -158,7 +158,7 @@ for ientry in range(n_entries):
     _h['jj_dPhi'].Fill( jj.dPhi, w )
     _h['jj_dEta'].Fill( jj.dEta, w )
     _h['jj_dR'].Fill( jj.dR, w )
-    
+
     _h['ljet1_E_vs_pt'].Fill(  lj1.Pt()/GeV, lj1.E()/GeV, w )
     _h['ljet1_m_vs_pt'].Fill(  lj1.Pt()/GeV, lj1.M()/GeV, w )
     _h['ljet1_m_vs_eta'].Fill( lj1.Eta(),    lj1.M()/GeV, w )
@@ -167,8 +167,8 @@ for ientry in range(n_entries):
     _h['ljet2_m_vs_pt'].Fill(  lj2.Pt()/GeV, lj2.M()/GeV, w )
     _h['ljet2_m_vs_eta'].Fill( lj2.Eta(),    lj2.M()/GeV, w )
 
-    _h['ljet2_pt_vs_ljet1_pt'].Fill( lj1.Pt(), lj2.Pt(), w )
-    _h['ljet2_m_vs_ljet1_m'].Fill( lj1.M(), lj2.M(), w )
+    _h['ljet2_pt_vs_ljet1_pt'].Fill( lj1.Pt()/GeV, lj2.Pt()/GeV, w )
+    _h['ljet2_m_vs_ljet1_m'].Fill( lj1.M()/GeV, lj2.M()/GeV, w )
 
 
 outfile.Write()

@@ -1,6 +1,3 @@
 ntuples/user.pjacka.361024.Pythia8EvtGen.DAOD_TOPQ1.e3668_s3126_r9364_r9315_p3404.AT-21.2.29-MC16aDijet-v6_allhad_boosted_root/user.pjacka.14191160._000001.allhad_boosted.root
 ntuples/user.pjacka.361024.Pythia8EvtGen.DAOD_TOPQ1.e3668_s3126_r9364_r9315_p3404.AT-21.2.29-MC16aDijet-v6_allhad_boosted_root/user.pjacka.14191160._000002.allhad_boosted.root
 ntuples/user.pjacka.361024.Pythia8EvtGen.DAOD_TOPQ1.e3668_s3126_r9364_r9315_p3404.AT-21.2.29-MC16aDijet-v6_allhad_boosted_root/user.pjacka.14191160._000003.allhad_boosted.root
-ntuples/user.pjacka.361024.Pythia8EvtGen.DAOD_TOPQ1.e3668_s3126_r9364_r9315_p3404.AT-21.2.29-MC16aDijet-v6_allhad_boosted_root/user.pjacka.14191160._000004.allhad_boosted.root
-ntuples/user.pjacka.361024.Pythia8EvtGen.DAOD_TOPQ1.e3668_s3126_r9364_r9315_p3404.AT-21.2.29-MC16aDijet-v6_allhad_boosted_root/user.pjacka.14191160._000005.allhad_boosted.root
-ntuples/user.pjacka.361024.Pythia8EvtGen.DAOD_TOPQ1.e3668_s3126_r9364_r9315_p3404.AT-21.2.29-MC16aDijet-v6_allhad_boosted_root/user.pjacka.14191160._000006.allhad_boosted.root

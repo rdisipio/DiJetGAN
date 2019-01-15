@@ -12,103 +12,78 @@ from keras.layers.merge import *
 from keras.optimizers import *
 from keras.regularizers import *
 
-from ROOT import TLorentzVector
+#from ROOT import TLorentzVector
+from lorentz import *
 
 
 #######################################
 
 
-def Lorentz(x):
-   p1 = TLorentzVector()
-   p1.SetPtEtaPhiM( x[0][0], x[0][1], x[0][2], x[0][3] )
-
-   p2 = TLorentzVector()
-   p2.SetPtEtaPhiM( x[1][0], x[1][1], x[1][2], x[1][3] )
-
-   jj = p1 + p2
-
-   return ( jj.Pt(), jj.Eta(), jj.Phi(), jj.M() )
+def PxPyPzE_to_PtEtaPhiM(x):
+   #p = TLorentzVector()
+   #p.SetPxPyPzE( x[0], x[1], x[2], x[3] )
+   p = FourMomentum( x[0], x[1], x[2], x[3] )
+      
+   return ( p.Pt(), p.Eta(), p.Phi(), p.M() )
 
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-def Lorentz_output_shape( input_shape ):
-   shape = list(input_shape)
-   shape[-1] = 4
-   return tuple(shape)
-
+#def LVAngles( x ):
+   
 
 #######################################
 
 
-def make_generator_mlp_PtEtaPhiM( GAN_noise_size ):
+def make_generator_mlp_LorentzVector( GAN_noise_size ):
    G_input = Input( shape=(GAN_noise_size,) )
 
    G = Dense( GAN_noise_size, kernel_initializer='glorot_normal' )(G_input)
    G = Activation('tanh')(G)
-   G = BatchNormalization()(G) #0.8
+   #G = BatchNormalization()(G) #0.8
 
    G = Dense( 64, kernel_initializer='glorot_normal' )(G_input)
    G = Activation('tanh')(G)
-   G = BatchNormalization()(G) #0.8
+   #G = BatchNormalization()(G) #0.8
 
-   G = Dense( 32 )(G)
-   G = Activation('tanh')(G)
+   #G = Dense( 32 )(G)
+   #G = Activation('tanh')(G)
 
-   j1 = Dense( 16, activation='tanh' )(G)
-   j1 = Dense(  8, activation='tanh' )(j1)
-   j1 = Dense(  4 )(j1)
+   j1_PtEtaPhiM = Dense(4, activation='tanh')(G)
+   #j1_PtEtaPhiM = Dense(32, activation='tanh')(j1_PtEtaPhiM)
+   #j1_PtEtaPhiM = Dense(4)(j1_PtEtaPhiM)
 
-   j2 = Dense( 16, activation='tanh' )(G)
-   j2 = Dense(  8, activation='tanh' )(j2)
-   j2 = Dense(  4 )(j2)
+   j2_PtEtaPhiM = Dense(4, activation='tanh')(G)
+   #j2_PtEtaPhiM = Dense(32, activation='tanh')(j2_PtEtaPhiM)
+   #j2_PtEtaPhiM = Dense(4)(j2_PtEtaPhiM)
 
-   jj = concatenate( [j1, j2 ] )
-   jj = Dense( 16, activation='tanh' )(jj)
-   jj = Dense(  8, activation='tanh' )(jj)
-   jj = Dense(  4 )(jj)
+   #j1_PxPyPzE = Dense(4, activation='tanh')(G)
+   #j2_PxPyPzE = Dense(4, activation='tanh')(G)
 
-   G_output = concatenate( [j1, j2, jj] )
+   jj = concatenate( [ j1_PtEtaPhiM, j2_PtEtaPhiM ] )
+   #jj = concatenate( [ j1_PxPyPzE, j2_PxPyPzE ] )
+   #jj_PxPyPzE = add( [ j1_PxPyPzE, j2_PxPyPzE ] )
+
+   jj_PtEtaPhiM = Dense(64, activation='tanh')(jj)
+   jj_PtEtaPhiM = Dense(32, activation='tanh')(jj_PtEtaPhiM)
+   jj_PtEtaPhiM = Dense(4)(jj_PtEtaPhiM)
+
+   jj_angles = Dense(32, activation='tanh')(jj)
+   jj_angles = Dense(3)(jj_angles)
+
+   G_output = concatenate( [
+      #j1_PxPyPzE,
+      j1_PtEtaPhiM,
+      #j2_PxPyPzE,
+      j2_PtEtaPhiM,
+      #jj_PxPyPzE,
+      jj_PtEtaPhiM,
+      jj_angles
+   ] )
    generator = Model( G_input, G_output )
 
    return generator
 
-
-def make_generator_mlp_PxPyPzE( GAN_noise_size ):
-   G_input = Input( shape=(GAN_noise_size,) )
-
-   G = Dense( GAN_noise_size, kernel_initializer='glorot_normal' )(G_input)
-   G = Activation('tanh')(G)
-   G = BatchNormalization()(G) #0.8
-
-   G = Dense( 64, kernel_initializer='glorot_normal' )(G_input)
-   G = Activation('tanh')(G)
-   G = BatchNormalization()(G) #0.8
-
-   G = Dense( 32 )(G)
-   G = Activation('tanh')(G)
-   G = BatchNormalization()(G) #0.8
-
-#   G = Dense( 16 )(G)
-#   G = Activation('tanh')(G)
-
-   j1 = Dense( 16, activation='tanh' )(G)
-   j1 = BatchNormalization()(j1)
-   j1 = Dense(  8, activation='tanh' )(j1)
-   j1 = Dense(  5 )(j1)
-
-   j2 = Dense( 16, activation='tanh' )(G)
-   j2 = BatchNormalization()(j2)
-   j2 = Dense(  8, activation='tanh' )(j2)
-   j2 = Dense(  5 )(j2)
-
-   #jj = add( [j1, j2] )
-
-   G_output = concatenate( [ j1, j2 ] )
-
-   generator = Model( G_input, G_output )
-
-   return generator
-
+#~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 def make_generator_mlp( GAN_noise_size, GAN_output_size ):
    # Build Generative model ...
@@ -230,10 +205,10 @@ def make_discriminator_cnn( GAN_output_size ):
     D = Dense(256)(D_input)
     D = Reshape( (1,16,16) )(D)
    
-    D = Conv2D( 64, 1, strides=1 )(D)
+    D = Conv2D( 128, 1, strides=1 )(D)
     D = Activation('tanh')(D)
 
-    D = Conv2D( 32, 1, strides=1 )(D)
+    D = Conv2D( 64, 1, strides=1 )(D)
     D = Activation('tanh')(D)
 
     D = Flatten()(D)

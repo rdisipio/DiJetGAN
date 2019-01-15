@@ -255,20 +255,24 @@ h_GAN = infile_GAN.Get( hname )
 h_MC  = infile_MC.Get( hname )
 
 #print hname, h_GAN, h_MC
+if h_MC == None:
+  print "ERROR: invalid MC histogram for", obs
 
 xtitle = h_MC.GetXaxis().GetTitle()
 ytitle = h_MC.GetYaxis().GetTitle()
 
 if h_GAN.Class() == TH2F.Class():
-#  print "INFO: calculating profile-X"
   h_GAN = h_GAN.ProfileX("GAN_pfx")
   h_MC  = h_MC.ProfileX("MC_pfx")
+
+  h_GAN.GetYaxis().SetTitle( ytitle )
+  h_MC.GetYaxis().SetTitle( ytitle )
 else:
   Normalize( h_GAN )
   Normalize( h_MC )
 
-DivideByBinWidth( h_GAN )
-DivideByBinWidth( h_MC )
+  DivideByBinWidth( h_GAN )
+  DivideByBinWidth( h_MC )
 
 SetTH1FStyle( h_GAN, color=kRed, markerstyle=24, markersize=2 )
 SetTH1FStyle( h_MC,  color=kBlack, markerstyle=20, markersize=2)
