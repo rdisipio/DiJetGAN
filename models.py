@@ -28,7 +28,12 @@ def PxPyPzE_to_PtEtaPhiM(x):
 
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-#def LVAngles( x ):
+def flip_eta( x ):
+   x[1] = -x[1]
+   x[5] = -x[5]
+   x[9] = -x[9]
+
+   return x
    
 
 #######################################
@@ -85,7 +90,7 @@ def make_generator_mlp_LorentzVector( GAN_noise_size ):
 
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-def make_generator_mlp( GAN_noise_size, GAN_output_size ):
+def make_generator_mlp( GAN_noise_size, GAN_output_size, do_flip_eta=False ):
    # Build Generative model ...
 
    G_input = Input( shape=(GAN_noise_size,) )
@@ -102,6 +107,9 @@ def make_generator_mlp( GAN_noise_size, GAN_output_size ):
    #G = Activation('tanh')(G)
 
    G = Dense( GAN_output_size, activation="tanh" )(G)
+
+   if do_flip_eta:
+      G = Lambda( flip_eta, output_shape(GAN_output_size,) )(G)
 
    generator = Model( G_input, G )
 
@@ -195,14 +203,19 @@ def make_generator_cnn( GAN_noise_size, GAN_output_size ):
 
 #~~~~~~~~~~~~~~~~~~~~~~
 
-def make_discriminator_cnn( GAN_output_size ):
+def make_discriminator_cnn( GAN_output_size, do_flip_eta=False ):
    # Build Discriminative model ...
     print "DEBUG: discriminator: input features:", GAN_output_size
     
     inshape = ( GAN_output_size, )
     D_input = Input( shape=inshape, name='D_input' )
 
-    D = Dense(256)(D_input)
+    D = Dense( GAN_output_size )(D_input)
+    
+    if do_flip_eta:
+       D = Lambda( flip_eta, output_shape=(GAN_output_size,) )(D)
+
+    D = Dense(256)(D)
     D = Reshape( (1,16,16) )(D)
    
     D = Conv2D( 128, 1, strides=1 )(D)

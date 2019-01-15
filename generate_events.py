@@ -181,10 +181,10 @@ for ievent in range(n_events):
    lj2.bmatch70    = -1
 
    if lj1.Pt() < lj2.Pt(): continue
-#   if lj1.Pt() < 500: continue
-#   if lj2.Pt() < 350: continue
-#   if abs(lj1.Eta()) > 2.0: continue
-#   if abs(lj2.Eta()) > 2.0: continue
+   if lj1.Pt() < 250: continue
+   if lj2.Pt() < 250: continue
+   if abs(lj1.Eta()) > 2.0: continue
+   if abs(lj2.Eta()) > 2.0: continue
 
    n_good += 1
    

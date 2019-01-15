@@ -89,6 +89,10 @@ b_eventNumber     = array( 'l', [ 0 ] )
 b_runNumber       = array( 'l', [ 0 ] )
 b_mcChannelNumber = array( 'l', [0] )
 b_abcd16          = array( 'i', [0] )
+b_weight_mc               = array( 'f', [0] )
+b_weight_pileup           = array( 'f', [0] )
+b_weight_jvt              = array( 'f', [0] )
+b_weight_bTagSF_MV2c10_70 = array( 'f', [0] )
 b_ljet_px    = vector('float')(MAX_JETS_N)
 b_ljet_py    = vector('float')(MAX_JETS_N)
 b_ljet_pz    = vector('float')(MAX_JETS_N)
@@ -107,7 +111,11 @@ b_ljet_isTopTagged80  = vector('int')(MAX_JETS_N)
 outtree = TTree( syst, "MG5 generated events" )
 outtree.Branch( 'eventNumber',        b_eventNumber,     'eventNumber/l' )
 outtree.Branch( 'runNumber',          b_runNumber,       'runNumber/l' )
-outtree.Branch( 'mcChannelNumber',    b_mcChannelNumber, "mcChannelNumber/l" )
+outtree.Branch( 'mcChannelNumber',    b_mcChannelNumber, 'mcChannelNumber/l' )
+outtree.Branch( 'weight_mc',          b_weight_mc,       'weight_mc/F' )
+outtree.Branch( 'weight_pileup',      b_weight_pileup,   'weight_pileup/F' )
+outtree.Branch( 'weight_jvt',         b_weight_jvt,      'weight_jvt/F' )
+outtree.Branch( 'weight_bTagSF_MV2c10_70', b_weight_bTagSF_MV2c10_70, 'weight_bTagSF_MV2c10_70/F' )
 outtree.Branch( 'ljet_px',            b_ljet_px )
 outtree.Branch( 'ljet_py',            b_ljet_py )
 outtree.Branch( 'ljet_pz',            b_ljet_pz )
@@ -138,9 +146,21 @@ for ientry in range(n_entries):
   b_mcChannelNumber[0] = 0 #tree.Event.ProcessID
   b_runNumber[0]       = 0
   b_eventNumber[0]     = ientry #int( Number )
+  b_weight_mc[0]       = 1.0
+  b_weight_pileup[0]   = 1.0
+  b_weight_jvt[0]      = 1.0
+  b_weight_bTagSF_MV2c10_70 = 1.0
 
   jets = []
-  jets_n = 2 #len( tree.Event.Jet )
+  jets_n = tree.GetLeaf("Jet.PT").GetLen()
+
+  # do sanity checks first
+  if jets_n < 2: continue
+  if tree.GetLeaf("Jet.PT").GetValue(0) < 250.: continue
+  if tree.GetLeaf("Jet.PT").GetValue(1) < 250.: continue
+  if abs(tree.GetLeaf("Jet.Eta").GetValue(0)) > 2.0: continue
+  if abs(tree.GetLeaf("Jet.Eta").GetValue(1)) > 2.0: continue
+
   for i in range(jets_n):
 
     jets += [ TLorentzVector() ]

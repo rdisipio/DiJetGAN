@@ -39,3 +39,4 @@ ljet2_m_vs_pt
 ljet2_m_vs_eta
 ljet1_pt_vs_ljet2_pt
 ljet2_m_vs_ljet1_m
+ljet2_eta_vs_ljet1_eta

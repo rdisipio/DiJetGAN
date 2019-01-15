@@ -73,6 +73,7 @@ _h['ljet2_m_vs_eta'] = TH2F( "ljet2_m_vs_eta", ";2nd leading large-R jet #eta;2n
 
 _h['ljet2_pt_vs_ljet1_pt'] = TH2F( "ljet1_pt_vs_ljet2_pt", ";Leading large-R jet p_{T} [GeV];2nd leading large-R jet p_{T} [GeV]", 50, 0., 2000, 50, 0., 2000 )
 _h['ljet2_m_vs_ljet1_m']   = TH2F( "ljet2_m_vs_ljet1_m",   ";Leading large-R jet m [GeV];2nd leading large-R jet m [GeV]", 30, 0., 600., 30, 0., 600. )
+_h['ljet2_eta_vs_ljet1_eta'] = TH2F( "ljet2_eta_vs_ljet1_eta", ";Leading large-R jet #eta;2nd leading large-R jet #eta", 40, -2.0, 2.0, 40, -2.0, 2.0 )
 
 for h in _h.values(): h.Sumw2()
 
@@ -169,7 +170,7 @@ for ientry in range(n_entries):
 
     _h['ljet2_pt_vs_ljet1_pt'].Fill( lj1.Pt()/GeV, lj2.Pt()/GeV, w )
     _h['ljet2_m_vs_ljet1_m'].Fill( lj1.M()/GeV, lj2.M()/GeV, w )
-
+    _h['ljet2_eta_vs_ljet1_eta'].Fill( lj1.Eta(), lj2.Eta(), w )
 
 outfile.Write()
 outfile.Close()

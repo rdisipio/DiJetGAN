@@ -114,24 +114,24 @@ print event_weights
 
 from models import *
 
-def make_generator():
+def make_generator(do_flip_eta=False):
    #return make_generator_mlp_LorentzVector( GAN_noise_size )
 
-   return make_generator_mlp( GAN_noise_size, n_features )
+   return make_generator_mlp( GAN_noise_size, n_features, do_flip_eta )
    #return make_generator_rnn( GAN_noise_size, n_features )
    #return make_generator_cnn( GAN_noise_size, n_features )
 
-def make_discriminator():
+def make_discriminator(do_flip_eta=False):
    #return make_discriminator_mlp( n_features )
    #return make_discriminator_rnn( n_features )
-   return make_discriminator_cnn( n_features )
+   return make_discriminator_cnn( n_features, do_flip_eta )
 
 #~~~~~~~~~~~~~~~~~~~~~~
 
 GAN_noise_size = 200 # number of random numbers (input noise)
 
-d_optimizer   = Adam(0.0001, 0.5) #(0.0001, 0.5)
-g_optimizer   = Adam(0.0001, 0.5) #(0.0001, 0.5)
+d_optimizer   = Adam(0.001, 0.5)
+g_optimizer   = Adam(0.001, 0.5)
 #d_optimizer  = Adam(0.0001)
 #g_optimizer  = Adam(0.0001)
 

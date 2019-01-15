@@ -15,6 +15,30 @@ gROOT.SetBatch(True)
 
 rng = TRandom3()
 
+def make_csv_row( eventInfo, ljets, jj ):
+  row = (
+     "%i" % eventInfo['runNumber'], "%i" % eventInfo['eventNumber'], "%.3f" % eventInfo['weight'],
+
+     # leading jet
+     "%4.1f" % ljets[0].Px(),  "%4.1f" % ljets[0].Py(), "%4.1f" % ljets[0].Pz(), "%4.1f" % ljets[0].Pt(),
+     "%.2f"  % ljets[0].Eta(), "%.2f"  % ljets[0].Phi(),
+     "%4.1f" % ljets[0].E(),   "%4.1f" % ljets[0].M(),
+     "%.3f"  % ljets[0].tau2,  "%.3f"  % ljets[0].tau3, "%.3f" % ljets[0].tau32, 
+
+     # subleading jet
+     "%4.1f" % ljets[1].Px(),  "%4.1f" % ljets[1].Py(), "%4.1f" % ljets[1].Pz(), "%4.1f" % ljets[1].Pt(),
+     "%.2f"  % ljets[1].Eta(), "%.2f"  % ljets[1].Phi(),
+     "%4.1f" % ljets[1].E(),   "%4.1f" % ljets[1].M(),
+     "%.3f"  % ljets[1].tau2,  "%.3f"  % ljets[1].tau3, "%.3f" % ljets[1].tau32,
+
+     # dijet system
+     "%4.1f" % jj.Px(),  "%4.1f" % jj.Py(), "%4.1f" % jj.Pz(), "%4.1f" % jj.Pt(),
+     "%.2f"  % jj.Eta(), "%.2f"  % jj.Phi(),
+     "%4.1f" % jj.E(),   "%4.1f" % jj.M(),
+     "%.2f"  % jj.dPhi,  "%.2f"  % jj.dEta, "%.2f" % jj.dR,
+
+  )
+  return row
 
 ###############################
 
@@ -136,36 +160,25 @@ for ientry in range(n_entries):
 
    #lj1_eta = ljets[0].Eta()
    #if lj1_eta < 0:
-   #  helper_functions.FlipEta( ljets )
 
-   jj = ljets[0] + ljets[1]
-   jj.dPhi = ljets[0].DeltaPhi( ljets[1] )
-   jj.dEta = ljets[0].Eta() - ljets[1].Eta()
-   jj.dR   = TMath.Sqrt( jj.dPhi*jj.dPhi + jj.dEta*jj.dEta )
+   for do_flip_eta in [ False, True ]:
+     if do_flip_eta == True:
+       helper_functions.FlipEta( ljets )
 
-   csvwriter.writerow( (
-     "%i" % tree.runNumber, "%i" % tree.eventNumber, "%.3f" % w,
+     jj      = ljets[0] + ljets[1]
+     jj.dPhi = ljets[0].DeltaPhi( ljets[1] )
+     jj.dEta = ljets[0].Eta() - ljets[1].Eta()
+     jj.dR   = TMath.Sqrt( jj.dPhi*jj.dPhi + jj.dEta*jj.dEta )
 
-     # leading jet
-     "%4.1f" % ljets[0].Px(),  "%4.1f" % ljets[0].Py(), "%4.1f" % ljets[0].Pz(), "%4.1f" % ljets[0].Pt(),
-     "%.2f"  % ljets[0].Eta(), "%.2f"  % ljets[0].Phi(),
-     "%4.1f" % ljets[0].E(),   "%4.1f" % ljets[0].M(),
-     "%.3f"  % ljets[0].tau2,  "%.3f"  % ljets[0].tau3, "%.3f" % ljets[0].tau32, 
-
-     # subleading jet
-     "%4.1f" % ljets[1].Px(),  "%4.1f" % ljets[1].Py(), "%4.1f" % ljets[1].Pz(), "%4.1f" % ljets[1].Pt(),
-     "%.2f"  % ljets[1].Eta(), "%.2f"  % ljets[1].Phi(),
-     "%4.1f" % ljets[1].E(),   "%4.1f" % ljets[1].M(),
-     "%.3f"  % ljets[1].tau2,  "%.3f"  % ljets[1].tau3, "%.3f" % ljets[1].tau32,
-
-     # dijet system
-     "%4.1f" % jj.Px(),  "%4.1f" % jj.Py(), "%4.1f" % jj.Pz(), "%4.1f" % jj.Pt(),
-     "%.2f"  % jj.Eta(), "%.2f"  % jj.Phi(),
-     "%4.1f" % jj.E(),   "%4.1f" % jj.M(),
-     "%.2f"  % jj.dPhi,  "%.2f"  % jj.dEta, "%.2f" % jj.dR,
-
-   ) )
-
+     eventInfo = {
+       'runNumber'   : tree.runNumber,
+       'eventNumber' : tree.eventNumber,
+       'weight'      : w
+     }
+   
+     csv_row = make_csv_row( eventInfo, ljets, jj )
+     csvwriter.writerow( csv_row )
+   
    n_good += 1
 
 outfile.close()
