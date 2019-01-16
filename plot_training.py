@@ -199,6 +199,10 @@ gPad.RedrawAxis()
 # Discriminator loss
 c.cd(6)
 frame_d_loss.Draw()
+
+SetHistogramStyle( d_loss_orig, color=kRed )
+SetHistogramStyle( d_loss_flip, color=kBlue )
+
 d_loss_orig.Draw("l same" )
 d_loss_flip.Draw("l same" )
 d_loss_mean.Draw("l same" )

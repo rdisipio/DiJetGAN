@@ -21,6 +21,7 @@ from keras.utils import to_categorical
 from keras.optimizers import *
 from keras import regularizers
 from keras.callbacks import *
+from keras.utils import plot_model
 
 import pandas as pd
 
@@ -115,7 +116,6 @@ from models import *
 
 def make_generator( G_input ):
    #return make_generator_mlp_LorentzVector( GAN_noise_size )
-
    return make_generator_mlp( G_input, GAN_noise_size, n_features )
    #return make_generator_rnn( GAN_noise_size, n_features )
    #return make_generator_cnn( GAN_noise_size, n_features )
@@ -127,12 +127,14 @@ def make_discriminator(D_input):
 
 #~~~~~~~~~~~~~~~~~~~~~~
 
-GAN_noise_size = 200 # number of random numbers (input noise)
+GAN_noise_size = 100 # number of random numbers (input noise)
 
-#d_optimizer   = Adam(0.001, 0.5)
-#g_optimizer   = Adam(0.001, 0.5)
-d_optimizer  = Adam(0.0001)
-g_optimizer  = Adam(0.0001)
+d_optimizer   = Adam(0.001, 0.5)
+g_optimizer   = Adam(0.001, 0.5)
+#d_optimizer  = Adam(0.0001)
+#g_optimizer  = Adam(0.0001)
+#d_optimizer = SGD()
+#g_optimizer = SGD()
 
 ###########
 # Generator
@@ -177,16 +179,18 @@ discriminator_orig.trainable = False
 discriminator_flip.trainable = False
 
 GAN_input  = Input( shape=(GAN_noise_size,) )
-GAN_latent = generator(GAN_input)
+#GAN_latent = generator(GAN_input)
 
-GAN_output_orig = discriminator_orig(GAN_latent)
+GAN_latent_orig = generator(GAN_input)
+GAN_output_orig = discriminator_orig(GAN_latent_orig)
 GAN_orig = Model( GAN_input, GAN_output_orig )
 GAN_orig.name = "GAN_orig"
 GAN_orig.compile( loss='binary_crossentropy',
                   optimizer=g_optimizer )
 GAN_orig.summary()
 
-GAN_output_flip = discriminator_flip(GAN_latent)
+GAN_latent_flip = generator(GAN_input)
+GAN_output_flip = discriminator_flip(GAN_latent_flip)
 GAN_flip = Model( GAN_input, GAN_output_flip )
 GAN_flip.name = "GAN_flip"
 GAN_flip.compile( loss='binary_crossentropy',
@@ -268,7 +272,7 @@ def train_loop(nb_epoch=1000, BATCH_SIZE=32):
         history["d_acc_r_orig"].append(d_acc_real_orig)
 
         # Eta-flip distributions
-        
+
         d_loss_real_flip, d_acc_real_flip = discriminator_flip.train_on_batch( X_train_real, y_real )
         d_loss_fake_flip, d_acc_fake_flip = discriminator_flip.train_on_batch( X_train_fake, y_fake )
         d_loss_flip = 0.5 * np.add(d_loss_real_flip, d_loss_fake_flip)
@@ -312,12 +316,15 @@ def train_loop(nb_epoch=1000, BATCH_SIZE=32):
 #######################
 
 print "INFO: Train for %i epochs" % ( n_epochs )
-train_loop( nb_epoch=n_epochs, BATCH_SIZE=128 )
+train_loop( nb_epoch=n_epochs, BATCH_SIZE=32 )
 
 # save model to file
 model_filename = "GAN/generator.%s.%s.%s.%s.%s.h5" % (dsid,classifier_arch, classifier_feat, preselection, systematic)
 generator.save( model_filename )
 print "INFO: generator model saved to file", model_filename
+
+model_filename = "img/generator.%s.%s.%s.%s.%s.png" % (dsid,classifier_arch, classifier_feat, preselection, systematic)
+#plot_model( generator, to_file=model_filename )
 
 scaler_filename = "GAN/scaler.%s.%s.%s.%s.%s.pkl" % (dsid,classifier_arch, classifier_feat, preselection, systematic)
 with open( scaler_filename, "wb" ) as file_scaler:
