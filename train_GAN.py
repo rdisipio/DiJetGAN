@@ -129,10 +129,10 @@ def make_discriminator(D_input):
 
 GAN_noise_size = 200 # number of random numbers (input noise)
 
-d_optimizer   = Adam(0.001, 0.5)
-g_optimizer   = Adam(0.001, 0.5)
-#d_optimizer  = Adam(0.0001)
-#g_optimizer  = Adam(0.0001)
+#d_optimizer   = Adam(0.001, 0.5)
+#g_optimizer   = Adam(0.001, 0.5)
+d_optimizer  = Adam(0.0001)
+g_optimizer  = Adam(0.0001)
 
 ###########
 # Generator
@@ -162,7 +162,6 @@ discriminator_orig.compile( loss='binary_crossentropy',
 discriminator_orig.summary()
 
 # flip-eta distributions
-#D_flip = Dense(n_features)(D_input)
 D_flip = Lambda( flip_eta )(D_input)
 D_output_flip = make_discriminator(D_flip)
 discriminator_flip = Model( D_input, D_output_flip )
