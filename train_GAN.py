@@ -176,23 +176,30 @@ discriminator_orig.trainable = False
 discriminator_flip.trainable = False
 
 GAN_input  = Input( shape=(GAN_noise_size,) )
-#GAN_latent = generator(GAN_input)
+GAN_latent = generator(GAN_input)
 
-GAN_latent_orig = generator(GAN_input)
-GAN_output_orig = discriminator_orig(GAN_latent_orig)
+#GAN_latent_orig = generator(GAN_input)
+GAN_output_orig = discriminator_orig(GAN_latent)
 GAN_orig = Model( GAN_input, GAN_output_orig )
 GAN_orig.name = "GAN_orig"
 GAN_orig.compile( loss='binary_crossentropy',
                   optimizer=g_optimizer )
 GAN_orig.summary()
 
-GAN_latent_flip = generator(GAN_input)
-GAN_output_flip = discriminator_flip(GAN_latent_flip)
+#GAN_latent_flip = generator(GAN_input)
+GAN_output_flip = discriminator_flip(GAN_latent)
 GAN_flip = Model( GAN_input, GAN_output_flip )
 GAN_flip.name = "GAN_flip"
 GAN_flip.compile( loss='binary_crossentropy',
                      optimizer=g_optimizer )
 GAN_flip.summary()
+
+print "INFO: saving models to png files"
+plot_model( generator,           to_file="img/model_%s_generator.png" % (dsid) )
+plot_model( discriminator_orig,  to_file="img/model_%s_discriminator_orig.png" % (dsid) )
+plot_model( discriminator_flip,  to_file="img/model_%s_discriminator_flip.png" % (dsid) )
+plot_model( GAN_orig,            to_file="img/model_%s_GAN_orig.png" % (dsid) )
+plot_model( GAN_flip,            to_file="img/model_%s_GAN_flip.png" % (dsid) )
 
 # Training:
 # 1) pick up ntrain events from real dataset
@@ -319,9 +326,6 @@ train_loop( nb_epoch=n_epochs, BATCH_SIZE=128 )
 model_filename = "GAN/generator.%s.%s.%s.%s.%s.h5" % (dsid,classifier_arch, classifier_feat, preselection, systematic)
 generator.save( model_filename )
 print "INFO: generator model saved to file", model_filename
-
-model_filename = "img/generator.%s.%s.%s.%s.%s.png" % (dsid,classifier_arch, classifier_feat, preselection, systematic)
-#plot_model( generator, to_file=model_filename )
 
 scaler_filename = "GAN/scaler.%s.%s.%s.%s.%s.pkl" % (dsid,classifier_arch, classifier_feat, preselection, systematic)
 with open( scaler_filename, "wb" ) as file_scaler:

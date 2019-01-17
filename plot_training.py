@@ -66,7 +66,7 @@ hmax = 1.3
 frame_d_loss.SetMaximum( hmax )
 frame_d_loss.SetMinimum( 0. )
 
-hmax = 1.3
+hmax = 1.5
 frame_d_acc.SetMaximum( hmax )
 frame_d_acc.SetMinimum( 0. )
 
@@ -89,7 +89,7 @@ SetHistogramStyle( d_acc_r_flip, color=kBlue )
 SetHistogramStyle( g_loss_orig, color=kRed )
 SetHistogramStyle( g_loss_flip, color=kBlue )
 
-c = TCanvas( "C", "C", 1600, 1800 )
+c = TCanvas( "C", "C", 2400, 1800 )
 c.Divide( 2, 3 )
 
 # Loss (orig)
