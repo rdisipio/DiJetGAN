@@ -61,11 +61,8 @@ scaler = MinMaxScaler( (-1,1) )
 from features import *
 
 features = [
-#   "ljet1_px", "ljet1_py",  "ljet1_pz",  "ljet1_E",
    "ljet1_pt", "ljet1_eta", "ljet1_phi", "ljet1_M",
-#   "ljet2_px", "ljet2_py",  "ljet2_pz",  "ljet2_E",
    "ljet2_pt", "ljet2_eta", "ljet2_phi", "ljet2_M",
-#   "jj_px",    "jj_py",     "jj_pz",  "jj_E",
    "jj_pt",    "jj_eta",    "jj_phi", "jj_M",
    "jj_dPhi",  "jj_dEta",   "jj_dR",
    ]
@@ -316,7 +313,7 @@ def train_loop(nb_epoch=1000, BATCH_SIZE=32):
 #######################
 
 print "INFO: Train for %i epochs" % ( n_epochs )
-train_loop( nb_epoch=n_epochs, BATCH_SIZE=32 )
+train_loop( nb_epoch=n_epochs, BATCH_SIZE=128 )
 
 # save model to file
 model_filename = "GAN/generator.%s.%s.%s.%s.%s.h5" % (dsid,classifier_arch, classifier_feat, preselection, systematic)

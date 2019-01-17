@@ -33,20 +33,23 @@ def PxPyPzE_to_PtEtaPhiM(x):
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 def flip_eta( x ):
-   # you can't do this with tensors
-   #x[1] = tf.math.negative(x[1])
-   #x[5] = tf.math.negative(x[5])
-   #x[9] = tf.math.negative(x[9])
+
+   #features = [
+   #"ljet1_pt", "ljet1_eta", "ljet1_phi", "ljet1_M",
+   #"ljet2_pt", "ljet2_eta", "ljet2_phi", "ljet2_M",
+   #"jj_pt",    "jj_eta",    "jj_phi", "jj_M",
+   #"jj_dPhi",  "jj_dEta",   "jj_dR",
+   #]
 
    mask = np.ones(15, dtype="float32")
-   mask[[1,5,9]] = -1
+   mask[[1,5,9,13]] = -1
    #mask = K.variable(value=mask, dtype='float64', name='mask')
    mask = tf.identity(mask)
 
-   y = x * mask
-   
+   #y = x * mask
+   y = tf.multiply( x, mask )
+
    return y
-   
 
 #######################################
 
