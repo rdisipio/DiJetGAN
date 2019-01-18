@@ -159,7 +159,7 @@ for ievent in range(n_events):
    # rotate jets' P4's:
    phi = rng.Uniform( -TMath.Pi(), TMath.Pi() )
    lj1.RotateZ( phi )
-   lj2.RotateZ( phi )#+ jj_dPhi )
+   lj2.RotateZ( phi ) 
 
    # flip eta?
    #if rng.Uniform() > 0.5:
