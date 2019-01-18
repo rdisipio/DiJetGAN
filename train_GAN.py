@@ -124,13 +124,13 @@ def make_discriminator():
 
 #~~~~~~~~~~~~~~~~~~~~~~
 
-GAN_noise_size = 128 # number of random numbers (input noise)
+GAN_noise_size = 64 # number of random numbers (input noise)
 
 #d_optimizer   = Adam(0.0002, 0.5)
 #g_optimizer   = Adam(0.0002, 0.5)
 d_optimizer  = Adam(0.001)
 g_optimizer  = Adam(0.0001)
-#d_optimizer = SGD(0.0001, 0.9, nesterov=True)
+#d_optimizer = SGD(0.001) #, 0.9, nesterov=True)
 #g_optimizer = SGD(0.001, 0.9, nesterov=True)
 
 ###########
@@ -161,10 +161,7 @@ D_input_orig  = Input( shape=(n_features,), name='D_input' )
 D_input_flip  = Lambda( flip_eta, name="Eta_flip" )(D_input_orig)
 D_output_orig = D(D_input_orig)
 D_output_flip = D(D_input_flip)
-#D_output = concatenate( [ D_output_orig, D_output_flip ] )
-#D_output = D(D_input_orig)
-#D_output = Dense( 1, activation="sigmoid")(D_output)
-#discriminator = Model( D_input_orig, D_output )
+
 D_output_orig = Dense( 1, activation="sigmoid", name="output_orig")(D_output_orig)
 D_output_flip = Dense( 1, activation="sigmoid", name="output_flip")(D_output_flip)
 discriminator = Model( D_input_orig, [ D_output_orig, D_output_flip ] )
@@ -201,7 +198,8 @@ ntrain = 10000
 train_idx = random.sample( range(0,X_train.shape[0]), ntrain)
 X_train_real = X_train[train_idx,:]
 
-X_noise = np.random.uniform(0,1,size=[X_train_real.shape[0], GAN_noise_size])
+X_noise = np.random.uniform(-1,1,size=[X_train_real.shape[0], GAN_noise_size])
+#X_noise = np.random.normal( 0., 1., (X_train_real.shape[0], GAN_noise_size) )
 X_train_fake = generator.predict(X_noise)
 
 # create GAN training dataset
@@ -237,7 +235,7 @@ history = {
 
 #######################
 
-def train_loop(nb_epoch=1000, BATCH_SIZE=32):
+def train_loop(nb_epoch=1000, BATCH_SIZE=32, BATCH_SIZE_DISCR=128):
 
    plt_frq = max( 1, int(nb_epoch)/20 )
 
@@ -246,19 +244,23 @@ def train_loop(nb_epoch=1000, BATCH_SIZE=32):
    y_real = np.ones(  (BATCH_SIZE,1) )
    y_fake = np.zeros( (BATCH_SIZE,1) )
 
+   y_real_d = np.ones(  (BATCH_SIZE_DISCR,1) )
+   y_fake_d = np.zeros( (BATCH_SIZE_DISCR,1) )
+
    for epoch in range(nb_epoch):
 
         # select some real events
-        train_idx = np.random.randint( 0, X_train.shape[0], size=BATCH_SIZE )
+        train_idx = np.random.randint( 0, X_train.shape[0], size=BATCH_SIZE_DISCR )
         X_train_real = X_train[train_idx,:]
 
         # generate fake events
-        X_noise = np.random.uniform(0,1,size=[X_train_real.shape[0], GAN_noise_size])
+        X_noise = np.random.uniform(-1,1,size=[X_train_real.shape[0], GAN_noise_size])
+        #X_noise = np.random.normal( 0., 1., (BATCH_SIZE_DISCR, GAN_noise_size) )
         X_train_fake = generator.predict(X_noise)
 
         # Train the discriminator (real classified as ones and generated as zeros)
-        d_loss_orig, d_loss_r_orig, d_loss_r_flip, d_acc_r_orig, d_acc_r_flip = discriminator.train_on_batch( X_train_real, [ y_real, y_real ] )
-        d_loss_flip, d_loss_f_orig, d_loss_f_flip, d_acc_f_orig, d_acc_f_flip = discriminator.train_on_batch( X_train_fake, [ y_fake, y_fake ] )
+        d_loss_orig, d_loss_r_orig, d_loss_r_flip, d_acc_r_orig, d_acc_r_flip = discriminator.train_on_batch( X_train_real, [ y_real_d, y_real_d ] )
+        d_loss_flip, d_loss_f_orig, d_loss_f_flip, d_acc_f_orig, d_acc_f_flip = discriminator.train_on_batch( X_train_fake, [ y_fake_d, y_fake_d ] )
         #d_loss_orig = 0.5 * np.add(d_loss_r_orig, d_loss_f_orig)
         d_loss_orig /= 2.
         d_loss_flip /= 2.
@@ -286,24 +288,22 @@ def train_loop(nb_epoch=1000, BATCH_SIZE=32):
 
         # Train the generator
         # create new (statistically independent) random noise sample
-        #X_noise = np.random.uniform(0,1,size=[X_train_real.shape[0], GAN_noise_size])
-        #X_train_fake = generator.predict(X_noise)
+        X_noise = np.random.uniform(-1,1,size=(BATCH_SIZE, GAN_noise_size))
+        #X_noise = np.random.normal( 0., 1., (BATCH_SIZE, GAN_noise_size) )
 
         # we want discriminator to mistake images as real
         g_loss_mean, g_loss_orig, g_loss_flip = GAN.train_on_batch( X_noise, [ y_real, y_real ] )
-        #g_loss_mean, g_loss_orig, g_loss_flip = GAN.train_on_batch( X_noise, [ y_fake, y_fake ] )
-        #g_loss_mean = 0.5 * ( g_loss_orig + g_loss_flip )
         g_loss_mean /= 2.
         history["g_loss_orig"].append(g_loss_orig)
         history["g_loss_flip"].append(g_loss_flip)
         history["g_loss_mean"].append(g_loss_mean)
 
         if epoch % plt_frq == 0:
-           print "Epoch: %5i :: BS = %i :: d_loss_orig = %.3f ( real = %.3f, fake = %.3f ), d_acc_orig = %.3f ( real = %.3f, fake = %.3f ), g_loss_orig = %.3f" % (
+           print "Epoch: %5i :: BS = %i :: d_loss_orig = %.2f ( real = %.2f, fake = %.2f ), d_acc_orig = %.2f ( real = %.2f, fake = %.2f ), g_loss_orig = %.2f" % (
               epoch, BATCH_SIZE, d_loss_orig, d_loss_r_orig, d_loss_f_orig, d_acc_orig, d_acc_r_orig, d_acc_f_orig, g_loss_orig )
-           print "Epoch: %5i :: BS = %i :: d_loss_flip = %.3f ( real = %.3f, fake = %.3f ), d_acc_flip = %.3f ( real = %.3f, fake = %.3f ), g_loss_flip = %.3f" % (
+           print "Epoch: %5i :: BS = %i :: d_loss_flip = %.2f ( real = %.2f, fake = %.2f ), d_acc_flip = %.2f ( real = %.2f, fake = %.2f ), g_loss_flip = %.2f" % (
               epoch, BATCH_SIZE, d_loss_flip, d_loss_r_flip, d_loss_f_flip, d_acc_flip, d_acc_r_flip, d_acc_f_flip, g_loss_flip )
-           print "Epoch: %5i :: d_loss_mean = %.3f, d_acc_mean = %.3f, g_loss_mean = %.3f" % ( epoch, d_loss_mean, d_acc_mean, g_loss_mean )
+           print "Epoch: %5i :: d_loss_mean = %.2f, d_acc_mean = %.2f, g_loss_mean = %.2f" % ( epoch, d_loss_mean, d_acc_mean, g_loss_mean )
            print "----"
 
         #BATCH_SIZE = int( BATCH_SIZE / lr )
@@ -313,8 +313,8 @@ def train_loop(nb_epoch=1000, BATCH_SIZE=32):
 #######################
 
 print "INFO: Train for %i epochs" % ( n_epochs )
-#train_loop( nb_epoch=n_epochs, BATCH_SIZE=32 )
-train_loop( nb_epoch=n_epochs, BATCH_SIZE=128 )
+train_loop( nb_epoch=n_epochs, BATCH_SIZE=32 )
+#train_loop( nb_epoch=n_epochs, BATCH_SIZE=128 )
 #train_loop( nb_epoch=n_epochs, BATCH_SIZE=1024 )
 
 # save model to file
