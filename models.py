@@ -41,11 +41,14 @@ def flip_eta( x ):
    #"jj_dPhi",  "jj_dEta",   "jj_dR",
    #]
 
+   #"ljet1_pt", "ljet1_eta", "ljet1_phi", "ljet1_E", "ljet1_M",
+   #"ljet2_pt", "ljet2_eta", "ljet2_phi", "ljet2_E", ljet2_M",
+
    #x_size = 15
-   x_size = 8
+   x_size = 10
    mask = np.ones(x_size, dtype="float32")
    #mask[[1,5,9,13]] = -1
-   mask[[1,5]] = -1
+   mask[[1,6]] = -1
    #mask = K.variable(value=mask, dtype='float64', name='mask')
    mask = tf.identity(mask)
 
@@ -114,11 +117,13 @@ def make_generator_mlp( GAN_noise_size, GAN_output_size ):
    G_input = Input( shape=(GAN_noise_size,), name="Noise" )
 
    G = Dense( 64, kernel_initializer='glorot_normal' )(G_input)
-   G = Activation('tanh')(G)
+   #G = Activation( LeakyReLU () )(G)
+   G  = LeakyReLU(alpha=0.2)(G)
    G = BatchNormalization(momentum=0.8)(G) #0.8
 
    G = Dense( 32 )(G)
-   G = Activation('tanh')(G)
+   #G = Activation('tanh')(G)
+   G  = LeakyReLU(alpha=0.2)(G)
    #G = BatchNormalization(momentum=0.8)(G) #0.8
 
    #G = Dense( 32 )(G)
@@ -228,10 +233,12 @@ def make_discriminator_cnn( GAN_output_size ):
     D = Reshape( (1,16,16) )(D)
    
     D = Conv2D( 128, 1, strides=1 )(D)
-    D = Activation('tanh')(D)
+    #D = Activation('tanh')(D)
+    D  = LeakyReLU(alpha=0.2)(D)
 
     D = Conv2D( 64, 1, strides=1 )(D)
-    D = Activation('tanh')(D)
+    #D = Activation('tanh')(D)
+    D  = LeakyReLU(alpha=0.2)(D)
 
     D = Flatten()(D)
     D = Dropout(0.2)(D)

@@ -26,7 +26,7 @@ from keras.utils import plot_model
 import pandas as pd
 
 ############
-
+        
 known_classifiers = [ "rnn:GAN", "rnn:highlevel", "rnn:PxPyPzMBwNtrk" ]
 
 parser = argparse.ArgumentParser(description='ttbar diffxs sqrt(s) = 13 TeV classifier training')
@@ -61,8 +61,8 @@ scaler = MinMaxScaler( (-1,1) )
 from features import *
 
 features = [
-   "ljet1_pt", "ljet1_eta", "ljet1_phi", "ljet1_M",
-   "ljet2_pt", "ljet2_eta", "ljet2_phi", "ljet2_M",
+   "ljet1_pt", "ljet1_eta", "ljet1_phi", "ljet1_E", "ljet1_M",
+   "ljet2_pt", "ljet2_eta", "ljet2_phi", "ljet2_E", "ljet2_M",
 #   "jj_pt",    "jj_eta",    "jj_phi", "jj_M",
 #   "jj_dPhi",  "jj_dEta",   "jj_dR",
    ]
@@ -128,10 +128,10 @@ GAN_noise_size = 128 # number of random numbers (input noise)
 
 #d_optimizer   = Adam(0.0002, 0.5)
 #g_optimizer   = Adam(0.0002, 0.5)
-#d_optimizer  = Adam(0.0002)
-#g_optimizer  = Adam(0.0002)
-d_optimizer = SGD(0.001, 0.9, nesterov=True)
-g_optimizer = SGD(0.001, 0.9, nesterov=True)
+d_optimizer  = Adam(0.001)
+g_optimizer  = Adam(0.0001)
+#d_optimizer = SGD(0.0001, 0.9, nesterov=True)
+#g_optimizer = SGD(0.001, 0.9, nesterov=True)
 
 ###########
 # Generator
@@ -145,6 +145,15 @@ generator.summary()
 ###############
 # Discriminator
 ###############
+
+#D_orig = make_discriminator()
+#D_orig.name = "Discr_orig"
+#D_input_orig  = Input( shape=(n_features,), name='D_input' )
+#D_flip = make_discriminator()
+#D_flip.name = "Discr_flip"
+#D_input_flip  = Lambda( flip_eta, name="Eta_flip" )(D_input_orig)
+#D_output_orig = D_orig(D_input_orig)
+#D_output_flip = D_flip(D_input_flip)
 
 D = make_discriminator()
 D.name = "Discr"
@@ -223,7 +232,7 @@ history = {
    "g_loss_flip":[],
    "d_acc_flip":[], "d_acc_r_flip":[], "d_acc_f_flip":[],
 
-   "g_loss_mean" : [], "d_loss_mean" : [],
+   "g_loss_mean" : [], "d_loss_mean" : [], "d_acc_mean":[],
 }
 
 #######################
@@ -256,6 +265,7 @@ def train_loop(nb_epoch=1000, BATCH_SIZE=32):
         d_acc_orig  = 0.5 * np.add(d_acc_r_orig, d_acc_f_orig)
         d_acc_flip  = 0.5 * np.add(d_acc_r_flip, d_acc_f_flip)
         d_loss_mean = 0.25 * ( d_loss_r_orig + d_loss_f_orig + d_loss_r_flip + d_loss_f_flip )
+        d_acc_mean  = 0.25 * ( d_acc_r_orig + d_acc_f_orig + d_acc_r_flip + d_acc_f_flip )
 
         history["d_loss_orig"].append(d_loss_orig)
         history["d_loss_r_orig"].append(d_loss_r_orig)
@@ -272,6 +282,7 @@ def train_loop(nb_epoch=1000, BATCH_SIZE=32):
         history["d_acc_r_flip"].append(d_acc_r_flip)
 
         history["d_loss_mean"].append( d_loss_mean )
+        history["d_acc_mean"].append( d_acc_mean )
 
         # Train the generator
         # create new (statistically independent) random noise sample
@@ -280,6 +291,7 @@ def train_loop(nb_epoch=1000, BATCH_SIZE=32):
 
         # we want discriminator to mistake images as real
         g_loss_mean, g_loss_orig, g_loss_flip = GAN.train_on_batch( X_noise, [ y_real, y_real ] )
+        #g_loss_mean, g_loss_orig, g_loss_flip = GAN.train_on_batch( X_noise, [ y_fake, y_fake ] )
         #g_loss_mean = 0.5 * ( g_loss_orig + g_loss_flip )
         g_loss_mean /= 2.
         history["g_loss_orig"].append(g_loss_orig)
@@ -287,11 +299,11 @@ def train_loop(nb_epoch=1000, BATCH_SIZE=32):
         history["g_loss_mean"].append(g_loss_mean)
 
         if epoch % plt_frq == 0:
-           print "Epoch: %5i :: BS = %i :: d_loss_orig = %.3f ( real = %.3f, fake = %.3f ), d_acc_orig = %.3f, g_loss_orig = %.3f" % (
-              epoch, BATCH_SIZE, d_loss_orig, d_loss_r_orig, d_loss_f_orig, d_acc_orig, g_loss_orig )
-           print "Epoch: %5i :: BS = %i :: d_loss_flip = %.3f ( real = %.3f, fake = %.3f ), d_acc_flip = %.3f, g_loss_flip = %.3f" % (
-              epoch, BATCH_SIZE, d_loss_flip, d_loss_r_flip, d_loss_f_flip, d_acc_flip, g_loss_flip )
-           print "Epoch: %5i :: d_loss_mean = %.3f, g_loss_mean = %.3f" % ( epoch, d_loss_mean, g_loss_mean )
+           print "Epoch: %5i :: BS = %i :: d_loss_orig = %.3f ( real = %.3f, fake = %.3f ), d_acc_orig = %.3f ( real = %.3f, fake = %.3f ), g_loss_orig = %.3f" % (
+              epoch, BATCH_SIZE, d_loss_orig, d_loss_r_orig, d_loss_f_orig, d_acc_orig, d_acc_r_orig, d_acc_f_orig, g_loss_orig )
+           print "Epoch: %5i :: BS = %i :: d_loss_flip = %.3f ( real = %.3f, fake = %.3f ), d_acc_flip = %.3f ( real = %.3f, fake = %.3f ), g_loss_flip = %.3f" % (
+              epoch, BATCH_SIZE, d_loss_flip, d_loss_r_flip, d_loss_f_flip, d_acc_flip, d_acc_r_flip, d_acc_f_flip, g_loss_flip )
+           print "Epoch: %5i :: d_loss_mean = %.3f, d_acc_mean = %.3f, g_loss_mean = %.3f" % ( epoch, d_loss_mean, d_acc_mean, g_loss_mean )
            print "----"
 
         #BATCH_SIZE = int( BATCH_SIZE / lr )
@@ -301,8 +313,8 @@ def train_loop(nb_epoch=1000, BATCH_SIZE=32):
 #######################
 
 print "INFO: Train for %i epochs" % ( n_epochs )
-train_loop( nb_epoch=n_epochs, BATCH_SIZE=32 )
-#train_loop( nb_epoch=n_epochs, BATCH_SIZE=128 )
+#train_loop( nb_epoch=n_epochs, BATCH_SIZE=32 )
+train_loop( nb_epoch=n_epochs, BATCH_SIZE=128 )
 #train_loop( nb_epoch=n_epochs, BATCH_SIZE=1024 )
 
 # save model to file
@@ -341,6 +353,7 @@ h_d_acc_r_flip  = TGraphErrors()
 
 h_g_loss_mean = TGraphErrors()
 h_d_loss_mean = TGraphErrors()
+h_d_acc_mean  = TGraphErrors()
 
 n_epochs = len(history['d_loss_orig'])
 for i in range( n_epochs ):
@@ -378,8 +391,10 @@ for i in range( n_epochs ):
 
       g_loss_mean = history["g_loss_mean"][i]
       d_loss_mean = history["d_loss_mean"][i]
+      d_acc_mean    = history['d_acc_mean'][i]
       h_g_loss_mean.SetPoint( i, i, g_loss_mean )
       h_d_loss_mean.SetPoint( i, i, d_loss_mean )
+      h_d_acc_mean.SetPoint( i, i, d_acc_mean )
       
 h_d_loss_orig.Write( "d_loss_orig" )
 h_d_loss_r_orig.Write( "d_loss_r_orig" )
@@ -399,6 +414,7 @@ h_d_acc_r_flip.Write( "d_acc_r_flip" )
 
 h_g_loss_mean.Write( "g_loss_mean" )
 h_d_loss_mean.Write( "d_loss_mean" )
+h_d_acc_mean.Write( "d_acc_mean" )
 
 training_root.Write()
 training_root.Close()

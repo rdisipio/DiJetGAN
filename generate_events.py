@@ -129,13 +129,15 @@ for ievent in range(n_events):
    lj1_pt    = X_generated[ievent][0]
    lj1_eta   = X_generated[ievent][1]
    lj1_phi   = X_generated[ievent][2]
-   lj1_M     = X_generated[ievent][3]
+   lj1_E     = X_generated[ievent][3]
+   lj1_M     = X_generated[ievent][4]
    lj1.SetPtEtaPhiM( lj1_pt, lj1_eta, lj1_phi, lj1_M )
 
-   lj2_pt    = X_generated[ievent][4]
-   lj2_eta   = X_generated[ievent][5]
-   lj2_phi   = X_generated[ievent][6]
-   lj2_M     = X_generated[ievent][7]
+   lj2_pt    = X_generated[ievent][5]
+   lj2_eta   = X_generated[ievent][6]
+   lj2_phi   = X_generated[ievent][7]
+   lj2_E     = X_generated[ievent][8]
+   lj2_M     = X_generated[ievent][9]
    lj2.SetPtEtaPhiM( lj2_pt, lj2_eta, lj2_phi, lj2_M )
 
    #lj1_px    = X_generated[ievent][0]
