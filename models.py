@@ -41,8 +41,11 @@ def flip_eta( x ):
    #"jj_dPhi",  "jj_dEta",   "jj_dR",
    #]
 
-   mask = np.ones(15, dtype="float32")
-   mask[[1,5,9,13]] = -1
+   #x_size = 15
+   x_size = 8
+   mask = np.ones(x_size, dtype="float32")
+   #mask[[1,5,9,13]] = -1
+   mask[[1,5]] = -1
    #mask = K.variable(value=mask, dtype='float64', name='mask')
    mask = tf.identity(mask)
 

@@ -63,8 +63,8 @@ from features import *
 features = [
    "ljet1_pt", "ljet1_eta", "ljet1_phi", "ljet1_M",
    "ljet2_pt", "ljet2_eta", "ljet2_phi", "ljet2_M",
-   "jj_pt",    "jj_eta",    "jj_phi", "jj_M",
-   "jj_dPhi",  "jj_dEta",   "jj_dR",
+#   "jj_pt",    "jj_eta",    "jj_phi", "jj_M",
+#   "jj_dPhi",  "jj_dEta",   "jj_dR",
    ]
 
 n_features = len(features)
@@ -126,12 +126,12 @@ def make_discriminator():
 
 GAN_noise_size = 128 # number of random numbers (input noise)
 
-d_optimizer   = Adam(0.0002, 0.5)
-g_optimizer   = Adam(0.0002, 0.5)
+#d_optimizer   = Adam(0.0002, 0.5)
+#g_optimizer   = Adam(0.0002, 0.5)
 #d_optimizer  = Adam(0.0002)
 #g_optimizer  = Adam(0.0002)
-#d_optimizer = SGD(0.001, 0.9, nesterov=True)
-#g_optimizer = SGD(0.001, 0.9, nesterov=True)
+d_optimizer = SGD(0.001, 0.9, nesterov=True)
+g_optimizer = SGD(0.001, 0.9, nesterov=True)
 
 ###########
 # Generator
