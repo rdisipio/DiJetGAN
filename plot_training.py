@@ -30,7 +30,7 @@ def SetHistogramStyle( h, color = kBlack, linewidth = 1, fillcolor = 0, fillstyl
 
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-dsid = "361024"
+dsid = "mg5_dijet_ht500"
 preselection = "incl"
 
 if len(sys.argv) > 1: dsid = sys.argv[1]
@@ -76,18 +76,23 @@ frame_g_loss.SetMinimum( 0. )
 
 SetHistogramStyle( d_loss_f_orig, color=kRed )
 SetHistogramStyle( d_loss_r_orig, color=kBlue )
+SetHistogramStyle( d_loss_orig,   color=kBlack )
 
 SetHistogramStyle( d_acc_f_orig, color=kRed )
 SetHistogramStyle( d_acc_r_orig, color=kBlue )
 
 SetHistogramStyle( d_loss_f_flip, color=kRed )
 SetHistogramStyle( d_loss_r_flip, color=kBlue )
+SetHistogramStyle( d_loss_flip,   color=kBlack )
 
 SetHistogramStyle( d_acc_f_flip, color=kRed )
 SetHistogramStyle( d_acc_r_flip, color=kBlue )
 
 SetHistogramStyle( g_loss_orig, color=kRed )
 SetHistogramStyle( g_loss_flip, color=kBlue )
+
+SetHistogramStyle( d_loss_mean, color=kBlack )
+SetHistogramStyle( g_loss_mean, color=kBlack )
 
 c = TCanvas( "C", "C", 2400, 1800 )
 c.Divide( 2, 3 )
@@ -200,8 +205,8 @@ gPad.RedrawAxis()
 c.cd(6)
 frame_d_loss.Draw()
 
-SetHistogramStyle( d_loss_orig, color=kRed )
-SetHistogramStyle( d_loss_flip, color=kBlue )
+#SetHistogramStyle( d_loss_orig, color=kRed )
+#SetHistogramStyle( d_loss_flip, color=kBlue )
 
 d_loss_orig.Draw("l same" )
 d_loss_flip.Draw("l same" )

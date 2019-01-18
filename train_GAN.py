@@ -111,95 +111,77 @@ print event_weights
 
 from models import *
 
-def make_generator( G_input ):
+def make_generator():
    #return make_generator_mlp_LorentzVector( GAN_noise_size )
-   return make_generator_mlp( G_input, GAN_noise_size, n_features )
+   return make_generator_mlp( GAN_noise_size, n_features )
    #return make_generator_rnn( GAN_noise_size, n_features )
    #return make_generator_cnn( GAN_noise_size, n_features )
 
-def make_discriminator(D_input):
+def make_discriminator():
    #return make_discriminator_mlp( n_features )
    #return make_discriminator_rnn( n_features )
-   return make_discriminator_cnn( D_input, n_features )
+   return make_discriminator_cnn( n_features )
 
 #~~~~~~~~~~~~~~~~~~~~~~
 
-GAN_noise_size = 100 # number of random numbers (input noise)
+GAN_noise_size = 128 # number of random numbers (input noise)
 
-d_optimizer   = Adam(0.001, 0.5)
-g_optimizer   = Adam(0.001, 0.5)
-#d_optimizer  = Adam(0.0001)
-#g_optimizer  = Adam(0.0001)
-#d_optimizer = SGD()
-#g_optimizer = SGD()
+d_optimizer   = Adam(0.0002, 0.5)
+g_optimizer   = Adam(0.0002, 0.5)
+#d_optimizer  = Adam(0.0002)
+#g_optimizer  = Adam(0.0002)
+#d_optimizer = SGD(0.001, 0.9, nesterov=True)
+#g_optimizer = SGD(0.001, 0.9, nesterov=True)
 
 ###########
 # Generator
 ###########
-G_input  = Input( shape=(GAN_noise_size,) )
-G_output = make_generator(G_input)
-generator = Model( G_input, G_output )
+generator = make_generator()
 generator.name = "Generator"
 generator.compile( loss='mean_squared_error',
                    optimizer=g_optimizer )
 generator.summary()
 
-
 ###############
 # Discriminator
 ###############
-D_input = Input( shape=(n_features,), name='D_input' )
 
-# original distributions
-D_output_orig = make_discriminator(D_input)
-discriminator_orig = Model( D_input, D_output_orig )
-discriminator_orig.name = "Discriminator_orig"
+D = make_discriminator()
+D.name = "Discr"
+D_input_orig  = Input( shape=(n_features,), name='D_input' )
+D_input_flip  = Lambda( flip_eta, name="Eta_flip" )(D_input_orig)
+D_output_orig = D(D_input_orig)
+D_output_flip = D(D_input_flip)
+#D_output = concatenate( [ D_output_orig, D_output_flip ] )
+#D_output = D(D_input_orig)
+#D_output = Dense( 1, activation="sigmoid")(D_output)
+#discriminator = Model( D_input_orig, D_output )
+D_output_orig = Dense( 1, activation="sigmoid", name="output_orig")(D_output_orig)
+D_output_flip = Dense( 1, activation="sigmoid", name="output_flip")(D_output_flip)
+discriminator = Model( D_input_orig, [ D_output_orig, D_output_flip ] )
 
-discriminator_orig.compile( loss='binary_crossentropy',
+discriminator.name = "Discriminator"
+discriminator.compile( loss='binary_crossentropy',
                             optimizer=d_optimizer,
                             metrics=['accuracy'] )
-discriminator_orig.summary()
-
-# flip-eta distributions
-D_flip = Lambda( flip_eta )(D_input)
-D_output_flip = make_discriminator(D_flip)
-discriminator_flip = Model( D_input, D_output_flip )
-discriminator_flip.name = "Discriminator_flip"
-
-discriminator_flip.compile( loss='binary_crossentropy',
-                       optimizer=d_optimizer,
-                       metrics=['accuracy'] )
-discriminator_flip.summary()
+discriminator.summary()
 
 # For the combined model we will only train the generator
-discriminator_orig.trainable = False
-discriminator_flip.trainable = False
-
+discriminator.trainable = False
 GAN_input  = Input( shape=(GAN_noise_size,) )
 GAN_latent = generator(GAN_input)
-
-#GAN_latent_orig = generator(GAN_input)
-GAN_output_orig = discriminator_orig(GAN_latent)
-GAN_orig = Model( GAN_input, GAN_output_orig )
-GAN_orig.name = "GAN_orig"
-GAN_orig.compile( loss='binary_crossentropy',
+GAN_output = discriminator(GAN_latent)
+GAN        = Model( GAN_input, GAN_output )
+GAN.name   = "GAN"
+GAN.compile( loss='binary_crossentropy',
                   optimizer=g_optimizer )
-GAN_orig.summary()
+GAN.summary()
 
-#GAN_latent_flip = generator(GAN_input)
-GAN_output_flip = discriminator_flip(GAN_latent)
-GAN_flip = Model( GAN_input, GAN_output_flip )
-GAN_flip.name = "GAN_flip"
-GAN_flip.compile( loss='binary_crossentropy',
-                     optimizer=g_optimizer )
-GAN_flip.summary()
 
 print "INFO: saving models to png files"
-plot_model( generator,           to_file="img/model_%s_generator.png" % (dsid) )
-plot_model( discriminator_orig,  to_file="img/model_%s_discriminator_orig.png" % (dsid) )
-plot_model( discriminator_flip,  to_file="img/model_%s_discriminator_flip.png" % (dsid) )
-plot_model( GAN_orig,            to_file="img/model_%s_GAN_orig.png" % (dsid) )
-plot_model( GAN_flip,            to_file="img/model_%s_GAN_flip.png" % (dsid) )
+plot_model( generator,      to_file="img/model_%s_generator.png" % (dsid) )
+plot_model( discriminator,  to_file="img/model_%s_discriminator.png" % (dsid) )
+plot_model( GAN,            to_file="img/model_%s_GAN.png" % (dsid) )
 
 # Training:
 # 1) pick up ntrain events from real dataset
@@ -220,17 +202,18 @@ y = np.zeros([2*n])
 y[:n] = 1
 y[n:] = 0
 
-print "INFO: pre-training discriminator network"
-discriminator_orig.trainable = True
-discriminator_orig.fit(X,y, epochs=1, batch_size=128)
-y_hat_orig = discriminator_orig.predict(X)
-
-print "INFO: pre-training discriminator (flip eta) network"
-discriminator_flip.trainable = True
-discriminator_flip.fit(X,y, epochs=1, batch_size=128)
-y_hat_flip = discriminator_flip.predict(X)
+#print "INFO: pre-training discriminator network"
+discriminator.trainable = True
+discriminator.fit(X,[y,y], epochs=1, batch_size=128)
+y_hat = discriminator.predict(X)
 
 # set up loss storage vector
+#history = {
+#   "d_loss":[], "d_loss_r":[], "d_loss_f":[],
+#   "g_loss":[],
+#   "d_acc":[], "d_acc_r":[], "d_acc_f":[],
+#}
+
 history = {
    "d_loss_orig":[], "d_loss_r_orig":[], "d_loss_f_orig":[],
    "g_loss_orig":[],
@@ -249,6 +232,8 @@ def train_loop(nb_epoch=1000, BATCH_SIZE=32):
 
    plt_frq = max( 1, int(nb_epoch)/20 )
 
+   #lr = float( K.get_value( discriminator.optimizer.lr ) )
+
    y_real = np.ones(  (BATCH_SIZE,1) )
    y_fake = np.zeros( (BATCH_SIZE,1) )
 
@@ -263,31 +248,30 @@ def train_loop(nb_epoch=1000, BATCH_SIZE=32):
         X_train_fake = generator.predict(X_noise)
 
         # Train the discriminator (real classified as ones and generated as zeros)
-        d_loss_real_orig, d_acc_real_orig = discriminator_orig.train_on_batch( X_train_real, y_real )
-        d_loss_fake_orig, d_acc_fake_orig = discriminator_orig.train_on_batch( X_train_fake, y_fake )
-        d_loss_orig = 0.5 * np.add(d_loss_real_orig, d_loss_fake_orig)
-        d_acc_orig  = 0.5 * np.add(d_acc_real_orig, d_acc_fake_orig)
+        d_loss_orig, d_loss_r_orig, d_loss_r_flip, d_acc_r_orig, d_acc_r_flip = discriminator.train_on_batch( X_train_real, [ y_real, y_real ] )
+        d_loss_flip, d_loss_f_orig, d_loss_f_flip, d_acc_f_orig, d_acc_f_flip = discriminator.train_on_batch( X_train_fake, [ y_fake, y_fake ] )
+        #d_loss_orig = 0.5 * np.add(d_loss_r_orig, d_loss_f_orig)
+        d_loss_orig /= 2.
+        d_loss_flip /= 2.
+        d_acc_orig  = 0.5 * np.add(d_acc_r_orig, d_acc_f_orig)
+        d_acc_flip  = 0.5 * np.add(d_acc_r_flip, d_acc_f_flip)
+        d_loss_mean = 0.25 * ( d_loss_r_orig + d_loss_f_orig + d_loss_r_flip + d_loss_f_flip )
 
         history["d_loss_orig"].append(d_loss_orig)
-        history["d_loss_r_orig"].append(d_loss_real_orig)
-        history["d_loss_f_orig"].append(d_loss_fake_orig)
+        history["d_loss_r_orig"].append(d_loss_r_orig)
+        history["d_loss_f_orig"].append(d_loss_f_orig)
         history["d_acc_orig"].append(d_acc_orig)
-        history["d_acc_f_orig"].append(d_acc_fake_orig)
-        history["d_acc_r_orig"].append(d_acc_real_orig)
-
-        # Eta-flip distributions
-
-        d_loss_real_flip, d_acc_real_flip = discriminator_flip.train_on_batch( X_train_real, y_real )
-        d_loss_fake_flip, d_acc_fake_flip = discriminator_flip.train_on_batch( X_train_fake, y_fake )
-        d_loss_flip = 0.5 * np.add(d_loss_real_flip, d_loss_fake_flip)
-        d_acc_flip  = 0.5 * np.add(d_acc_real_flip, d_acc_fake_flip)
+        history["d_acc_f_orig"].append(d_acc_f_orig)
+        history["d_acc_r_orig"].append(d_acc_r_orig)
 
         history["d_loss_flip"].append(d_loss_flip)
-        history["d_loss_r_flip"].append(d_loss_real_flip)
-        history["d_loss_f_flip"].append(d_loss_fake_flip)
+        history["d_loss_r_flip"].append(d_loss_r_flip)
+        history["d_loss_f_flip"].append(d_loss_f_flip)
         history["d_acc_flip"].append(d_acc_flip)
-        history["d_acc_f_flip"].append(d_acc_fake_flip)
-        history["d_acc_r_flip"].append(d_acc_real_flip)
+        history["d_acc_f_flip"].append(d_acc_f_flip)
+        history["d_acc_r_flip"].append(d_acc_r_flip)
+
+        history["d_loss_mean"].append( d_loss_mean )
 
         # Train the generator
         # create new (statistically independent) random noise sample
@@ -295,32 +279,31 @@ def train_loop(nb_epoch=1000, BATCH_SIZE=32):
         #X_train_fake = generator.predict(X_noise)
 
         # we want discriminator to mistake images as real
-        g_loss_orig = GAN_orig.train_on_batch( X_noise, y_real )
+        g_loss_mean, g_loss_orig, g_loss_flip = GAN.train_on_batch( X_noise, [ y_real, y_real ] )
+        #g_loss_mean = 0.5 * ( g_loss_orig + g_loss_flip )
+        g_loss_mean /= 2.
         history["g_loss_orig"].append(g_loss_orig)
-
-        g_loss_flip = GAN_flip.train_on_batch( X_noise, y_real )
         history["g_loss_flip"].append(g_loss_flip)
-
-        g_loss_mean = 0.5 * ( g_loss_orig + g_loss_flip )
-        d_loss_mean = 0.25 * ( d_loss_real_orig + d_loss_fake_orig + d_loss_real_flip + d_loss_fake_flip )
-        history["g_loss_mean"].append( g_loss_mean )
-        history["d_loss_mean"].append( d_loss_mean )
+        history["g_loss_mean"].append(g_loss_mean)
 
         if epoch % plt_frq == 0:
-           print "Epoch: %5i :: d_loss_orig = %.3f ( real_orig = %.3f, fake_orig = %.3f ), g_loss_orig = %.3f" % (
-              epoch, d_loss_orig, d_loss_real_orig, d_loss_fake_orig, g_loss_orig )
-           print "Epoch: %5i :: d_loss_flip = %.3f ( real_flip = %.3f, fake_flip = %.3f ), g_loss_flip = %.3f" % (
-              epoch, d_loss_flip, d_loss_real_flip, d_loss_fake_flip, g_loss_flip )
+           print "Epoch: %5i :: BS = %i :: d_loss_orig = %.3f ( real = %.3f, fake = %.3f ), d_acc_orig = %.3f, g_loss_orig = %.3f" % (
+              epoch, BATCH_SIZE, d_loss_orig, d_loss_r_orig, d_loss_f_orig, d_acc_orig, g_loss_orig )
+           print "Epoch: %5i :: BS = %i :: d_loss_flip = %.3f ( real = %.3f, fake = %.3f ), d_acc_flip = %.3f, g_loss_flip = %.3f" % (
+              epoch, BATCH_SIZE, d_loss_flip, d_loss_r_flip, d_loss_f_flip, d_acc_flip, g_loss_flip )
            print "Epoch: %5i :: d_loss_mean = %.3f, g_loss_mean = %.3f" % ( epoch, d_loss_mean, g_loss_mean )
            print "----"
-           
+
+        #BATCH_SIZE = int( BATCH_SIZE / lr )
 
    return history
  
 #######################
 
 print "INFO: Train for %i epochs" % ( n_epochs )
-train_loop( nb_epoch=n_epochs, BATCH_SIZE=128 )
+train_loop( nb_epoch=n_epochs, BATCH_SIZE=32 )
+#train_loop( nb_epoch=n_epochs, BATCH_SIZE=128 )
+#train_loop( nb_epoch=n_epochs, BATCH_SIZE=1024 )
 
 # save model to file
 model_filename = "GAN/generator.%s.%s.%s.%s.%s.h5" % (dsid,classifier_arch, classifier_feat, preselection, systematic)

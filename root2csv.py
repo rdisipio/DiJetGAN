@@ -161,7 +161,7 @@ for ientry in range(n_entries):
    #lj1_eta = ljets[0].Eta()
    #if lj1_eta < 0:
 
-   for do_flip_eta in [ False ]: #, True ]:
+   for do_flip_eta in [ False, True ]:
      if do_flip_eta == True:
        helper_functions.FlipEta( ljets )
 

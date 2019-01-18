@@ -236,7 +236,7 @@ def DrawRatio( data, prediction, xtitle = "", yrange=[0.4,1.6] ):
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 obs = "ljet1_pt"
-dsid = "361024"
+dsid = "mg5_dijet_ht500"
 preselection = "incl"
 
 if len(sys.argv) > 1: obs = sys.argv[1]

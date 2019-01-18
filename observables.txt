@@ -6,9 +6,6 @@ ljet1_eta
 ljet1_phi
 ljet1_E
 ljet1_m
-ljet1_tau2
-ljet1_tau3
-ljet1_tau32
 ljet2_px
 ljet2_py
 ljet2_pz
@@ -17,9 +14,6 @@ ljet2_eta
 ljet2_phi
 ljet2_E
 ljet2_m
-ljet2_tau2
-ljet2_tau3
-ljet2_tau32
 jj_px
 jj_py
 jj_pz

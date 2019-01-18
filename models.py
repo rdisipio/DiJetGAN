@@ -105,10 +105,10 @@ def make_generator_mlp_LorentzVector( GAN_noise_size ):
 
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-def make_generator_mlp( G_input, GAN_noise_size, GAN_output_size ):
+def make_generator_mlp( GAN_noise_size, GAN_output_size ):
    # Build Generative model ...
 
-   #G_input = Input( shape=(GAN_noise_size,) )
+   G_input = Input( shape=(GAN_noise_size,), name="Noise" )
 
    G = Dense( 64, kernel_initializer='glorot_normal' )(G_input)
    G = Activation('tanh')(G)
@@ -123,14 +123,9 @@ def make_generator_mlp( G_input, GAN_noise_size, GAN_output_size ):
 
    G = Dense( GAN_output_size, activation="tanh" )(G)
 
-   return G
+   generator = Model( G_input, G )
 
-   #if do_flip_eta:
-   #   G = Lambda( flip_eta, output_shape(GAN_output_size,) )(G)
-
-   #generator = Model( G_input, G )
-
-   #return generator
+   return generator
 
 #~~~~~~~~~~~~~~~~~~~~~~
 
@@ -220,12 +215,11 @@ def make_generator_cnn( GAN_noise_size, GAN_output_size ):
 
 #~~~~~~~~~~~~~~~~~~~~~~
 
-def make_discriminator_cnn( D_input, GAN_output_size ):
+def make_discriminator_cnn( GAN_output_size ):
    # Build Discriminative model ...
    # print "DEBUG: discriminator: input features:", GAN_output_size
     
-    #inshape = ( GAN_output_size, )
-    #D_input = Input( shape=inshape, name='D_input' )
+    D_input = Input( shape=(GAN_output_size,) )
 
     D = Dense(256)(D_input)
     D = Reshape( (1,16,16) )(D)
@@ -241,11 +235,8 @@ def make_discriminator_cnn( D_input, GAN_output_size ):
    
     D_output = Dense( 1, activation="sigmoid")(D)
 
-    return D_output
-
- #discriminator = Model( D_input, D_output )
-   
-    #return discriminator
+    discriminator = Model( D_input, D_output )
+    return discriminator
 
 
 ##########################
