@@ -63,8 +63,8 @@ from features import *
 features = [
    "ljet1_pt", "ljet1_eta", "ljet1_phi", "ljet1_E", "ljet1_M",
    "ljet2_pt", "ljet2_eta", "ljet2_phi", "ljet2_E", "ljet2_M",
-#   "jj_pt",    "jj_eta",    "jj_phi", "jj_M",
-#   "jj_dPhi",  "jj_dEta",   "jj_dR",
+   "jj_pt",    "jj_eta",    "jj_phi", "jj_M",
+   "jj_dPhi",  "jj_dEta",   "jj_dR",
    ]
 
 n_features = len(features)
@@ -128,10 +128,14 @@ GAN_noise_size = 64 # number of random numbers (input noise)
 
 #d_optimizer   = Adam(0.0002, 0.5)
 #g_optimizer   = Adam(0.0002, 0.5)
-d_optimizer  = Adam(0.001)
-g_optimizer  = Adam(0.0001)
-#d_optimizer = SGD(0.001) #, 0.9, nesterov=True)
-#g_optimizer = SGD(0.001, 0.9, nesterov=True)
+d_optimizer  = Adam(0.001, 0.5 )
+g_optimizer  = Adam(0.001, 0.5 )
+#d_optimizer  = Adam(0.001,0.7)
+#g_optimizer  = Adam(0.001,0.7)
+#d_optimizer = SGD(0.001, 0.9 ) #, nesterov=True)
+#g_optimizer = SGD(0.001, 0.9 ) #, nesterov=True)
+#d_optimizer = Adam()
+#g_optimizer = Adam(0.0001)
 
 ###########
 # Generator
@@ -146,21 +150,21 @@ generator.summary()
 # Discriminator
 ###############
 
-#D_orig = make_discriminator()
-#D_orig.name = "Discr_orig"
-#D_input_orig  = Input( shape=(n_features,), name='D_input' )
-#D_flip = make_discriminator()
-#D_flip.name = "Discr_flip"
-#D_input_flip  = Lambda( flip_eta, name="Eta_flip" )(D_input_orig)
-#D_output_orig = D_orig(D_input_orig)
-#D_output_flip = D_flip(D_input_flip)
-
-D = make_discriminator()
-D.name = "Discr"
+D_orig = make_discriminator()
+D_orig.name = "Discr_orig"
 D_input_orig  = Input( shape=(n_features,), name='D_input' )
+D_flip = make_discriminator()
+D_flip.name = "Discr_flip"
 D_input_flip  = Lambda( flip_eta, name="Eta_flip" )(D_input_orig)
-D_output_orig = D(D_input_orig)
-D_output_flip = D(D_input_flip)
+D_output_orig = D_orig(D_input_orig)
+D_output_flip = D_flip(D_input_flip)
+
+#D = make_discriminator()
+#D.name = "Discr"
+#D_input_orig  = Input( shape=(n_features,), name='D_input' )
+#D_input_flip  = Lambda( flip_eta, name="Eta_flip" )(D_input_orig)
+#D_output_orig = D(D_input_orig)
+#D_output_flip = D(D_input_flip)
 
 D_output_orig = Dense( 1, activation="sigmoid", name="output_orig")(D_output_orig)
 D_output_flip = Dense( 1, activation="sigmoid", name="output_flip")(D_output_flip)
@@ -198,7 +202,8 @@ ntrain = 10000
 train_idx = random.sample( range(0,X_train.shape[0]), ntrain)
 X_train_real = X_train[train_idx,:]
 
-X_noise = np.random.uniform(-1,1,size=[X_train_real.shape[0], GAN_noise_size])
+#X_noise = np.random.uniform(-1,1,size=[X_train_real.shape[0], GAN_noise_size])
+X_noise = np.random.uniform(0,1,size=[X_train_real.shape[0], GAN_noise_size])
 #X_noise = np.random.normal( 0., 1., (X_train_real.shape[0], GAN_noise_size) )
 X_train_fake = generator.predict(X_noise)
 
@@ -212,7 +217,7 @@ y[n:] = 0
 #print "INFO: pre-training discriminator network"
 discriminator.trainable = True
 discriminator.fit(X,[y,y], epochs=1, batch_size=128)
-y_hat = discriminator.predict(X)
+#y_hat = discriminator.predict(X)
 
 # set up loss storage vector
 #history = {
@@ -235,7 +240,7 @@ history = {
 
 #######################
 
-def train_loop(nb_epoch=1000, BATCH_SIZE=32, BATCH_SIZE_DISCR=128):
+def train_loop(nb_epoch=1000, BATCH_SIZE=32 ):
 
    plt_frq = max( 1, int(nb_epoch)/20 )
 
@@ -244,23 +249,21 @@ def train_loop(nb_epoch=1000, BATCH_SIZE=32, BATCH_SIZE_DISCR=128):
    y_real = np.ones(  (BATCH_SIZE,1) )
    y_fake = np.zeros( (BATCH_SIZE,1) )
 
-   y_real_d = np.ones(  (BATCH_SIZE_DISCR,1) )
-   y_fake_d = np.zeros( (BATCH_SIZE_DISCR,1) )
-
    for epoch in range(nb_epoch):
 
         # select some real events
-        train_idx = np.random.randint( 0, X_train.shape[0], size=BATCH_SIZE_DISCR )
+        train_idx = np.random.randint( 0, X_train.shape[0], size=BATCH_SIZE )
         X_train_real = X_train[train_idx,:]
 
         # generate fake events
-        X_noise = np.random.uniform(-1,1,size=[X_train_real.shape[0], GAN_noise_size])
-        #X_noise = np.random.normal( 0., 1., (BATCH_SIZE_DISCR, GAN_noise_size) )
+        #X_noise = np.random.uniform(-1,1,size=[X_train_real.shape[0], GAN_noise_size])
+        X_noise = np.random.uniform(0,1,size=[BATCH_SIZE, GAN_noise_size])
+        #X_noise = np.random.normal( 0., 1., (BATCH_SIZE, GAN_noise_size) )
         X_train_fake = generator.predict(X_noise)
 
         # Train the discriminator (real classified as ones and generated as zeros)
-        d_loss_orig, d_loss_r_orig, d_loss_r_flip, d_acc_r_orig, d_acc_r_flip = discriminator.train_on_batch( X_train_real, [ y_real_d, y_real_d ] )
-        d_loss_flip, d_loss_f_orig, d_loss_f_flip, d_acc_f_orig, d_acc_f_flip = discriminator.train_on_batch( X_train_fake, [ y_fake_d, y_fake_d ] )
+        d_loss_orig, d_loss_r_orig, d_loss_r_flip, d_acc_r_orig, d_acc_r_flip = discriminator.train_on_batch( X_train_real, [ y_real, y_real ] )
+        d_loss_flip, d_loss_f_orig, d_loss_f_flip, d_acc_f_orig, d_acc_f_flip = discriminator.train_on_batch( X_train_fake, [ y_fake, y_fake ] )
         #d_loss_orig = 0.5 * np.add(d_loss_r_orig, d_loss_f_orig)
         d_loss_orig /= 2.
         d_loss_flip /= 2.
@@ -288,7 +291,7 @@ def train_loop(nb_epoch=1000, BATCH_SIZE=32, BATCH_SIZE_DISCR=128):
 
         # Train the generator
         # create new (statistically independent) random noise sample
-        X_noise = np.random.uniform(-1,1,size=(BATCH_SIZE, GAN_noise_size))
+        #X_noise = np.random.uniform(-1,1,size=(BATCH_SIZE, GAN_noise_size))
         #X_noise = np.random.normal( 0., 1., (BATCH_SIZE, GAN_noise_size) )
 
         # we want discriminator to mistake images as real
@@ -313,8 +316,8 @@ def train_loop(nb_epoch=1000, BATCH_SIZE=32, BATCH_SIZE_DISCR=128):
 #######################
 
 print "INFO: Train for %i epochs" % ( n_epochs )
-train_loop( nb_epoch=n_epochs, BATCH_SIZE=32 )
-#train_loop( nb_epoch=n_epochs, BATCH_SIZE=128 )
+#train_loop( nb_epoch=n_epochs, BATCH_SIZE=32 )
+train_loop( nb_epoch=n_epochs, BATCH_SIZE=128 )
 #train_loop( nb_epoch=n_epochs, BATCH_SIZE=1024 )
 
 # save model to file

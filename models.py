@@ -43,12 +43,14 @@ def flip_eta( x ):
 
    #"ljet1_pt", "ljet1_eta", "ljet1_phi", "ljet1_E", "ljet1_M",
    #"ljet2_pt", "ljet2_eta", "ljet2_phi", "ljet2_E", ljet2_M",
+   #"jj_pt",    "jj_eta",    "jj_phi", "jj_E", "jj_M",
+   #"jj_dPhi",  "jj_dEta",   "jj_dR",
 
-   #x_size = 15
-   x_size = 10
+   x_size = 17
+   #x_size = 10
    mask = np.ones(x_size, dtype="float32")
-   #mask[[1,5,9,13]] = -1
-   mask[[1,6]] = -1
+   mask[[1,6,11,16]] = -1
+   #mask[[1,6]] = -1
    #mask = K.variable(value=mask, dtype='float64', name='mask')
    mask = tf.identity(mask)
 
