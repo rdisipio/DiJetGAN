@@ -57,6 +57,7 @@ ls GAN/tree.mg5_dijet_ht500.rnn.GAN.incl.nominal.root > filelists/mc16a.mg5_dije
 ## Fill histograms
 
 ```
+mkdir -p histograms
 ./tree2hist.py  filelists/mc16a.mg5_dijet_ht500.GAN.incl.txt 
 ./tree2hist.py  filelists/mc16a.mg5_dijet_ht500.MC.incl.txt 
 ```

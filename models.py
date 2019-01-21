@@ -35,27 +35,24 @@ def PxPyPzE_to_PtEtaPhiM(x):
 def flip_eta( x ):
 
    #features = [
-   #"ljet1_pt", "ljet1_eta", "ljet1_phi", "ljet1_M",
-   #"ljet2_pt", "ljet2_eta", "ljet2_phi", "ljet2_M",
-   #"jj_pt",    "jj_eta",    "jj_phi", "jj_M",
+   #"ljet1_pt", "ljet1_eta", "ljet1_phi", "ljet1_E", "ljet1_M",
+   #"ljet2_pt", "ljet2_eta", "ljet2_phi", "ljet2_E", "ljet2_M",
+   #"jj_pt",    "jj_eta",    "jj_phi",    "jj_E",    "jj_M",
    #"jj_dPhi",  "jj_dEta",   "jj_dR",
    #]
 
-   #"ljet1_pt", "ljet1_eta", "ljet1_phi", "ljet1_E", "ljet1_M",
-   #"ljet2_pt", "ljet2_eta", "ljet2_phi", "ljet2_E", ljet2_M",
-   #"jj_pt",    "jj_eta",    "jj_phi", "jj_E", "jj_M",
-   #"jj_dPhi",  "jj_dEta",   "jj_dR",
-
-   x_size = 17
+   x_size = 18
+   #x_size = 15
    #x_size = 10
    mask = np.ones(x_size, dtype="float32")
    mask[[1,6,11,16]] = -1
+   #mask[[1,6,11]] = -1
    #mask[[1,6]] = -1
    #mask = K.variable(value=mask, dtype='float64', name='mask')
-   mask = tf.identity(mask)
+   a = tf.identity(mask)
 
-   #y = x * mask
-   y = tf.multiply( x, mask )
+   y = a * x
+   #y = tf.multiply( x, a )
 
    return y
 
@@ -76,35 +73,35 @@ def make_generator_mlp_LorentzVector( GAN_noise_size ):
    #G = Dense( 32 )(G)
    #G = Activation('tanh')(G)
 
-   j1_PtEtaPhiM = Dense(4, activation='tanh')(G)
-   #j1_PtEtaPhiM = Dense(32, activation='tanh')(j1_PtEtaPhiM)
-   #j1_PtEtaPhiM = Dense(4)(j1_PtEtaPhiM)
+   j1_PtEtaPhiEM = Dense(64, activation='tanh')(G)
+   j1_PtEtaPhiEM = Dense(32, activation='tanh')(j1_PtEtaPhiEM)
+   j1_PtEtaPhiEM = Dense(5)(j1_PtEtaPhiEM)
 
-   j2_PtEtaPhiM = Dense(4, activation='tanh')(G)
-   #j2_PtEtaPhiM = Dense(32, activation='tanh')(j2_PtEtaPhiM)
-   #j2_PtEtaPhiM = Dense(4)(j2_PtEtaPhiM)
+   j2_PtEtaPhiEM = Dense(64, activation='tanh')(G)
+   j2_PtEtaPhiEM = Dense(32, activation='tanh')(j2_PtEtaPhiEM)
+   j2_PtEtaPhiEM = Dense(5)(j2_PtEtaPhiEM)
 
    #j1_PxPyPzE = Dense(4, activation='tanh')(G)
    #j2_PxPyPzE = Dense(4, activation='tanh')(G)
 
-   jj = concatenate( [ j1_PtEtaPhiM, j2_PtEtaPhiM ] )
+   jj = concatenate( [ j1_PtEtaPhiEM, j2_PtEtaPhiEM ] )
    #jj = concatenate( [ j1_PxPyPzE, j2_PxPyPzE ] )
    #jj_PxPyPzE = add( [ j1_PxPyPzE, j2_PxPyPzE ] )
 
-   jj_PtEtaPhiM = Dense(64, activation='tanh')(jj)
-   jj_PtEtaPhiM = Dense(32, activation='tanh')(jj_PtEtaPhiM)
-   jj_PtEtaPhiM = Dense(4)(jj_PtEtaPhiM)
+   jj_PtEtaPhiEM = Dense(64, activation='tanh')(jj)
+   jj_PtEtaPhiEM = Dense(32, activation='tanh')(jj_PtEtaPhiEM)
+   jj_PtEtaPhiEM = Dense(5)(jj_PtEtaPhiEM)
 
    jj_angles = Dense(32, activation='tanh')(jj)
    jj_angles = Dense(3)(jj_angles)
 
    G_output = concatenate( [
       #j1_PxPyPzE,
-      j1_PtEtaPhiM,
+      j1_PtEtaPhiEM,
       #j2_PxPyPzE,
-      j2_PtEtaPhiM,
+      j2_PtEtaPhiEM,
       #jj_PxPyPzE,
-      jj_PtEtaPhiM,
+      jj_PtEtaPhiEM,
       jj_angles
    ] )
    generator = Model( G_input, G_output )
@@ -182,7 +179,7 @@ def make_generator_cnn( GAN_noise_size, GAN_output_size ):
    
    G = Dense( 64, kernel_initializer='glorot_uniform' )(G_input)
    G = Activation('tanh')(G)
-   G = BatchNormalization(momentum=0.8)(G)
+#   G = BatchNormalization(momentum=0.8)(G)
    
    G = Reshape( [ 8, 8, 1 ] )(G) #default: channel last
 
@@ -303,3 +300,7 @@ def make_discriminator_rnn( GAN_output_size ):
 
 
 ##########################
+
+def wasserstein_loss(y_true, y_pred):
+    return K.mean(y_true * y_pred)
+

@@ -181,11 +181,18 @@ leg4.Draw()
 
 gPad.RedrawAxis()
 
+# Discriminator losses
 c.cd(5)
-frame_g_loss.Draw()
-g_loss_orig.Draw("l same" )
-g_loss_flip.Draw("l same" )
-g_loss_mean.Draw("l same" )
+frame_d_loss.Draw()
+
+d_loss_orig_2 = d_loss_orig.Clone()
+d_loss_flip_2 = d_loss_flip.Clone()
+SetHistogramStyle( d_loss_orig_2, color=kRed )
+SetHistogramStyle( d_loss_flip_2, color=kBlue )
+
+d_loss_orig.Draw("l same" )
+d_loss_flip.Draw("l same" )
+d_loss_mean.Draw("l same" )
 
 leg5 = TLegend( 0.65, 0.90, 0.80, 0.90 )
 leg5.SetFillColor(0)
@@ -193,24 +200,20 @@ leg5.SetFillStyle(0)
 leg5.SetBorderSize(0)
 leg5.SetTextFont(42)
 leg5.SetTextSize(0.05)
-leg5.AddEntry( g_loss_mean, "Average loss", "l" )
-leg5.AddEntry( g_loss_orig, "Original loss", "l" )
-leg5.AddEntry( g_loss_flip, "Flipped loss", "l" )
+leg5.AddEntry( d_loss_mean, "Average loss", "l" )
+leg5.AddEntry( d_loss_orig_2, "Original loss", "l" )
+leg5.AddEntry( d_loss_flip_2, "Flipped loss", "l" )
 leg5.SetY1( leg1.GetY1() - 0.05 * leg1.GetNRows() )
 leg5.Draw()
 
 gPad.RedrawAxis()
 
-# Discriminator loss
+# Generator loss
 c.cd(6)
-frame_d_loss.Draw()
-
-#SetHistogramStyle( d_loss_orig, color=kRed )
-#SetHistogramStyle( d_loss_flip, color=kBlue )
-
-d_loss_orig.Draw("l same" )
-d_loss_flip.Draw("l same" )
-d_loss_mean.Draw("l same" )
+frame_g_loss.Draw()
+g_loss_orig.Draw("l same" )
+g_loss_flip.Draw("l same" )
+g_loss_mean.Draw("l same" )
 
 leg6 = TLegend( 0.65, 0.90, 0.80, 0.90 )
 leg6.SetFillColor(0)

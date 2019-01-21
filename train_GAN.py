@@ -63,7 +63,7 @@ from features import *
 features = [
    "ljet1_pt", "ljet1_eta", "ljet1_phi", "ljet1_E", "ljet1_M",
    "ljet2_pt", "ljet2_eta", "ljet2_phi", "ljet2_E", "ljet2_M",
-   "jj_pt",    "jj_eta",    "jj_phi", "jj_M",
+   "jj_pt",    "jj_eta",    "jj_phi", "jj_E", "jj_M",
    "jj_dPhi",  "jj_dEta",   "jj_dR",
    ]
 
@@ -126,16 +126,23 @@ def make_discriminator():
 
 GAN_noise_size = 64 # number of random numbers (input noise)
 
-#d_optimizer   = Adam(0.0002, 0.5)
-#g_optimizer   = Adam(0.0002, 0.5)
-d_optimizer  = Adam(0.001, 0.5 )
-g_optimizer  = Adam(0.001, 0.5 )
+#d_optimizer   = Adam(0.0002, beta_1=0.5, beta_2=0.9)
+#g_optimizer   = Adam(0.0002, beta_1=0.5, beta_2=0.9)
+
+d_optimizer  = Adam(0.0002, 0.5, 0.9 )
+g_optimizer  = Adam(0.0002, 0.5, 0.9 )
+
 #d_optimizer  = Adam(0.001,0.7)
 #g_optimizer  = Adam(0.001,0.7)
-#d_optimizer = SGD(0.001, 0.9 ) #, nesterov=True)
-#g_optimizer = SGD(0.001, 0.9 ) #, nesterov=True)
+
+#d_optimizer = SGD(0.001, 0.9, nesterov=True)
+#g_optimizer = SGD(0.001, 0.9, nesterov=True)
+
+#d_optimizer = SGD()
+#g_optimizer = SGD()
+
 #d_optimizer = Adam()
-#g_optimizer = Adam(0.0001)
+#g_optimizer = Adam()
 
 ###########
 # Generator
@@ -152,9 +159,9 @@ generator.summary()
 
 D_orig = make_discriminator()
 D_orig.name = "Discr_orig"
-D_input_orig  = Input( shape=(n_features,), name='D_input' )
 D_flip = make_discriminator()
 D_flip.name = "Discr_flip"
+D_input_orig  = Input( shape=(n_features,), name='D_input' )
 D_input_flip  = Lambda( flip_eta, name="Eta_flip" )(D_input_orig)
 D_output_orig = D_orig(D_input_orig)
 D_output_flip = D_flip(D_input_flip)
@@ -178,6 +185,8 @@ discriminator.summary()
 
 # For the combined model we will only train the generator
 discriminator.trainable = False
+for layer in discriminator.layers:
+    layer.trainable = False
 GAN_input  = Input( shape=(GAN_noise_size,) )
 GAN_latent = generator(GAN_input)
 GAN_output = discriminator(GAN_latent)
@@ -198,13 +207,12 @@ plot_model( GAN,            to_file="img/model_%s_GAN.png" % (dsid) )
 # 2) generate ntrain fake events
 
 # Pre-train discriminator
-ntrain = 10000
+ntrain = 20000
 train_idx = random.sample( range(0,X_train.shape[0]), ntrain)
 X_train_real = X_train[train_idx,:]
 
-#X_noise = np.random.uniform(-1,1,size=[X_train_real.shape[0], GAN_noise_size])
 X_noise = np.random.uniform(0,1,size=[X_train_real.shape[0], GAN_noise_size])
-#X_noise = np.random.normal( 0., 1., (X_train_real.shape[0], GAN_noise_size) )
+##X_noise = np.random.normal( 0., 1., (X_train_real.shape[0], GAN_noise_size) )
 X_train_fake = generator.predict(X_noise)
 
 # create GAN training dataset
@@ -214,17 +222,12 @@ y = np.zeros([2*n])
 y[:n] = 1
 y[n:] = 0
 
-#print "INFO: pre-training discriminator network"
+print "INFO: pre-training discriminator network"
 discriminator.trainable = True
+for layer in discriminator.layers:
+    layer.trainable = True
 discriminator.fit(X,[y,y], epochs=1, batch_size=128)
-#y_hat = discriminator.predict(X)
-
-# set up loss storage vector
-#history = {
-#   "d_loss":[], "d_loss_r":[], "d_loss_f":[],
-#   "g_loss":[],
-#   "d_acc":[], "d_acc_r":[], "d_acc_f":[],
-#}
+##y_hat = discriminator.predict(X)
 
 history = {
    "d_loss_orig":[], "d_loss_r_orig":[], "d_loss_f_orig":[],
@@ -292,6 +295,7 @@ def train_loop(nb_epoch=1000, BATCH_SIZE=32 ):
         # Train the generator
         # create new (statistically independent) random noise sample
         #X_noise = np.random.uniform(-1,1,size=(BATCH_SIZE, GAN_noise_size))
+        #X_noise = np.random.uniform(0,1,size=(BATCH_SIZE, GAN_noise_size))
         #X_noise = np.random.normal( 0., 1., (BATCH_SIZE, GAN_noise_size) )
 
         # we want discriminator to mistake images as real
@@ -316,8 +320,8 @@ def train_loop(nb_epoch=1000, BATCH_SIZE=32 ):
 #######################
 
 print "INFO: Train for %i epochs" % ( n_epochs )
-#train_loop( nb_epoch=n_epochs, BATCH_SIZE=32 )
-train_loop( nb_epoch=n_epochs, BATCH_SIZE=128 )
+train_loop( nb_epoch=n_epochs, BATCH_SIZE=32 )
+#train_loop( nb_epoch=n_epochs, BATCH_SIZE=128 )
 #train_loop( nb_epoch=n_epochs, BATCH_SIZE=1024 )
 
 # save model to file
