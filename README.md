@@ -24,6 +24,11 @@ Thus, a smaller ntuples (using the "AnalysisTop mc16a" format) has to be created
 ./delphes2at.py -i filelists/delphes.mg5_dijet_ht500.MC.incl.txt 
 ```
 
+For your convenience, this file can be downloaded from CERNBOX:
+```
+https://cernbox.cern.ch/index.php/s/cXjogAvrojdUQ3f
+```
+
 Now it is possible to convert ROOT file to CSV. This operation includes some pre-processing, e.g. all jets are phi-rotated by the same amount
 so that the leading jet phi is always zero:
 
