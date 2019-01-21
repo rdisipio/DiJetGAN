@@ -49,19 +49,19 @@ mkdir -p img
 ## Generate events
 
 ```
-./generate_events.py -n 200000
+./generate_events.py -n 500000
 ls GAN/tree.mg5_dijet_ht500.rnn.GAN.incl.nominal.root > filelists/mc16a.mg5_dijet_ht500.GAN.incl.txt
 ```
 
 ## Fill histograms
 
 ```
-./tree2hist.py  filelists/mc16a.mg5_dijet_ht500.GAN.incl.txt 200000
-./tree2hist.py  filelists/mc16a.mg5_dijet_ht500.MC.incl.txt 200000
+./tree2hist.py  filelists/mc16a.mg5_dijet_ht500.GAN.incl.txt 
+./tree2hist.py  filelists/mc16a.mg5_dijet_ht500.MC.incl.txt 
 ```
 
 ## Make final plots
 
 ```
-cat observables.txt | parallel ./plot_observables.py {} 361024
+cat observables.txt | parallel ./plot_observables.py {} mg5_dijet_ht500
 ```
