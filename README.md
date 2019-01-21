@@ -6,11 +6,9 @@
 git clone https://gitlab.cern.ch/disipio/DiJetGAN.git
 cd DiJetGAN
 ```
-
-Assuming ntuples are created with MadGraph5 + Delphes3
-
 ## Create input files
 The scripts accept as input a text file that contains the full path of ROOT files, which in turn are loaded to memory as a TChain object. 
+It is assumed that ntuples are created using MadGraph5 + Pythia8 + Delphes3.
 
 ```
 mkdir -p filelists
