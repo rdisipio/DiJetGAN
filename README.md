@@ -14,10 +14,6 @@ The scripts accept as input a text file that contains the full path of ROOT file
 
 ```
 mkdir -p filelists
-```
-
-The tree structure resembles 
-
 ls /home/disipio/mcgenerators/MG5_aMC_v2_6_4/pp2jj_lo/Events/run_04/tag_1_delphes_events.root > filelists/delphes.mg5_dijet_ht500.MC.incl.txt
 ```
 
