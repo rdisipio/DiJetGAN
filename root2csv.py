@@ -164,10 +164,10 @@ for ientry in range(n_entries):
    #for do_flip_eta in [ False, True ]:
    #  if do_flip_eta == True:
 
-   if ljets[0].Eta() < 0:
-       helper_functions.FlipEta( ljets )
+   #if ljets[0].Eta() < 0:
+   #    helper_functions.FlipEta( ljets )
 
-   for do_flip_eta in [ False ]:
+   for do_flip_eta in [ False, True ]:
 
      jj      = ljets[0] + ljets[1]
      jj.dPhi = ljets[0].DeltaPhi( ljets[1] )

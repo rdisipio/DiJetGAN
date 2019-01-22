@@ -98,6 +98,8 @@ outtree.Branch( 'abcd16',             b_abcd16, 'abcd16/I' )
 print "INFO: generating %i events..." % n_events
 
 X_noise = np.random.uniform(0,1,size=[ n_events, GAN_noise_size])
+#X_noise = np.random.uniform(-1,1,size=[ n_events, GAN_noise_size])
+#X_noise = np.random.normal( 0., 0.5, size=[ n_events, GAN_noise_size] )
 X_generated = generator.predict(X_noise)
 
 print "INFO: generated %i events" % n_events

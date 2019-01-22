@@ -129,8 +129,8 @@ GAN_noise_size = 128 # number of random numbers (input noise)
 d_optimizer   = Adam(0.0001, beta_1=0.5, beta_2=0.9)
 g_optimizer   = Adam(0.0001, beta_1=0.5, beta_2=0.9)
 
-#d_optimizer  = Adam(0.0002 ) 
-#g_optimizer  = Adam(0.0001 )
+#d_optimizer  = Adam(0.0001,  )
+#g_optimizer  = Adam(0.0001,  )
 
 #d_optimizer  = Adam(0.001,0.7)
 #g_optimizer  = Adam(0.001,0.7)
@@ -214,28 +214,29 @@ plot_model( GAN,            to_file="img/model_%s_GAN.png" % (dsid) )
 # 2) generate ntrain fake events
 
 # Pre-train discriminator
-ntrain = 20000
-train_idx = random.sample( range(0,X_train.shape[0]), ntrain)
-X_train_real = X_train[train_idx,:]
+#ntrain = 20000
+#train_idx = random.sample( range(0,X_train.shape[0]), ntrain)
+#X_train_real = X_train[train_idx,:]
 
-X_noise = np.random.uniform(0,1,size=[X_train_real.shape[0], GAN_noise_size])
-##X_noise = np.random.normal( 0., 1., (X_train_real.shape[0], GAN_noise_size) )
-X_train_fake = generator.predict(X_noise)
+#X_noise = np.random.uniform(0,1,size=[X_train_real.shape[0], GAN_noise_size])
+#X_noise = np.random.uniform(-1,1,size=[X_train_real.shape[0], GAN_noise_size])
+#X_noise = np.random.normal( 0., 1., (X_train_real.shape[0], GAN_noise_size) )
+#X_train_fake = generator.predict(X_noise)
 
 # create GAN training dataset
-X = np.concatenate( (X_train_real, X_train_fake) )
-n = X_train_real.shape[0]
-y = np.zeros([2*n])
-y[:n] = 1
-y[n:] = 0
+#X = np.concatenate( (X_train_real, X_train_fake) )
+#n = X_train_real.shape[0]
+#y = np.zeros([2*n])
+#y[:n] = 1
+#y[n:] = 0
 
-print "INFO: pre-training discriminator network"
-discriminator.trainable = True
-for layer in discriminator.layers:
-    layer.trainable = True
-#discriminator.fit( X, [y,y], epochs=1, batch_size=128)
-discriminator.fit( X, y, epochs=1, batch_size=128)
-##y_hat = discriminator.predict(X)
+#print "INFO: pre-training discriminator network"
+#discriminator.trainable = True
+#for layer in discriminator.layers:
+#    layer.trainable = True
+##discriminator.fit( X, [y,y], epochs=1, batch_size=128)
+#discriminator.fit( X, y, epochs=1, batch_size=128)
+###y_hat = discriminator.predict(X)
 
 history = {
    "d_loss_orig":[], "d_loss_r_orig":[], "d_loss_f_orig":[],
@@ -269,7 +270,7 @@ def train_loop(nb_epoch=1000, BATCH_SIZE=32 ):
         # generate fake events
         #X_noise = np.random.uniform(-1,1,size=[X_train_real.shape[0], GAN_noise_size])
         X_noise = np.random.uniform(0,1,size=[BATCH_SIZE, GAN_noise_size])
-        #X_noise = np.random.normal( 0., 1., (BATCH_SIZE, GAN_noise_size) )
+        #X_noise = np.random.normal( 0., 0.5, (BATCH_SIZE, GAN_noise_size) )
         X_train_fake = generator.predict(X_noise)
 
         # Train the discriminator (real classified as ones and generated as zeros)
