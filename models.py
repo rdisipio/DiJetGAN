@@ -234,12 +234,10 @@ def make_discriminator_cnn( GAN_output_size ):
     D = Reshape( (1,16,16) )(D)
    
     D = Conv2D( 128, 1, strides=1 )(D)
-    #D = Activation('tanh')(D)
     D  = LeakyReLU(alpha=0.2)(D)
     #D = BatchNormalization()(D)
 
     D = Conv2D( 64, 1, strides=1 )(D)
-    #D = Activation('tanh')(D)
     D  = LeakyReLU(alpha=0.2)(D)
 
     D = Flatten()(D)

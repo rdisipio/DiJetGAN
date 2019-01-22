@@ -126,8 +126,8 @@ def make_discriminator():
 
 GAN_noise_size = 128 # number of random numbers (input noise)
 
-d_optimizer   = Adam(0.0001, beta_1=0.5, beta_2=0.9)
-g_optimizer   = Adam(0.0001, beta_1=0.5, beta_2=0.9)
+d_optimizer   = Adam(0.001, beta_1=0.5, beta_2=0.9)
+g_optimizer   = Adam(0.001, beta_1=0.5, beta_2=0.9)
 
 #d_optimizer  = Adam(0.0001,  )
 #g_optimizer  = Adam(0.0001,  )
@@ -135,8 +135,8 @@ g_optimizer   = Adam(0.0001, beta_1=0.5, beta_2=0.9)
 #d_optimizer  = Adam(0.001,0.7)
 #g_optimizer  = Adam(0.001,0.7)
 
-#d_optimizer = SGD(0.001, 0.9 ) #, nesterov=True)
-#g_optimizer = SGD(0.001, 0.9 ) #, nesterov=True)
+#d_optimizer = SGD(0.0001, 0.9, nesterov=True)
+#g_optimizer = SGD(0.0001, 0.9, nesterov=True)
 
 #d_optimizer = SGD()
 #g_optimizer = SGD()
@@ -349,8 +349,8 @@ def train_loop(nb_epoch=1000, BATCH_SIZE=32 ):
 #######################
 
 print "INFO: Train for %i epochs" % ( n_epochs )
-train_loop( nb_epoch=n_epochs, BATCH_SIZE=32 )
-#train_loop( nb_epoch=n_epochs, BATCH_SIZE=128 )
+#train_loop( nb_epoch=n_epochs, BATCH_SIZE=32 )
+train_loop( nb_epoch=n_epochs, BATCH_SIZE=128 )
 #train_loop( nb_epoch=n_epochs, BATCH_SIZE=1024 )
 
 # save model to file
