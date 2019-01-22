@@ -32,6 +32,7 @@ def PxPyPzE_to_PtEtaPhiM(x):
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 def flip_eta( x ):
+   #return x
 
    #features = [
    #"ljet1_pt", "ljet1_eta", "ljet1_phi", "ljet1_E", "ljet1_M",
@@ -118,12 +119,12 @@ def make_generator_mlp( GAN_noise_size, GAN_output_size ):
 
    G_input = Input( shape=(GAN_noise_size,), name="Noise" )
 
-   G = Dense( 64, kernel_initializer='glorot_normal' )(G_input)
+   G = Dense( 128, kernel_initializer='glorot_normal' )(G_input)
    #G = Activation( LeakyReLU () )(G)
    G  = LeakyReLU(alpha=0.2)(G)
    G = BatchNormalization(momentum=0.8)(G) #0.8
 
-   G = Dense( 32 )(G)
+   G = Dense( 256 )(G)
    #G = Activation('tanh')(G)
    G  = LeakyReLU(alpha=0.2)(G)
    #G = BatchNormalization(momentum=0.8)(G) #0.8

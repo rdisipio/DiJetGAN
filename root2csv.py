@@ -161,9 +161,13 @@ for ientry in range(n_entries):
    #lj1_eta = ljets[0].Eta()
    #if lj1_eta < 0:
 
-   for do_flip_eta in [ False, True ]:
-     if do_flip_eta == True:
+   #for do_flip_eta in [ False, True ]:
+   #  if do_flip_eta == True:
+
+   if ljets[0].Eta() < 0:
        helper_functions.FlipEta( ljets )
+
+   for do_flip_eta in [ False ]:
 
      jj      = ljets[0] + ljets[1]
      jj.dPhi = ljets[0].DeltaPhi( ljets[1] )

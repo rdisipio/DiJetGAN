@@ -164,9 +164,9 @@ for ievent in range(n_events):
    lj2.RotateZ( phi ) 
 
    # flip eta?
-   #if rng.Uniform() > 0.5:
-   #  lj1.SetPtEtaPhiM( lj1.Pt(), -lj1.Eta(), lj1.Phi(), lj1.M() )
-   #  lj2.SetPtEtaPhiM( lj2.Pt(), -lj2.Eta(), lj2.Phi(), lj2.M() )
+   if rng.Uniform() > 0.5:
+     lj1.SetPtEtaPhiM( lj1.Pt(), -lj1.Eta(), lj1.Phi(), lj1.M() )
+     lj2.SetPtEtaPhiM( lj2.Pt(), -lj2.Eta(), lj2.Phi(), lj2.M() )
    
    lj1.tau2  = 0.
    lj1.tau3  = 0.
