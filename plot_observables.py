@@ -271,8 +271,8 @@ else:
   Normalize( h_GAN )
   Normalize( h_MC )
 
-  DivideByBinWidth( h_GAN )
-  DivideByBinWidth( h_MC )
+#  DivideByBinWidth( h_GAN )
+#  DivideByBinWidth( h_MC )
 
 SetTH1FStyle( h_GAN, color=kRed, markerstyle=24, markersize=2 )
 SetTH1FStyle( h_MC,  color=kBlack, markerstyle=20, markersize=2)
@@ -304,11 +304,13 @@ leg.SetY1( leg.GetY1() - 0.05 * leg.GetNRows() )
 leg.Draw()
 
 KS = h_MC.KolmogorovTest( h_GAN )
+X2 = h_MC.Chi2Test( h_GAN, "WW CHI2/NDF" )
 l = TLatex()
 l.SetNDC()
-l.SetTextFont(72)
+l.SetTextFont(42)
 l.SetTextColor(kBlack)
-l.DrawLatex( 0.8, 0.85, "KS test: %.3f" % KS )
+l.DrawLatex( 0.7, 0.85, "KS test: %.2f" % KS )
+l.DrawLatex( 0.7, 0.80, "#chi^{2}/NDF = %.2f" % X2 )
 #l.DrawLatex(0.20, 0.85, "ATLAS Simulation Internal")
 
 gPad.RedrawAxis()
