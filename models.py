@@ -19,7 +19,6 @@ from keras.regularizers import *
 import tensorflow as tf
 import numpy as np
 
-
 #######################################
 
 
@@ -53,6 +52,10 @@ def flip_eta( x ):
 
    y = a * x
    #y = tf.multiply( x, a )
+
+   #K.print_tensor( x, "x =" )
+   #K.print_tensor( a, "a =" )
+   #K.print_tensor( y, "y =" )
 
    return y
 

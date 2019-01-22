@@ -124,13 +124,13 @@ def make_discriminator():
 
 #~~~~~~~~~~~~~~~~~~~~~~
 
-GAN_noise_size = 64 # number of random numbers (input noise)
+GAN_noise_size = 128 # number of random numbers (input noise)
 
-#d_optimizer   = Adam(0.0002, beta_1=0.5, beta_2=0.9)
-#g_optimizer   = Adam(0.0002, beta_1=0.5, beta_2=0.9)
+d_optimizer   = Adam(0.002, beta_1=0.5, beta_2=0.9)
+g_optimizer   = Adam(0.002, beta_1=0.5, beta_2=0.9)
 
-d_optimizer  = Adam(0.0002, 0.5, 0.9 )
-g_optimizer  = Adam(0.0002, 0.5, 0.9 )
+#d_optimizer  = Adam(0.0002 ) 
+#g_optimizer  = Adam(0.0001 )
 
 #d_optimizer  = Adam(0.001,0.7)
 #g_optimizer  = Adam(0.001,0.7)
@@ -157,25 +157,26 @@ generator.summary()
 # Discriminator
 ###############
 
-D_orig = make_discriminator()
-D_orig.name = "Discr_orig"
-D_flip = make_discriminator()
-D_flip.name = "Discr_flip"
-D_input_orig  = Input( shape=(n_features,), name='D_input' )
-D_input_flip  = Lambda( flip_eta, name="Eta_flip" )(D_input_orig)
-D_output_orig = D_orig(D_input_orig)
-D_output_flip = D_flip(D_input_flip)
-
-#D = make_discriminator()
-#D.name = "Discr"
+#D_orig = make_discriminator()
+#D_orig.name = "Discr_orig"
+#D_flip = make_discriminator()
+#D_flip.name = "Discr_flip"
 #D_input_orig  = Input( shape=(n_features,), name='D_input' )
 #D_input_flip  = Lambda( flip_eta, name="Eta_flip" )(D_input_orig)
-#D_output_orig = D(D_input_orig)
-#D_output_flip = D(D_input_flip)
+#D_output_orig = D_orig(D_input_orig)
+#D_output_flip = D_flip(D_input_flip)
+
+D = make_discriminator()
+D.name = "Discr"
+D_input_orig  = Input( shape=(n_features,), name='D_input_orig' )
+D_input_flip  = Input( shape=(n_features,), name='D_input_flip' )
+D_output_flip  = Lambda( flip_eta, name="Eta_flip" )(D_input_flip)
+D_output_orig = D(D_input_orig)
+D_output_flip = D(D_output_flip)
 
 D_output_orig = Dense( 1, activation="sigmoid", name="output_orig")(D_output_orig)
 D_output_flip = Dense( 1, activation="sigmoid", name="output_flip")(D_output_flip)
-discriminator = Model( D_input_orig, [ D_output_orig, D_output_flip ] )
+discriminator = Model( [D_input_orig, D_input_flip], [D_output_orig, D_output_flip] )
 
 discriminator.name = "Discriminator"
 discriminator.compile( loss='binary_crossentropy',
@@ -189,7 +190,7 @@ for layer in discriminator.layers:
     layer.trainable = False
 GAN_input  = Input( shape=(GAN_noise_size,) )
 GAN_latent = generator(GAN_input)
-GAN_output = discriminator(GAN_latent)
+GAN_output = discriminator([GAN_latent,GAN_latent])
 GAN        = Model( GAN_input, GAN_output )
 GAN.name   = "GAN"
 GAN.compile( loss='binary_crossentropy',
@@ -226,7 +227,7 @@ print "INFO: pre-training discriminator network"
 discriminator.trainable = True
 for layer in discriminator.layers:
     layer.trainable = True
-discriminator.fit(X,[y,y], epochs=1, batch_size=128)
+discriminator.fit( [X,X], [y,y], epochs=1, batch_size=128)
 ##y_hat = discriminator.predict(X)
 
 history = {
@@ -265,8 +266,8 @@ def train_loop(nb_epoch=1000, BATCH_SIZE=32 ):
         X_train_fake = generator.predict(X_noise)
 
         # Train the discriminator (real classified as ones and generated as zeros)
-        d_loss_orig, d_loss_r_orig, d_loss_r_flip, d_acc_r_orig, d_acc_r_flip = discriminator.train_on_batch( X_train_real, [ y_real, y_real ] )
-        d_loss_flip, d_loss_f_orig, d_loss_f_flip, d_acc_f_orig, d_acc_f_flip = discriminator.train_on_batch( X_train_fake, [ y_fake, y_fake ] )
+        d_loss_orig, d_loss_r_orig, d_loss_r_flip, d_acc_r_orig, d_acc_r_flip = discriminator.train_on_batch( [X_train_real,X_train_real], [ y_real, y_real ] )
+        d_loss_flip, d_loss_f_orig, d_loss_f_flip, d_acc_f_orig, d_acc_f_flip = discriminator.train_on_batch( [X_train_fake,X_train_fake], [ y_fake, y_fake ] )
         #d_loss_orig = 0.5 * np.add(d_loss_r_orig, d_loss_f_orig)
         d_loss_orig /= 2.
         d_loss_flip /= 2.
