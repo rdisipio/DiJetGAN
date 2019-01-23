@@ -349,9 +349,9 @@ def train_loop(nb_epoch=1000, BATCH_SIZE=32 ):
 #######################
 
 print "INFO: Train for %i epochs" % ( n_epochs )
-#train_loop( nb_epoch=n_epochs, BATCH_SIZE=32 )
+train_loop( nb_epoch=n_epochs, BATCH_SIZE=32 )
 #train_loop( nb_epoch=n_epochs, BATCH_SIZE=128 )
-train_loop( nb_epoch=n_epochs, BATCH_SIZE=512 )
+#train_loop( nb_epoch=n_epochs, BATCH_SIZE=512 )
 #train_loop( nb_epoch=n_epochs, BATCH_SIZE=1024 )
 
 # save model to file
