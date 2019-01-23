@@ -67,3 +67,9 @@ mkdir -p histograms
 ```
 cat observables.txt | parallel ./plot_observables.py {} mg5_dijet_ht500
 ```
+
+You can do all the above with the following script:
+
+```
+./workflow.sh -d mg5_dijet_ht500 -e ${n_training_epochs} -n ${n_generate_events}
+```

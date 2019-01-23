@@ -121,7 +121,7 @@ def make_generator_mlp( GAN_noise_size, GAN_output_size ):
 
    G = Dense( 128, kernel_initializer='glorot_normal' )(G_input)
    G = LeakyReLU(alpha=0.2)(G)
-   G = BatchNormalization(momentum=0.8)(G) #0.8
+   G = BatchNormalization()(G) #0.8
 
 #   G = Dense( 128 )(G)
 #   G  = LeakyReLU(alpha=0.2)(G)
@@ -179,21 +179,25 @@ def make_generator_cnn( GAN_noise_size, GAN_output_size ):
    
    G_input = Input( shape=(GAN_noise_size,) )
    
-   G = Dense( 64, kernel_initializer='glorot_uniform' )(G_input)
-   G = Activation('tanh')(G)
-#   G = BatchNormalization(momentum=0.8)(G)
-   
-   G = Reshape( [ 8, 8, 1 ] )(G) #default: channel last
+   G = Dense( 128, kernel_initializer='glorot_uniform' )(G_input)
+   G = LeakyReLU(alpha=0.2)(G)
+   G = BatchNormalization(momentum=0.8)(G)
 
-   G = Conv2D( filters=32, kernel_size=3, padding="same" )(G)
-   G = Activation('tanh')(G)
+   G = Reshape( [ 8, 16, 1 ] )(G) #default: channel last
 
-   G = Conv2D( filters=64, kernel_size=3, padding="same" )(G)
-   G = Activation('tanh')(G)
+   G = Conv2D( filters=2, kernel_size=3, padding="same" )(G)
+   G = LeakyReLU(alpha=0.2)(G)
+   G = BatchNormalization()(G)
+
+#   G = Conv2D( filters=8, kernel_size=2, padding="same" )(G)
+#   G = LeakyReLU(alpha=0.2)(G)
 
    # Upsample to make the input larger
-   #G = UpSampling2D(size=2)(G)
-   #G = Conv2D( filters=8, kernel_size=3, strides=1, padding='same' )(G)
+   G = UpSampling2D(size=2)(G)
+   G = Conv2D( filters=3, kernel_size=3, strides=1, padding='same' )(G)
+   G = LeakyReLU(alpha=0.2)(G)
+   G = BatchNormalization()(G)
+
    # same thing, quicker but introduces artifacts:
    #G = Conv2DTranspose( filters=4, kernel_size=4, strides=2, padding='same')(G)
    #G = Activation('tanh')(G)
@@ -216,7 +220,6 @@ def make_generator_cnn( GAN_noise_size, GAN_output_size ):
    
    G = Flatten()(G)
    G = Dense( GAN_output_size, activation="tanh" )(G)
-   #G = Dropout(0.2)(G)
    
    generator = Model( G_input, G )
    
@@ -238,7 +241,10 @@ def make_discriminator_cnn( GAN_output_size ):
     #D = BatchNormalization()(D)
 
     D = Conv2D( 64, 1, strides=1 )(D)
-    D  = LeakyReLU(alpha=0.2)(D)
+    D = LeakyReLU(alpha=0.2)(D)
+
+    D = Conv2D( 32, 1, strides=1 )(D)
+    D = LeakyReLU(alpha=0.2)(D)
 
     D = Flatten()(D)
     D = Dropout(0.2)(D)

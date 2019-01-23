@@ -61,7 +61,7 @@ def MakeCanvas( npads = 1, side = 800, split = 0.25, padding = 0.00 ):
     height_tot = y_plot + npads * ( y_ratio + y_padding )
     height_tot = int(height_tot)
 
-    c = TCanvas( "PredictionData", "Prediction/Data", side, height_tot )
+    c = TCanvas( "PredictionData", "GAN/MC", side, height_tot )
     c.SetFrameFillStyle(4000)
     c.SetFillColor(0) 
 
@@ -212,7 +212,7 @@ def DrawRatio( data, prediction, xtitle = "", yrange=[0.4,1.6] ):
     frame.GetXaxis().SetTitleOffset( 1.2 )
     
     frame.GetYaxis().SetLabelSize( 0.16 )
-    frame.GetYaxis().SetTitle( "#frac{Data}{Prediction}" )
+    frame.GetYaxis().SetTitle( "#frac{GAN}{MC}" )
     frame.GetYaxis().SetTitleSize( 0.16 )
     frame.GetYaxis().SetTitleOffset( 0.5 )
     
@@ -274,23 +274,34 @@ else:
 #  DivideByBinWidth( h_GAN )
 #  DivideByBinWidth( h_MC )
 
-SetTH1FStyle( h_GAN, color=kRed, markerstyle=24, markersize=2 )
-SetTH1FStyle( h_MC,  color=kBlack, markerstyle=20, markersize=2)
-
-
-#hmax = 1.3 * max( [h_GAN.GetMaximum(), h_MC.GetMaximum() ] )
-hmax = 1.5 * max( [ h_MC.GetMaximum(), h_GAN.GetMaximum() ] )
-h_GAN.SetMaximum( hmax )
-h_MC.SetMaximum( hmax )
-h_GAN.SetMinimum( 0. )
-h_MC.SetMinimum( 0. )
+#SetTH1FStyle( h_MC,  color=kBlack, markerstyle=20, markersize=2)
+SetTH1FStyle( h_MC,  color=kGray+2, fillstyle=1001, fillcolor=kGray, linewidth=3, markersize=0 )
+#SetTH1FStyle( h_GAN, color=kRed, fillstyle=1001, fillcolor=kRed-7, linewidth=2, markersize=0, markerstyle=20, fill_alpha=0.4 )
+SetTH1FStyle( h_GAN, color=kBlack, markersize=0, markerstyle=20, linewidth=3 )
 
 c, pad0, pad1 = MakeCanvas()
 
 pad0.cd()
 
-h_MC.Draw()
-h_GAN.Draw("same")
+h_MC.Draw("h")
+h_GAN.Draw("h same")
+
+if obs in [ 
+     "ljet1_pt", "ljet1_px", "ljet1_py", "ljet1_pz", "ljet1_E",
+     "ljet2_pt", "ljet2_px", "ljet2_py", "ljet2_pz", "ljet2_E",
+     "jj_pt", "jj_px", "jj_py", "jj_pz", "jj_m", "jj_E",
+     "jj_dR", "jj_dPhi" 
+  ]:
+  hmax = 10 * max( [ h_MC.GetMaximum(), h_GAN.GetMaximum() ] )
+  h_GAN.SetMaximum( hmax )
+  h_MC.SetMaximum( hmax )
+  gPad.SetLogy()
+else:
+  hmax = 1.5 * max( [ h_MC.GetMaximum(), h_GAN.GetMaximum() ] )
+  h_GAN.SetMaximum( hmax )
+  h_MC.SetMaximum( hmax )
+  h_GAN.SetMinimum( 0. )
+  h_MC.SetMinimum( 0. )
 
 leg = TLegend( 0.20, 0.90, 0.50, 0.90 )
 leg.SetFillColor(0)
@@ -298,8 +309,8 @@ leg.SetFillStyle(0)
 leg.SetBorderSize(0)
 leg.SetTextFont(42)
 leg.SetTextSize(0.05)
-leg.AddEntry( h_MC, "Real MC (%s)"%dsid, "ep" )
-leg.AddEntry( h_GAN, "GAN MC", "ep" )
+leg.AddEntry( h_MC, "MG5+Py8+Delphes", "f" )
+leg.AddEntry( h_GAN, "GAN", "f" )
 leg.SetY1( leg.GetY1() - 0.05 * leg.GetNRows() )
 leg.Draw()
 
@@ -309,9 +320,8 @@ l = TLatex()
 l.SetNDC()
 l.SetTextFont(42)
 l.SetTextColor(kBlack)
-l.DrawLatex( 0.7, 0.85, "KS test: %.2f" % KS )
-l.DrawLatex( 0.7, 0.80, "#chi^{2}/NDF = %.2f" % X2 )
-#l.DrawLatex(0.20, 0.85, "ATLAS Simulation Internal")
+#l.DrawLatex( 0.7, 0.85, "KS test: %.2f" % KS )
+#l.DrawLatex( 0.7, 0.80, "#chi^{2}/NDF = %.2f" % X2 )
 
 gPad.RedrawAxis()
 
