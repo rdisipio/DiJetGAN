@@ -33,17 +33,22 @@ mkdir -p csv
 ./root2csv.py -i filelists/mc16a.mg5_dijet_ht500.MC.incl.txt
 ```
 
+## Create scaler
+```
+./create_scaler.py csv/mc16a.mg5_dijet_ht500.rnn.GAN.incl.nominal.csv
+```
+
 ## Train the generative-adversarial network (GAN): 
 
 ```
 mkdir -p GAN
+mkdir -p img
 ./train_GAN.py -e 5000 -d mg5_dijet_ht500
 ```
 The generator model and the scaler have been saved to the GAN folder.
 
 Plot training history:
 ```
-mkdir -p img
 ./plot_traninig.py
 ```
 
@@ -58,8 +63,8 @@ ls GAN/tree.mg5_dijet_ht500.rnn.GAN.incl.nominal.root > filelists/mc16a.mg5_dije
 
 ```
 mkdir -p histograms
-./tree2hist.py  filelists/mc16a.mg5_dijet_ht500.GAN.incl.txt 
-./tree2hist.py  filelists/mc16a.mg5_dijet_ht500.MC.incl.txt 
+./fill_histograms.py filelists/mc16a.mg5_dijet_ht500.GAN.incl.txt 
+./fill_histograms.py filelists/mc16a.mg5_dijet_ht500.MC.incl.txt 
 ```
 
 ## Make final plots
