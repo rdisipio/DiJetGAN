@@ -33,9 +33,9 @@ mkdir -p csv
 ./root2csv.py -i filelists/mc16a.mg5_dijet_ht500.MC.incl.txt
 ```
 
-## Create scaler
+## Initialize scaler
 ```
-./create_scaler.py csv/mc16a.mg5_dijet_ht500.rnn.GAN.incl.nominal.csv
+./init_scaler.py csv/mc16a.mg5_dijet_ht500.rnn.GAN.incl.nominal.csv
 ```
 
 ## Train the generative-adversarial network (GAN): 
