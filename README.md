@@ -24,6 +24,7 @@ Thus, a smaller ntuples (using the "AnalysisTop mc16a" format) has to be created
 ```
 
 For your convenience, these files can be downloaded from CERNBOX: https://cernbox.cern.ch/index.php/s/AMA2Wa5jz96o6lW .
+The files are stored in this folder: /eos/user/d/disipio/ntuples/dijet/
 
 
 Now it is possible to convert ROOT file to CSV. This operation includes some pre-processing, e.g. all jets are phi-rotated by the same amount
