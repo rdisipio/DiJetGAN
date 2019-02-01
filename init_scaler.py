@@ -12,7 +12,7 @@ try:
 except:
     import pickle
 
-np.set_printoptions( precision=4, linewidth=200, suppress=True )
+np.set_printoptions(precision=4, linewidth=200, suppress=True)
 
 from features import *
 
@@ -41,9 +41,10 @@ print features
 print "INFO: total number of input features:     ", n_features
 
 # read in input file
-infilename = "csv/mc16a.mg5_dijet_ht500.rnn.GAN.incl.nominal.csv"
+infilename = "csv/mc16a.mg5_dijet_ht500.reco.pt250.nominal.csv"
 if len(sys.argv) > 1:
     infilename = sys.argv[1]
+level = infilename.split("/")[-1].split('.')[1]
 
 data = pd.read_csv(infilename, delimiter=',', names=header)
 print "INFO: dataset loaded into memory"
@@ -64,7 +65,7 @@ print "INFO: X_train before standardization:"
 print X_train
 
 scaler = MinMaxScaler((-1, 1))
-scaler.fit( X_train )
+scaler.fit(X_train)
 print "INFO: data (min,max):"
 print scaler.data_min_
 print scaler.data_max_
@@ -73,11 +74,10 @@ print scaler.scale_
 
 X_train = scaler.transform(X_train)
 
-
 print "INFO: X_train after standardization:"
 print X_train
 
-scaler_filename = "GAN/scaler.pkl"
+scaler_filename = "GAN/scaler.%s.pkl" % level
 with open(scaler_filename, "wb") as file_scaler:
     pickle.dump(scaler, file_scaler)
 print "INFO: scaler saved to file", scaler_filename

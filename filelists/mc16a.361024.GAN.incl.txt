@@ -1,1 +1,0 @@
-GAN/tree.361024.rnn.GAN.incl.nominal.root

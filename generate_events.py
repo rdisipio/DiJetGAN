@@ -1,8 +1,9 @@
 #!/usr/bin/env python
 
-import os, sys, argparse
+import os
+import sys
+import argparse
 
-from common import GeV, TeV
 from ROOT import *
 from array import array
 
@@ -10,240 +11,207 @@ import cPickle as pickle
 from keras.models import load_model
 import numpy as np
 
+#import helper_functions as hf
+#from fourmomentum_scaler import *
+from models import *
+
 rng = TRandom3()
 
-known_classifiers = [ "rnn:GAN", "rnn:highlevel", "rnn:PxPyPzMBwNtrk" ]
-
 parser = argparse.ArgumentParser(description="GAN event generator")
-parser.add_argument( '-c', '--classifier',        default=known_classifiers[0] )
-parser.add_argument( '-p', '--preselection',      default="incl" )
-parser.add_argument( '-s', '--systematic',        default="nominal" )
-parser.add_argument( '-d', '--dsid',              default="361024" )
-parser.add_argument( '-n', '--nevents',           default=10000 )
-args         = parser.parse_args()
+parser.add_argument('-l', '--level',             default="reco")
+parser.add_argument('-p', '--preselection',      default="pt250")
+parser.add_argument('-s', '--systematic',        default="nominal")
+parser.add_argument('-d', '--dsid',              default="mg5_dijet_ht500")
+parser.add_argument('-r', '--p4repr',            default="PtEtaPhiEMdR")
+parser.add_argument('-n', '--nevents',           default=10000)
+args = parser.parse_args()
 
-classifier        = args.classifier
-preselection      = args.preselection
-systematic        = args.systematic
-dsid              = args.dsid
-syst              = args.systematic
-n_events          = int(args.nevents)
-classifier_arch, classifier_feat = classifier.split(':')
+p4repr = args.p4repr
+level = args.level
+preselection = args.preselection
+systematic = args.systematic
+dsid = args.dsid
+syst = args.systematic
+n_events = int(args.nevents)
 
 ljets_n_max = 2
 
-
 ##################
 # Load Keras stuff
-scaler = None
-dnn    = None
-print "INFO: Systematic:", syst
-print "INFO: Using classifier:", ( classifier_arch, classifier_feat )
 
-model_filename  = "GAN/generator.%s.%s.%s.%s.%s.h5" % (dsid,classifier_arch, classifier_feat, preselection, systematic)
-scaler_filename = "GAN/scaler.%s.%s.%s.%s.%s.pkl" % (dsid,classifier_arch, classifier_feat, preselection, systematic)
+dnn = None
+print "INFO: Systematic:", syst
+print "INFO: Level", level
+
+model_filename = "GAN/generator.%s.%s.%s.%s.h5" % (
+    dsid, level, preselection, systematic)
 
 print "INFO: loading generator model from", model_filename
-generator = load_model( model_filename )
+generator = load_model(model_filename, custom_objects={
+                       'wasserstein_loss': wasserstein_loss})
 print generator.summary()
 
+scaler_filename = "GAN/scaler.%s.pkl" % level
 print "INFO: loading scaler from", scaler_filename
-with open( scaler_filename, "rb" ) as file_scaler:
-  scaler    = pickle.load( file_scaler )
+with open(scaler_filename, "rb") as file_scaler:
+    scaler = pickle.load(file_scaler)
 
-GAN_noise_size  = generator.layers[0].input_shape[1]
+GAN_noise_size = generator.layers[0].input_shape[1]
 GAN_output_size = generator.layers[-1].output_shape[1]
 print "GAN noise size:", GAN_noise_size
 print "GAN output size:", GAN_output_size
 
-outfname = "ntuples_GAN/tree.%s.%s.%s.%s.%s.root" % (dsid,classifier_arch, classifier_feat, preselection, systematic)
-outfile = TFile.Open( outfname, "RECREATE" )
+outfname = "ntuples_GAN/tree.%s.%s.%s.%s.root" % (
+    dsid, level, preselection, systematic)
+outfile = TFile.Open(outfname, "RECREATE")
 
-b_eventNumber     = array( 'l', [ 0 ] )
-b_abcd16          = array( 'i', [0] )
-b_ljet_px = vector('float')(2)
-b_ljet_py = vector('float')(2)
-b_ljet_pz = vector('float')(2)
-b_ljet_pt = vector('float')(2)
-b_ljet_eta = vector('float')(2)
-b_ljet_phi = vector('float')(2)
-b_ljet_E   = vector('float')(2)
-b_ljet_m  = vector('float')(2)
-b_ljet_tau2  = vector('float')(2)
-b_ljet_tau3  = vector('float')(2)
-b_ljet_tau32 = vector('float')(2)
-b_ljet_bmatch70_dR = vector('float')(2)
-b_ljet_bmatch70    = vector('int')(2)
-b_ljet_isTopTagged80  = vector('int')(2)
+b_eventNumber = array('l', [0])
+b_weight_mc = array('f', [1.])
+b_ljet1_pt = array('f', [0.])
+b_ljet1_eta = array('f', [0.])
+b_ljet1_phi = array('f', [0.])
+b_ljet1_E = array('f', [0.])
+b_ljet1_m = array('f', [0.])
+b_ljet2_pt = array('f', [0.])
+b_ljet2_eta = array('f', [0.])
+b_ljet2_phi = array('f', [0.])
+b_ljet2_E = array('f', [0.])
+b_ljet2_m = array('f', [0.])
 
-outtree = TTree( systematic, "GAN generated events" )
-outtree.Branch( 'eventNumber',        b_eventNumber,     'eventNumber/l' )
-outtree.Branch( 'ljet_px',            b_ljet_px )
-outtree.Branch( 'ljet_py',            b_ljet_py )
-outtree.Branch( 'ljet_pz',            b_ljet_pz )
-outtree.Branch( 'ljet_pt',            b_ljet_pt )
-outtree.Branch( 'ljet_eta',           b_ljet_eta )
-outtree.Branch( 'ljet_phi',           b_ljet_phi )
-outtree.Branch( 'ljet_E',             b_ljet_E  )
-outtree.Branch( 'ljet_m',             b_ljet_m  )
-outtree.Branch( 'ljet_tau2',          b_ljet_tau2 )
-outtree.Branch( 'ljet_tau3',          b_ljet_tau2 )
-outtree.Branch( 'ljet_tau32',         b_ljet_tau32 )
-outtree.Branch( 'ljet_bmatch70_dR',   b_ljet_bmatch70_dR )
-outtree.Branch( 'ljet_bmatch70',      b_ljet_bmatch70 )
-#outtree.Branch( 'ljet_isTopTagged80', b_ljet_isTopTagged80 )
-outtree.Branch( 'ljet_smoothedTopTaggerMassTau32_topTag80',  b_ljet_isTopTagged80 )
-outtree.Branch( 'abcd16',             b_abcd16, 'abcd16/I' )
+outtree = TTree(systematic, "GAN generated events")
+outtree.Branch('eventNumber',        b_eventNumber,     'eventNumber/l')
+outtree.Branch('weight_mc',          b_weight_mc,       'weight_mc/F')
+outtree.Branch('ljet1_pt',   b_ljet1_pt,  'ljet1_pt/F')
+outtree.Branch('ljet1_eta',  b_ljet1_eta, 'ljet1_eta/F')
+outtree.Branch('ljet1_phi',  b_ljet1_phi, 'ljet1_phi/F')
+outtree.Branch('ljet1_E',    b_ljet1_E,   'ljet1_E/F')
+outtree.Branch('ljet1_m',    b_ljet1_m,   'ljet1_m/F')
+outtree.Branch('ljet2_pt',   b_ljet2_pt,  'ljet2_pt/F')
+outtree.Branch('ljet2_eta',  b_ljet2_eta, 'ljet2_eta/F')
+outtree.Branch('ljet2_phi',  b_ljet2_phi, 'ljet2_phi/F')
+outtree.Branch('ljet2_E',    b_ljet2_E,   'ljet2_E/F')
+outtree.Branch('ljet2_m',    b_ljet2_m,   'ljet2_m/F')
 
 print "INFO: generating %i events..." % n_events
 
-X_noise = np.random.uniform(0,1,size=[ n_events, GAN_noise_size])
+X_noise = np.random.uniform(0, 1, size=[n_events, GAN_noise_size])
 #X_noise = np.random.uniform(-1,1,size=[ n_events, GAN_noise_size])
-#X_noise = np.random.normal( 0., 0.5, size=[ n_events, GAN_noise_size] )
+#X_noise = np.random.normal( 0., 1, size=[ n_events, GAN_noise_size] )
 X_generated = generator.predict(X_noise)
 
 print "INFO: generated %i events" % n_events
 
-X_generated = scaler.inverse_transform( X_generated )
-   
+X_generated = scaler.inverse_transform(X_generated)
+
 print "INFO: ...done."
 print
 
 print "INFO: filling tree..."
 n_good = 0
 for ievent in range(n_events):
-   if ( n_events < 10 ) or ( (ievent+1) % int(float(n_events)/10.)  == 0 ):
-      perc = 100. * ievent / float(n_events)
-      print "INFO: Event %-9i  (%3.0f %%)" % ( ievent, perc )
+    if (n_events < 10) or ((ievent+1) % int(float(n_events)/10.) == 0):
+        perc = 100. * ievent / float(n_events)
+        print "INFO: Event %-9i  (%3.0f %%)" % (ievent, perc)
 
-   # event weight
-   w = 1.0
+    # event weight
+    w = 1.0
 
-   b_eventNumber[0] = ievent
+    b_eventNumber[0] = ievent
+    b_weight_mc[0] = 1.0
 
-   ljets = [ TLorentzVector(), TLorentzVector() ]
-   lj1 = ljets[0]
-   lj2 = ljets[1]
+    ljets = [TLorentzVector(), TLorentzVector()]
+    ljet1 = ljets[0]
+    ljet2 = ljets[1]
 
-   # sort jets by pT
-   #ljets.sort( key=lambda jet: jet.Pt(), reverse=True )
+    # sort jets by pT
+    #ljets.sort( key=lambda jet: jet.Pt(), reverse=True )
+    if p4repr in ["PtEtaPhiM", "PtEtaPhiEM"]:
+        ljet1.SetPtEtaPhiM(X_generated[ievent][0],
+                           X_generated[ievent][1],
+                           X_generated[ievent][2],
+                           X_generated[ievent][4])
 
-   lj1_pt    = X_generated[ievent][0]
-   lj1_eta   = X_generated[ievent][1]
-   lj1_phi   = X_generated[ievent][2]
-   lj1_E     = X_generated[ievent][3]
-   lj1_M     = X_generated[ievent][4]
-   lj1.SetPtEtaPhiM( lj1_pt, lj1_eta, lj1_phi, lj1_M )
+        ljet2.SetPtEtaPhiM(X_generated[ievent][5],
+                           X_generated[ievent][6],
+                           X_generated[ievent][7],
+                           X_generated[ievent][9])
 
-   lj2_pt    = X_generated[ievent][5]
-   lj2_eta   = X_generated[ievent][6]
-   lj2_phi   = X_generated[ievent][7]
-   lj2_E     = X_generated[ievent][8]
-   lj2_M     = X_generated[ievent][9]
-   lj2.SetPtEtaPhiM( lj2_pt, lj2_eta, lj2_phi, lj2_M )
+    elif p4repr == "PtEtaPhiEMdR":
+        ljet1.SetPtEtaPhiM(X_generated[ievent][0],
+                           X_generated[ievent][1],
+                           X_generated[ievent][2],
+                           X_generated[ievent][4])
 
-   #lj1_px    = X_generated[ievent][0]
-   #lj1_py    = X_generated[ievent][1]
-   #lj1_pz    = X_generated[ievent][2]
-   #lj1_E     = X_generated[ievent][3]
-   #lj1_M     = X_generated[ievent][6]
-   #lj1_E     = TMath.Sqrt( lj1_px*lj1_px + lj1_py*lj1_py + lj1_pz*lj1_pz + lj1_M*lj1_M )
-   #lj1.SetPxPyPzE( lj1_px, lj1_py, lj1_pz, lj1_E )
+        ljet2.SetPtEtaPhiM(X_generated[ievent][5],
+                           X_generated[ievent][6],
+                           X_generated[ievent][7],
+                           X_generated[ievent][9])
 
-   #lj2_px    = X_generated[ievent][4]
-   #lj2_py    = X_generated[ievent][5]
-   #lj2_pz    = X_generated[ievent][6]
-   #lj2_E     = X_generated[ievent][7]
-   #lj2_M     = X_generated[ievent][13]
-   #lj2_E     = TMath.Sqrt( lj2_px*lj2_px + lj2_py*lj2_py + lj2_pz*lj2_pz + lj2_M*lj2_M )
-   #lj2.SetPxPyPzE( lj2_px, lj2_py, lj2_pz, lj2_E )
+    elif p4repr == "PxPyPzE":
+        ljet1.SetPxPyPzE(X_generated[ievent][0],
+                         X_generated[ievent][1],
+                         X_generated[ievent][2],
+                         X_generated[ievent][3])
 
-   #jj_dPhi   = X_generated[ievent][21]
+        ljet2.SetPxPyPzE(X_generated[ievent][4],
+                         X_generated[ievent][5],
+                         X_generated[ievent][6],
+                         X_generated[ievent][7])
+    else:
+        print "ERROR: unknown four-momentum representation", p4repr
+        exit(1)
 
-   # rotate jets' P4's:
-   phi = rng.Uniform( -TMath.Pi(), TMath.Pi() )
-   lj1.RotateZ( phi )
-   lj2.RotateZ( phi ) 
+    #jj_dPhi   = X_generated[ievent][21]
+    # rotate jets' P4's:
+    phi = rng.Uniform(-TMath.Pi(), TMath.Pi())
+    ljet1.RotateZ(phi)
+    ljet2.RotateZ(phi)
 
-   # flip eta?
-   if rng.Uniform() > 0.5:
-     lj1.SetPtEtaPhiM( lj1.Pt(), -lj1.Eta(), lj1.Phi(), lj1.M() )
-     lj2.SetPtEtaPhiM( lj2.Pt(), -lj2.Eta(), lj2.Phi(), lj2.M() )
-   
-   lj1.tau2  = 0.
-   lj1.tau3  = 0.
-   lj1.tau32 = lj1.tau3 / lj1.tau2 if lj1.tau2 > 0. else -1.
-   lj1.isTopTagged80 = 0 # TopSubstructureTagger( lj )
-   lj1.bmatch70_dR = 10.
-   lj1.bmatch70    = -1
-      
-   lj2.tau2  = 0.
-   lj2.tau3  = 0.
-   lj2.tau32 = lj2.tau3 / lj2.tau2 if lj2.tau2 > 0. else -1.
-   lj2.isTopTagged80 = 0 # TopSubstructureTagger( lj )
-   lj2.bmatch70_dR = 10.
-   lj2.bmatch70    = -1
+    # flip eta?
+    if rng.Uniform() > 0.5:
+        ljet1.SetPtEtaPhiM(ljet1.Pt(), -ljet1.Eta(), ljet1.Phi(), ljet1.M())
+        ljet2.SetPtEtaPhiM(ljet2.Pt(), -ljet2.Eta(), ljet2.Phi(), ljet2.M())
 
-   if lj1.Pt() < lj2.Pt(): continue
-   if lj1.Pt() < 250: continue
-   if lj2.Pt() < 250: continue
-   if abs(lj1.Eta()) > 2.0: continue
-   if abs(lj2.Eta()) > 2.0: continue
+    if ljet1.Pt() < ljet2.Pt():
+        continue
+    if ljet1.Pt() < 250:
+        continue
+    if ljet2.Pt() < 250:
+        continue
+    # if abs(lj1.Eta()) > 2.0:
+    #    continue
+    # if abs(lj2.Eta()) > 2.0:
+    #    continue
 
-   n_good += 1
-   
-   jj = lj1 + lj2
-   jj.dEta = lj1.Eta() - lj2.Eta()
-   jj.dPhi = lj1.DeltaPhi( lj2 )
-   jj.dR   = lj1.DeltaR( lj2 )
-   
+    n_good += 1
 
-   # Fill branches
-   b_ljet_px[0]  = lj1.Px()*GeV
-   b_ljet_py[0]  = lj1.Py()*GeV
-   b_ljet_pz[0]  = lj1.Pz()*GeV
-   b_ljet_pt[0]  = lj1.Pt()*GeV
-   b_ljet_eta[0] = lj1.Eta()
-   b_ljet_phi[0] = lj1.Phi()
-   b_ljet_E[0]   = lj1.E()*GeV
-   b_ljet_m[0]   = lj1.M()*GeV
-   b_ljet_tau2[0]  = lj1.tau2
-   b_ljet_tau3[0]  = lj1.tau3
-   b_ljet_tau32[0] = lj1.tau32
-   b_ljet_bmatch70_dR[0]   = lj1.bmatch70_dR
-   b_ljet_bmatch70[0]      = lj1.bmatch70
-   b_ljet_isTopTagged80[0] = lj1.isTopTagged80
+    #jj = lj1 + lj2
+    #jj.dEta = lj1.Eta() - lj2.Eta()
+    #jj.dPhi = lj1.DeltaPhi(lj2)
+    #jj.dR = lj1.DeltaR(lj2)
 
-   b_ljet_px[1]  = lj2.Px()*GeV
-   b_ljet_py[1]  = lj2.Py()*GeV
-   b_ljet_pz[1]  = lj2.Pz()*GeV
-   b_ljet_pt[1]  = lj2.Pt()*GeV
-   b_ljet_eta[1] = lj2.Eta()
-   b_ljet_phi[1] = lj2.Phi()
-   b_ljet_E[1]   = lj2.E()*GeV
-   b_ljet_m[1]   = lj2.M()*GeV
-   b_ljet_tau2[1]  = lj2.tau2
-   b_ljet_tau3[1]  = lj2.tau3
-   b_ljet_tau32[1] = lj2.tau32
-   b_ljet_bmatch70_dR[1]   = lj2.bmatch70_dR
-   b_ljet_bmatch70[1]      = lj2.bmatch70
-   b_ljet_isTopTagged80[1] = lj2.isTopTagged80
-   
-   b_abcd16[0] = 0
-   if lj1.isTopTagged80 == True: b_abcd16[0] ^= 0b1000
-   if lj1.bmatch70 > 0:          b_abcd16[0] ^= 0b0100
-   if lj2.isTopTagged80 == True: b_abcd16[0] ^= 0b0010
-   if lj2.bmatch70 > 0:          b_abcd16[0] ^= 0b0001
+    # Fill branches
+    b_ljet1_pt[0] = ljet1.Pt()
+    b_ljet1_eta[0] = ljet1.Eta()
+    b_ljet1_phi[0] = ljet1.Phi()
+    b_ljet1_E[0] = ljet1.E()
+    b_ljet1_m[0] = ljet1.M()
 
-   outtree.Fill()
+    b_ljet2_pt[0] = ljet2.Pt()
+    b_ljet2_eta[0] = ljet2.Eta()
+    b_ljet2_phi[0] = ljet2.Phi()
+    b_ljet2_E[0] = ljet2.E()
+    b_ljet2_m[0] = ljet2.M()
 
-   # end event loop
-   
+    outtree.Fill()
+
+    # end event loop
+
 outtree.Write()
 outfile.Close()
 
 f_good = 100. * float(n_good) / float(n_events)
-print "INFO: saved %i events (%i%%)" % ( n_good, f_good )
+print "INFO: saved %i events (%i%%)" % (n_good, f_good)
 
 print "INFO: output file created:", outfname
 print "INFO: done."

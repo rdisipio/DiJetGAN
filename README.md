@@ -12,17 +12,18 @@ It is assumed that ntuples are created using MadGraph5 + Pythia8 + Delphes3.
 
 ```
 mkdir -p filelists
-ls /home/disipio/mcgenerators/MG5_aMC_v2_6_4/pp2jj_lo/Events/run_04/tag_1_delphes_events.root > filelists/delphes.mg5_dijet_ht500.MC.incl.txt
+ls /home/disipio/mcgenerators/MG5_aMC_v2_6_4/pp2jj_lo/Events/run_04/tag_1_delphes_events.root > filelists/mg5_dijet_ht500.delphes.pt250.txt
 ```
 
 The ROOT files create by Delphes3 are very large. Only a small fraction of the information is needed for the purpose of training the GAN. 
 Thus, a smaller ntuples (using the "AnalysisTop mc16a" format) has to be created.
 
 ```
-./delphes2at.py -i filelists/delphes.mg5_dijet_ht500.MC.incl.txt 
+./delphes2tree.py -i filelists/mg5_dijet_ht500.delphes.pt250.txt -l reco
+./delphes2tree.py -i filelists/mg5_dijet_ht500.delphes.pt250.txt -l ptcl
 ```
 
-For your convenience, this file can be downloaded from CERNBOX: https://cernbox.cern.ch/index.php/s/cXjogAvrojdUQ3f .
+For your convenience, these files can be downloaded from CERNBOX: https://cernbox.cern.ch/index.php/s/cXjogAvrojdUQ3f .
 
 
 Now it is possible to convert ROOT file to CSV. This operation includes some pre-processing, e.g. all jets are phi-rotated by the same amount
@@ -30,12 +31,17 @@ so that the leading jet phi is always zero:
 
 ```
 mkdir -p csv
-./root2csv.py -i filelists/mc16a.mg5_dijet_ht500.MC.incl.txt
+ls ntuples_GAN/tree.delphes.ptcl.pt250.nominal.root > filelists/mg5_dijet_ht500.ptcl.pt250.MC.txt
+ls ntuples_GAN/tree.delphes.reco.pt250.nominal.root > filelists/mg5_dijet_ht500.reco.pt250.MC.txt
+
+./root2csv.py -i filelists/mg5_dijet_ht500.ptcl.pt250.MC.txt -l ptcl
+./root2csv.py -i filelists/mg5_dijet_ht500.reco.pt250.MC.txt -l reco
 ```
 
 ## Initialize scaler
 ```
-./init_scaler.py csv/mc16a.mg5_dijet_ht500.rnn.GAN.incl.nominal.csv
+./init_scaler.py csv/mg5_dijet_ht500.reco.pt250.nominal.csv
+./init_scaler.py csv/mg5_dijet_ht500.ptcl.pt250.nominal.csv 
 ```
 
 ## Train the generative-adversarial network (GAN): 
@@ -43,38 +49,48 @@ mkdir -p csv
 ```
 mkdir -p GAN
 mkdir -p img
-./train_GAN.py -e 5000 -d mg5_dijet_ht500
+./train_GAN.py -e 5000 -d mg5_dijet_ht500 -l reco
+./train_GAN.py -e 5000 -d mg5_dijet_ht500 -l ptcl
 ```
 The generator model and the scaler have been saved to the GAN folder.
 
 Plot training history:
 ```
-./plot_traninig.py
+./plot_traninig.py reco
+./plot_traninig.py ptcl
 ```
 
 ## Generate events
 
 ```
-./generate_events.py -n 500000
-ls GAN/tree.mg5_dijet_ht500.rnn.GAN.incl.nominal.root > filelists/mc16a.mg5_dijet_ht500.GAN.incl.txt
+./generate_events.py -l reco -n 500000
+./generate_events.py -l ptcl -n 500000
+
+ls ntuples_GAN/tree.mg5_dijet_ht500.ptcl.pt250.nominal.root > filelists/mg5_dijet_ht500.ptcl.pt250.GAN.txt
+ls ntuples_GAN/tree.mg5_dijet_ht500.reco.pt250.nominal.root > filelists/mg5_dijet_ht500.reco.pt250.GAN.txt 
 ```
 
 ## Fill histograms
 
 ```
 mkdir -p histograms
-./fill_histograms.py filelists/mc16a.mg5_dijet_ht500.GAN.incl.txt 
-./fill_histograms.py filelists/mc16a.mg5_dijet_ht500.MC.incl.txt 
+./fill_histograms.py filelists/mg5_dijet_ht500.ptcl.pt250.GAN.txt
+./fill_histograms.py filelists/mg5_dijet_ht500.ptcl.pt250.MC.txt 
+
+./fill_histograms.py filelists/mg5_dijet_ht500.reco.pt250.GAN.txt
+./fill_histograms.py filelists/mg5_dijet_ht500.reco.pt250.MC.txt
 ```
 
 ## Make final plots
 
 ```
-cat observables.txt | parallel ./plot_observables.py {} mg5_dijet_ht500
+cat observables.txt | parallel ./plot_observables.py {} ptcl mg5_dijet_ht500
+cat observables.txt | parallel ./plot_observables.py {} reco mg5_dijet_ht500
 ```
 
 You can do all the above with the following script:
 
 ```
-./workflow.sh -d mg5_dijet_ht500 -e ${n_training_epochs} -n ${n_generate_events}
+./workflow.sh -d mg5_dijet_ht500 -l reco -e ${n_training_epochs} -n ${n_generate_events}
+./workflow.sh -d mg5_dijet_ht500 -l ptcl -e ${n_training_epochs} -n ${n_generate_events}
 ```

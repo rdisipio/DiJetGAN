@@ -1,1 +1,0 @@
-ntuples_GAN/tree.delphes.rnn.GAN.incl.nominal.root

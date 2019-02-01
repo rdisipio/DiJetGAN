@@ -236,17 +236,19 @@ def DrawRatio( data, prediction, xtitle = "", yrange=[0.4,1.6] ):
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 obs = "ljet1_pt"
+lvl = "reco"
 dsid = "mg5_dijet_ht500"
-preselection = "incl"
+preselection = "pt250"
 
 if len(sys.argv) > 1: obs = sys.argv[1]
-if len(sys.argv) > 2: dsid = sys.argv[2]
-if len(sys.argv) > 3: preselection = sys.argv[3]
+if len(sys.argv) > 2: lvl = sys.argv[2]
+if len(sys.argv) > 3: dsid = sys.argv[3]
+if len(sys.argv) > 4: preselection = sys.argv[4]
 
 hname = "%s" % (obs)
 
-infilename_GAN  = "histograms/histograms.mc16a.%s.GAN.%s.root" % ( dsid, preselection )
-infilename_MC   = "histograms/histograms.mc16a.%s.MC.%s.root" % ( dsid, preselection )
+infilename_GAN  = "histograms/histograms.%s.%s.%s.GAN.root" % ( dsid, lvl, preselection )
+infilename_MC   = "histograms/histograms.%s.%s.%s.MC.root" % ( dsid, lvl, preselection )
 
 infile_GAN = TFile.Open( infilename_GAN )
 infile_MC  = TFile.Open( infilename_MC )
@@ -287,10 +289,13 @@ h_MC.Draw("h")
 h_GAN.Draw("h same")
 
 if obs in [ 
-     "ljet1_pt", "ljet1_px", "ljet1_py", "ljet1_pz", "ljet1_E",
-     "ljet2_pt", "ljet2_px", "ljet2_py", "ljet2_pz", "ljet2_E",
-     "jj_pt", "jj_px", "jj_py", "jj_pz", "jj_m", "jj_E",
-     "jj_dR", "jj_dPhi" 
+#     "ljet1_pt", "ljet1_E",
+#    "ljet1_px", "ljet1_py", "ljet1_pz"
+#     "ljet2_pt", "ljet2_E", 
+#    "ljet2_px", "ljet2_py", "ljet2_pz",
+#     "jj_pt", "jj_m", "jj_E",
+ #    "jj_px", "jj_py", "jj_pz",
+#     "jj_dR", "jj_dPhi"   
   ]:
   hmax = 10 * max( [ h_MC.GetMaximum(), h_GAN.GetMaximum() ] )
   h_GAN.SetMaximum( hmax )
@@ -321,7 +326,7 @@ l.SetNDC()
 l.SetTextFont(42)
 l.SetTextColor(kBlack)
 #l.DrawLatex( 0.7, 0.85, "KS test: %.2f" % KS )
-#l.DrawLatex( 0.7, 0.80, "#chi^{2}/NDF = %.2f" % X2 )
+l.DrawLatex( 0.7, 0.80, "#chi^{2}/NDF = %.2f" % X2 )
 
 gPad.RedrawAxis()
 
@@ -334,4 +339,4 @@ gPad.RedrawAxis()
 
 c.cd()
 
-c.SaveAs( "img/GAN_%s_%s.png" % (dsid,hname) )
+c.SaveAs( "img/GAN_%s_%s_%s.png" % (dsid,lvl,hname) )
