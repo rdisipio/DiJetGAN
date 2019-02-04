@@ -19,6 +19,7 @@ The ROOT files create by Delphes3 are very large. Only a small fraction of the i
 Thus, a smaller ntuples (using the "AnalysisTop mc16a" format) has to be created.
 
 ```
+mkdir -p ntuples_MC
 ./delphes2tree.py -i filelists/mg5_dijet_ht500.delphes.pt250.txt -l reco
 ./delphes2tree.py -i filelists/mg5_dijet_ht500.delphes.pt250.txt -l ptcl
 ```
@@ -32,8 +33,8 @@ so that the leading jet phi is always zero:
 
 ```
 mkdir -p csv
-ls ntuples_GAN/tree.delphes.ptcl.pt250.nominal.root > filelists/mg5_dijet_ht500.ptcl.pt250.MC.txt
-ls ntuples_GAN/tree.delphes.reco.pt250.nominal.root > filelists/mg5_dijet_ht500.reco.pt250.MC.txt
+ls ntuples_MC/tree.mg5_dijet_ht500.ptcl.pt250.nominal.root > filelists/mg5_dijet_ht500.ptcl.pt250.MC.txt
+ls ntuples_MC/tree.mg5_dijet_ht500.reco.pt250.nominal.root > filelists/mg5_dijet_ht500.reco.pt250.MC.txt
 
 ./root2csv.py -i filelists/mg5_dijet_ht500.ptcl.pt250.MC.txt -l ptcl
 ./root2csv.py -i filelists/mg5_dijet_ht500.reco.pt250.MC.txt -l reco
@@ -59,11 +60,16 @@ Plot training history:
 ```
 ./plot_traninig.py reco
 ./plot_traninig.py ptcl
+
+# only if you have already created the MG5 histograms:
+./plot_training_observables.py ptcl
+./plot_training_observables.py reco
 ```
 
 ## Generate events
 
 ```
+mkdir -p ntuples_GAN
 ./generate_events.py -l reco -n 500000
 ./generate_events.py -l ptcl -n 500000
 
@@ -73,13 +79,16 @@ ls ntuples_GAN/tree.mg5_dijet_ht500.reco.pt250.nominal.root > filelists/mg5_dije
 
 ## Fill histograms
 
+We want to compare three series of data:
+* Original MG5 distributions, p4's are calculated using Lorentz vectors kinematics (tag: ```p4_tlv```)
+* GAN-generated distributions, p4's are calculated using Lorentz vectors kinematics from the (pT,eta,phi,M) of the two leading jets (tag: ```p4_tlv```)
+* GAN-generated distributions, all distributions are taken from the GAN's output (tag: ```p4_gan```)
+
 ```
 mkdir -p histograms
+./fill_histograms.py filelists/mg5_dijet_ht500.ptcl.pt250.MC.txt
 ./fill_histograms.py filelists/mg5_dijet_ht500.ptcl.pt250.GAN.txt
-./fill_histograms.py filelists/mg5_dijet_ht500.ptcl.pt250.MC.txt 
 
-./fill_histograms.py filelists/mg5_dijet_ht500.reco.pt250.GAN.txt
-./fill_histograms.py filelists/mg5_dijet_ht500.reco.pt250.MC.txt
 ```
 
 ## Make final plots
