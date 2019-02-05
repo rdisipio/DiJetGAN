@@ -53,9 +53,12 @@ def SetTH1FStyle(h, color=kBlack, linewidth=1, linestyle=kSolid, fillcolor=0, fi
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 
-level = "ptcl"
-if len(sys.argv) > 1:
-    level = sys.argv[1]
+model_filename = sys.argv[1]
+
+# GAN/generator.mg5_dijet_ht500.ptcl.pt250.nominal.epoch_00000.h5
+level = model_filename.split('/')[-1].split('.')[-5]
+epoch = model_filename.split('/')[-1].split('.')[-2].split('_')[-1]
+epoch = int(epoch)
 
 n_examples = 50000
 if len(sys.argv) > 2:
@@ -80,7 +83,7 @@ _h['ljet1_m'] = TH1F(
     "ljet1_m",  ";Leading large-R jet m [GeV];Events / Bin Width", 40, 0., 200.)
 
 _h['ljet2_pt'] = TH1F(
-    "ljet2_pt", ";2nd leading large-R jet p_{T} [GeV];Events / Bin Width", 40,  200.,  800)
+    "ljet2_pt", ";2nd leading large-R jet p_{T} [GeV];Events / Bin Width", 40,  200.,  600)
 _h['ljet2_eta'] = TH1F(
     "ljet2_eta", ";2nd leading large-R jet #eta;Events / Bin Width", 40, -2.0, 2.0)
 _h['ljet2_m'] = TH1F(
@@ -122,127 +125,122 @@ for h in _h.values():
 c = TCanvas("c", "C", 1200, 1200)
 c.Divide(3, 3)
 
-gen_filepaths = "GAN/generator.%s.%s.%s.%s.epoch_*.h5" % (
-    dsid, level, preselection, systematic)
-gen_filepaths = glob.glob(gen_filepaths)
-print gen_filepaths
+generator = load_model(model_filename)
 
-for model_filename in gen_filepaths:
+GAN_noise_size = generator.layers[0].input_shape[1]
 
-    epoch = model_filename.split("/")[-1].split(".")[-2].split("_")[-1]
-    epoch = int(epoch)
-    print "INFO: epoch", epoch
+X_noise = np.random.uniform(
+    0, 1, size=[n_examples, GAN_noise_size])
+events = generator.predict(X_noise)
+events = scaler.inverse_transform(events)
 
-   # model_filename = "GAN/generator.%s.%s.%s.%s.epoch_%05i.h5" % (
-   #     dsid, level, preselection, systematic, epoch)
+_h['ljet1_pt'].Reset()
+_h['ljet1_eta'].Reset()
+_h['ljet1_m'].Reset()
 
-    generator = load_model(model_filename)
+_h['ljet2_pt'].Reset()
+_h['ljet2_eta'].Reset()
+_h['ljet2_m'].Reset()
 
-    GAN_noise_size = generator.layers[0].input_shape[1]
+_h['jj_pt'].Reset()
+_h['jj_eta'].Reset()
+_h['jj_m'].Reset()
 
-    X_noise = np.random.uniform(
-        0, 1, size=[n_examples, GAN_noise_size])
-    events = generator.predict(X_noise)
-    events = scaler.inverse_transform(events)
+for i in range(n_examples):
 
-    _h['ljet1_pt'].Reset()
-    _h['ljet1_eta'].Reset()
-    _h['ljet1_m'].Reset()
+    lj1 = TLorentzVector()
+    lj1.SetPtEtaPhiM(events[i][0], events[i][1], 0., events[i][2])
 
-    _h['ljet2_pt'].Reset()
-    _h['ljet2_eta'].Reset()
-    _h['ljet2_m'].Reset()
+    lj2 = TLorentzVector()
+    lj2.SetPtEtaPhiM(events[i][3], events[i][4],
+                     events[i][5], events[i][6])
 
-    _h['jj_pt'].Reset()
-    _h['jj_eta'].Reset()
-    _h['jj_m'].Reset()
+    phi = rng.Uniform(-TMath.Pi(), TMath.Pi())
+    lj1.RotateZ(phi)
+    lj2.RotateZ(phi)
 
-    for i in range(n_examples):
+    if lj1.Pt() < lj2.Pt():
+        continue
+    if lj1.Pt() < 250:
+        continue
+    if lj2.Pt() < 250:
+        continue
 
-        lj1 = TLorentzVector()
-        lj1.SetPtEtaPhiM(events[i][0], events[i][1], 0., events[i][2])
+    jj = lj1+lj2
 
-        lj2 = TLorentzVector()
-        lj2.SetPtEtaPhiM(events[i][3], events[i][4],
-                         events[i][5], events[i][6])
+    _h['ljet1_pt'].Fill(lj1.Pt()/GeV)
+    _h['ljet1_eta'].Fill(lj1.Eta())
+    _h['ljet1_m'].Fill(lj1.M()/GeV)
 
-        phi = rng.Uniform(-TMath.Pi(), TMath.Pi())
-        lj1.RotateZ(phi)
-        lj2.RotateZ(phi)
+    _h['ljet2_pt'].Fill(lj2.Pt()/GeV)
+    _h['ljet2_eta'].Fill(lj2.Eta())
+    _h['ljet2_m'].Fill(lj2.M()/GeV)
 
-        jj = lj1+lj2
+    _h['jj_pt'].Fill(jj.Pt()/GeV)
+    _h['jj_eta'].Fill(jj.Eta())
+    _h['jj_m'].Fill(jj.M()/TeV)
 
-        _h['ljet1_pt'].Fill(lj1.Pt()/GeV)
-        _h['ljet1_eta'].Fill(lj1.Eta())
-        _h['ljet1_m'].Fill(lj1.M()/GeV)
+for h in _h.values():
+    Normalize(h)
 
-        _h['ljet2_pt'].Fill(lj2.Pt()/GeV)
-        _h['ljet2_eta'].Fill(lj2.Eta())
-        _h['ljet2_m'].Fill(lj2.M()/GeV)
 
-        _h['jj_pt'].Fill(jj.Pt()/GeV)
-        _h['jj_eta'].Fill(jj.Eta())
-        _h['jj_m'].Fill(jj.M()/TeV)
+def PrintChi2(hname):
+    chi2 = _h_mc[hname].Chi2Test(_h[hname], "WW CHI2/NDF")
+    l = TLatex()
+    l.SetNDC()
+    l.SetTextFont(42)
+    l.SetTextSize(0.04)
+    txt = "#chi^{2}/NDF = %.2f" % chi2
+    l.DrawLatex(0.3, 0.85, txt)
 
-    for h in _h.values():
-        Normalize(h)
 
-    def PrintChi2(hname):
-        chi2 = _h_mc[hname].Chi2Test(_h[hname], "WW CHI2/NDF")
-        l = TLatex()
-        l.SetNDC()
-        l.SetTextFont(42)
-        l.SetTextSize(0.04)
-        txt = "#chi^{2}/NDF = %.2f" % chi2
-        l.DrawLatex(0.3, 0.85, txt)
+c.cd(1)
+_h_mc['ljet1_pt'].Draw("h")
+_h['ljet1_pt'].Draw("h same")
+PrintChi2('ljet1_pt')
 
-    c.cd(1)
-    _h_mc['ljet1_pt'].Draw("h")
-    _h['ljet1_pt'].Draw("h same")
-    PrintChi2('ljet1_pt')
+c.cd(2)
+_h_mc['ljet1_eta'].Draw("h")
+_h['ljet1_eta'].Draw("h same")
+PrintChi2('ljet1_eta')
 
-    c.cd(2)
-    _h_mc['ljet1_eta'].Draw("h")
-    _h['ljet1_eta'].Draw("h same")
-    PrintChi2('ljet1_eta')
+c.cd(3)
+_h_mc['ljet1_m'].Draw("h")
+_h['ljet1_m'].Draw("h same")
+PrintChi2('ljet1_m')
 
-    c.cd(3)
-    _h_mc['ljet1_m'].Draw("h")
-    _h['ljet1_m'].Draw("h same")
-    PrintChi2('ljet1_m')
+c.cd(4)
+_h_mc['ljet2_pt'].Draw("h")
+_h['ljet2_pt'].Draw("h same")
+PrintChi2('ljet2_pt')
 
-    c.cd(4)
-    _h_mc['ljet2_pt'].Draw("h")
-    _h['ljet2_pt'].Draw("h same")
-    PrintChi2('ljet2_pt')
+c.cd(5)
+_h_mc['ljet2_eta'].Draw("h")
+_h['ljet2_eta'].Draw("h same")
+PrintChi2('ljet2_eta')
 
-    c.cd(5)
-    _h_mc['ljet2_eta'].Draw("h")
-    _h['ljet2_eta'].Draw("h same")
-    PrintChi2('ljet2_eta')
+c.cd(6)
+_h_mc['ljet2_m'].Draw("h")
+_h['ljet2_m'].Draw("h same")
+PrintChi2('ljet2_m')
 
-    c.cd(6)
-    _h_mc['ljet2_m'].Draw("h")
-    _h['ljet2_m'].Draw("h same")
-    PrintChi2('ljet2_m')
+c.cd(7)
+_h_mc['jj_pt'].Draw("h")
+_h['jj_pt'].Draw("h same")
+PrintChi2('jj_pt')
 
-    c.cd(7)
-    _h_mc['jj_pt'].Draw("h")
-    _h['jj_pt'].Draw("h same")
-    PrintChi2('jj_pt')
+c.cd(8)
+_h_mc['jj_eta'].Draw("h")
+_h['jj_eta'].Draw("h same")
+PrintChi2('jj_eta')
 
-    c.cd(8)
-    _h_mc['jj_eta'].Draw("h")
-    _h['jj_eta'].Draw("h same")
-    PrintChi2('jj_eta')
+c.cd(9)
+_h_mc['jj_m'].Draw("h")
+_h['jj_m'].Draw("h same")
+PrintChi2('jj_m')
 
-    c.cd(9)
-    _h_mc['jj_m'].Draw("h")
-    _h['jj_m'].Draw("h same")
-    PrintChi2('jj_m')
+c.cd()
 
-    c.cd()
-
-    imgname = "img/training_%s_%s_%s_epoch_%05i.png" % (
-        dsid, level, preselection, epoch)
-    c.SaveAs(imgname)
+imgname = "img/training_%s_%s_%s_epoch_%05i.png" % (
+    dsid, level, preselection, epoch)
+c.SaveAs(imgname)

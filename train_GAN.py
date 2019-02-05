@@ -157,14 +157,14 @@ GAN_noise_size = 128  # number of random numbers (input noise)
 #d_optimizer = Adamax()
 #g_optimizer = Adadelta()
 
-#d_optimizer = Adam(0.0001, beta_1=0.5, beta_2=0.9)
-#g_optimizer = Adam(0.0001, beta_1=0.5, beta_2=0.9)
+#d_optimizer = Adam(0.001, beta_1=0.5, beta_2=0.9)
+#g_optimizer = Adam(0.001, beta_1=0.5, beta_2=0.9)
 
 # d_optimizer = Adam(0.0001)  # , clipnorm=1.0)
 # g_optimizer = Adam(0.0001)  # , clipnorm=1.0)
 
-# d_optimizer = Adam(0.0001)  # , 0.5)
-# g_optimizer = Adam(0.0001) #, 0.5)
+#d_optimizer = Adam(0.0001)  # , 0.5)
+#g_optimizer = Adam(0.0001) #, 0.5)
 
 #d_optimizer = Adam(0.0001)
 #g_optimizer = Adam(0.0001)
