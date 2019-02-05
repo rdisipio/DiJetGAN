@@ -57,7 +57,7 @@ level = "ptcl"
 if len(sys.argv) > 1:
     level = sys.argv[1]
 
-n_examples = 20000
+n_examples = 50000
 if len(sys.argv) > 2:
     n_examples = int(sys.argv[2])
 

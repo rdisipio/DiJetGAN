@@ -16,7 +16,7 @@ np.set_printoptions(precision=2, suppress=True, linewidth=300)
 
 from sklearn.preprocessing import StandardScaler, RobustScaler, MinMaxScaler
 
-from keras.utils import to_categorical
+#from keras.utils import to_categorical
 #from keras.utils import multi_gpu_model
 
 from keras.optimizers import *
@@ -52,7 +52,7 @@ n_epochs = int(args.epochs)
 
 if training_filename == "":
     #   training_filename = "csv/training.%s.%s.%s.%s.csv" % ( classifier_arch, classifier_feat, preselection, systematic )
-    training_filename = "csv/mc16a.%s.%s.%s.%s.csv" % (
+    training_filename = "csv/%s.%s.%s.%s.csv" % (
         dsid, level, preselection, systematic)
     print "INFO: training file:", training_filename
 else:
@@ -67,6 +67,7 @@ features = [
     "ljet1_pt", "ljet1_eta", "ljet1_M",
     "ljet2_pt", "ljet2_eta", "ljet2_phi", "ljet2_M"
 ]
+
 # features = [
 #    "ljet1_pt", "ljet1_eta", "ljet1_phi", "ljet1_E", "ljet1_M",
 #    "ljet2_pt", "ljet2_eta", "ljet2_phi", "ljet2_E", "ljet2_M",
@@ -140,7 +141,7 @@ def make_generator():
 
 
 def make_discriminator():
-    # return make_discriminator_mlp( n_features )
+    # return make_discriminator_mlp(n_features)
     # return make_discriminator_rnn( n_features )
     return make_discriminator_cnn(n_features)
 
@@ -150,8 +151,8 @@ def make_discriminator():
 GAN_noise_size = 128  # number of random numbers (input noise)
 
 #optimizer = RMSprop(lr=0.0002, rho=0.9)
-#d_optimizer = RMSprop(lr=0.001)
-#g_optimizer = RMSprop(lr=0.001)
+# d_optimizer = RMSprop(lr=0.0001, rho=0.9)  # clipvalue=0.01)
+# g_optimizer = RMSprop(lr=0.0001, rho=0.9)  # , clipvalue=0.01)
 
 #d_optimizer = Adamax()
 #g_optimizer = Adadelta()
@@ -162,7 +163,7 @@ GAN_noise_size = 128  # number of random numbers (input noise)
 # d_optimizer = Adam(0.0001)  # , clipnorm=1.0)
 # g_optimizer = Adam(0.0001)  # , clipnorm=1.0)
 
-# d_optimizer = Adam(0.0001) #, 0.5)
+# d_optimizer = Adam(0.0001)  # , 0.5)
 # g_optimizer = Adam(0.0001) #, 0.5)
 
 #d_optimizer = Adam(0.0001)
@@ -175,8 +176,8 @@ GAN_noise_size = 128  # number of random numbers (input noise)
 #g_optimizer = SGD(0.01, 0.5)
 
 
-#d_optimizer = Adam()
-#g_optimizer = Adam()
+#d_optimizer = Adam(0.01)
+#g_optimizer = Adam(0.01)
 
 d_optimizer = SGD(0.01)
 g_optimizer = SGD(0.01)
@@ -347,7 +348,7 @@ def train_loop(nb_epoch=1000, BATCH_SIZE=32):
 print "INFO: Train for %i epochs" % (n_epochs)
 train_loop(nb_epoch=n_epochs, BATCH_SIZE=32)
 #train_loop( nb_epoch=n_epochs, BATCH_SIZE=64)
-#train_loop( nb_epoch=n_epochs, BATCH_SIZE=128 )
+#train_loop(nb_epoch=n_epochs, BATCH_SIZE=128)
 #train_loop( nb_epoch=n_epochs, BATCH_SIZE=512 )
 #train_loop( nb_epoch=n_epochs, BATCH_SIZE=1024 )
 

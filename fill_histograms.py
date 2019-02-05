@@ -79,7 +79,7 @@ _h['jj_phi'] = TH1F(
 _h['jj_E'] = TH1F(
     "jj_E",  ";Dijet system E [GeV];Events / Bin Width", 30, 0., 3000)
 _h['jj_m'] = TH1F(
-    "jj_m",  ";Dijet system m [GeV];Events / Bin Width", 40, 0., 2000.)
+    "jj_m",  ";Dijet system m [TeV];Events / Bin Width", 40, 0., 2.)
 _h['jj_dPhi'] = TH1F(
     "jj_dPhi", ";Dijet system #Delta#phi;Events / Bin Width", 32, 0, 3.1415)
 _h['jj_dEta'] = TH1F(
@@ -184,7 +184,7 @@ for ientry in range(n_entries):
     _h['jj_eta'].Fill(jj.Eta(), w)
     _h['jj_phi'].Fill(jj.Phi(), w)
     _h['jj_E'].Fill(jj.E()/GeV, w)
-    _h['jj_m'].Fill(jj.M()/GeV, w)
+    _h['jj_m'].Fill(jj.M()/TeV, w)
     _h['jj_dPhi'].Fill(abs(jj.dPhi), w)
     _h['jj_dEta'].Fill(jj.dEta, w)
     _h['jj_dR'].Fill(jj.dR, w)
@@ -201,11 +201,10 @@ for ientry in range(n_entries):
     _h['ljet2_m_vs_ljet1_m'].Fill(lj1.M()/GeV, lj2.M()/GeV, w)
     _h['ljet2_eta_vs_ljet1_eta'].Fill(abs(lj1.Eta()), abs(lj2.Eta()), w)
 
-    _h['jj_dR_vs_jj_m'].Fill(jj.M()/GeV, jj.dR, w)
-    _h['jj_m_vs_jj_pt'].Fill(jj.Pt()/GeV, jj.M()/GeV, w)
-    _h['ljet1_pt_vs_jj_m'].Fill(jj.M()/GeV, lj1.Pt()/GeV, w)
-    _h['ljet2_pt_vs_jj_m'].Fill(jj.M()/GeV, lj2.Pt()/GeV, w)
-
+    _h['jj_dR_vs_jj_m'].Fill(jj.M()/TeV, jj.dR, w)
+    _h['jj_m_vs_jj_pt'].Fill(jj.Pt()/GeV, jj.M()/TeV, w)
+    _h['ljet1_pt_vs_jj_m'].Fill(jj.M()/TeV, lj1.Pt()/GeV, w)
+    _h['ljet2_pt_vs_jj_m'].Fill(jj.M()/TeV, lj2.Pt()/GeV, w)
 
 outfile.Write()
 outfile.Close()
