@@ -28,6 +28,9 @@ import pandas as pd
 import helper_functions as hf
 #from fourmomentum_scaler import *
 
+from ROOT import *
+gROOT.SetBatch(1)
+
 ############
 
 parser = argparse.ArgumentParser(
@@ -61,11 +64,15 @@ print "INFO: training systematic: %s" % systematic
 from features import *
 
 features = [
-    "ljet1_pt", "ljet1_eta", "ljet1_phi", "ljet1_E", "ljet1_M",
-    "ljet2_pt", "ljet2_eta", "ljet2_phi", "ljet2_E", "ljet2_M",
-    "jj_pt",    "jj_eta",    "jj_phi", "jj_E", "jj_M",
-    "jj_dPhi",  "jj_dEta",   "jj_dR",
+    "ljet1_pt", "ljet1_eta", "ljet1_M",
+    "ljet2_pt", "ljet2_eta", "ljet2_phi", "ljet2_M"
 ]
+# features = [
+#    "ljet1_pt", "ljet1_eta", "ljet1_phi", "ljet1_E", "ljet1_M",
+#    "ljet2_pt", "ljet2_eta", "ljet2_phi", "ljet2_E", "ljet2_M",
+#    "jj_pt",    "jj_eta",    "jj_phi", "jj_E", "jj_M",
+#    "jj_dEta",  "jj_dPhi",   "jj_dR",
+#]
 
 # features = [
 #    "ljet1_pt", "ljet1_eta", "ljet1_phi", "ljet1_M",
@@ -142,9 +149,9 @@ def make_discriminator():
 
 GAN_noise_size = 128  # number of random numbers (input noise)
 
-#optimizer = RMSprop(lr=0.0002, rho=0.9, clipnorm=1.)
-#d_optimizer = optimizer
-#g_optimizer = optimizer
+#optimizer = RMSprop(lr=0.0002, rho=0.9)
+#d_optimizer = RMSprop(lr=0.001)
+#g_optimizer = RMSprop(lr=0.001)
 
 #d_optimizer = Adamax()
 #g_optimizer = Adadelta()
@@ -155,8 +162,8 @@ GAN_noise_size = 128  # number of random numbers (input noise)
 # d_optimizer = Adam(0.0001)  # , clipnorm=1.0)
 # g_optimizer = Adam(0.0001)  # , clipnorm=1.0)
 
-#d_optimizer = Adam(0.0001, 0.5)
-#g_optimizer = Adam(0.0001, 0.5)
+# d_optimizer = Adam(0.0001) #, 0.5)
+# g_optimizer = Adam(0.0001) #, 0.5)
 
 #d_optimizer = Adam(0.0001)
 #g_optimizer = Adam(0.0001)
@@ -302,7 +309,7 @@ def train_loop(nb_epoch=1000, BATCH_SIZE=32):
             d_loss_f, d_acc_f = discriminator.train_on_batch(
                 X_train_fake, y_fake)
 
-            # clip_weights(discriminator, 0.01)
+            #clip_weights(discriminator, 0.1)
 
         d_loss = 0.5 * np.add(d_loss_r, d_loss_f)
 
@@ -328,6 +335,10 @@ def train_loop(nb_epoch=1000, BATCH_SIZE=32):
             print "Epoch: %5i/%5i :: BS = %i :: d_loss = %.2f ( real = %.2f, fake = %.2f ), d_acc = %.2f ( real = %.2f, fake = %.2f ), g_loss = %.2f" % (
                 epoch, nb_epoch, BATCH_SIZE, d_loss, d_loss_r, d_loss_f, d_acc, d_acc_r, d_acc_f, g_loss)
 
+            model_filename = "GAN/generator.%s.%s.%s.%s.epoch_%05i.h5" % (
+                dsid, level, preselection, systematic, epoch)
+            generator.save(model_filename)
+
     return history
 
 #######################
@@ -345,9 +356,6 @@ model_filename = "GAN/generator.%s.%s.%s.%s.h5" % (
     dsid, level, preselection, systematic)
 generator.save(model_filename)
 print "INFO: generator model saved to file", model_filename
-
-from ROOT import *
-gROOT.SetBatch(1)
 
 training_root = TFile.Open("GAN/training_history.%s.%s.%s.%s.root" % (
     dsid, level, preselection, systematic), "RECREATE")

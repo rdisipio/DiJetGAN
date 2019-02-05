@@ -22,29 +22,33 @@ import numpy as np
 
 #######################################
 
+
 def clip_weights(discriminator, c=0.01):
-        weights = [np.clip(w, -c, c) for w in discriminator.get_weights()]
-        discriminator.set_weights(weights)
+    weights = [np.clip(w, -c, c) for w in discriminator.get_weights()]
+    discriminator.set_weights(weights)
 
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
 
 def wasserstein_loss(y_true, y_pred):
     return K.mean(y_true * y_pred)
 
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
+
 def gradient_penalty_loss(self, y_true, y_pred, averaged_samples):
 
-   gradients = K.gradients(y_pred, averaged_samples)[0]
-   gradients_sqr = K.square(gradients)
-   gradients_sqr_sum = K.sum(gradients_sqr,
-                                  axis=np.arange(1, len(gradients_sqr.shape)))
-   gradient_l2_norm = K.sqrt(gradients_sqr_sum)
-   gradient_penalty = K.square(1 - gradient_l2_norm)
+    gradients = K.gradients(y_pred, averaged_samples)[0]
+    gradients_sqr = K.square(gradients)
+    gradients_sqr_sum = K.sum(gradients_sqr,
+                              axis=np.arange(1, len(gradients_sqr.shape)))
+    gradient_l2_norm = K.sqrt(gradients_sqr_sum)
+    gradient_penalty = K.square(1 - gradient_l2_norm)
 
-   return K.mean(gradient_penalty)
+    return K.mean(gradient_penalty)
 
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
 
 def PxPyPzE_to_PtEtaPhiM(x):
     # p = TLorentzVector()
@@ -170,17 +174,19 @@ def make_discriminator_mlp(GAN_output_size):
     inshape = (GAN_output_size, )
     D_input = Input(shape=inshape, name='D_input')
 
-    D = Dense(64)(D_input)
+    D = Dense(128)(D_input)
+    D = LeakyReLU(0.2)(D)
+    #D = Activation('tanh')(D)
+    # D = BatchNormalization(momentum=0.99)(D)  # 0.8
 
-    D = Activation('tanh')(D)
-    D = BatchNormalization(momentum=0.99)(D)  # 0.8
+    D = Dense(64)(D)
+    D = LeakyReLU(0.2)(D)
+    #D = Activation('tanh')(D)
+    #D = BatchNormalization(momentum=0.99)(D)
 
     D = Dense(32)(D)
-    D = Activation('tanh')(D)
-    D = BatchNormalization(momentum=0.99)(D)
-
-    D = Dense(16)(D)
-    D = Activation('tanh')(D)
+    D = LeakyReLU(0.2)(D)
+    #D = Activation('tanh')(D)
     # D = BatchNormalization(momentum=0.99)(D)
 
     # D = Dense( 8 )(D)
@@ -210,7 +216,7 @@ def make_generator_cnn(GAN_noise_size, GAN_output_size):
     G = LeakyReLU(alpha=0.2)(G)
     G = BatchNormalization(momentum=0.8)(G)
 
-    G = Reshape([8, 16, 1])(G)  # default: channel last
+    G = Reshape([16, 8, 1])(G)  # default: channel last
 
     G = Conv2D(filters=2, kernel_size=3, padding="same")(G)
     G = LeakyReLU(alpha=0.2)(G)
@@ -221,14 +227,14 @@ def make_generator_cnn(GAN_noise_size, GAN_output_size):
 
     # Upsample to make the input larger
     G = UpSampling2D(size=2)(G)
-    G = Conv2D(filters=3, kernel_size=3, strides=1, padding='same')(G)
+    G = Conv2D(filters=3, kernel_size=4, strides=1, padding='same')(G)
     G = LeakyReLU(alpha=0.2)(G)
     G = BatchNormalization()(G)
 
     # G = MaxPooling2D( (2,2) )(G)
 
     G = Flatten()(G)
-    G_output = Dense( GAN_output_size, activation="tanh" )(G)
+    G_output = Dense(GAN_output_size, activation="tanh")(G)
 
     generator = Model(G_input, G_output)
 
@@ -238,6 +244,43 @@ def make_generator_cnn(GAN_noise_size, GAN_output_size):
 
 
 def make_discriminator_cnn(GAN_output_size):
+
+    D_input = Input(shape=(GAN_output_size,))
+    D = Dense(256)(D_input)
+    D = Reshape((16, 16, 1))(D)
+
+    D = Conv2D(64, 4, strides=1)(D)
+    D = LeakyReLU(alpha=0.2)(D)
+#    D = BatchNormalization()(D)
+#    D = Activation("tanh")(D)
+#    D = MaxPooling2D((2,2))(D)
+
+    D = Conv2D(32, 3, strides=1)(D)
+    D = LeakyReLU(alpha=0.2)(D)
+#    D = BatchNormalization()(D)
+#    D = Activation("tanh")(D)
+#    D = MaxPooling2D((2,2))(D)
+
+    D = Conv2D(8, 2, strides=1)(D)
+    D = LeakyReLU(alpha=0.2)(D)
+#    D = BatchNormalization()(D)
+#    D = Activation("tanh")(D)
+#    D = MaxPooling2D((2,2))(D)
+
+#    D = Conv2D(8, 4, strides=1)(D)
+#    D = LeakyReLU(alpha=0.2)(D)
+#    D = Activation("tanh")(D)
+#    D = MaxPooling2D((2,2))(D)
+
+    D = Flatten()(D)
+
+    D_output = Dense(1, activation="sigmoid")(D)
+
+    discriminator = Model(D_input, D_output)
+    return discriminator
+
+
+def make_discriminator_cnn_ok(GAN_output_size):
     # Build Discriminative model ...
     # print "DEBUG: discriminator: input features:", GAN_output_size
 

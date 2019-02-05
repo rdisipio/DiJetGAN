@@ -46,11 +46,11 @@ if outfilename == "":
     if "mc16" in fpath:
         camp = fpath.split('.')[0]
         dsid = fpath.split('.')[1]
-        outfilename = "ntuples_GAN/tree.%s.%s.%s.%s.%s.root" % (
+        outfilename = "ntuples_MC/tree.%s.%s.%s.%s.%s.root" % (
             camp, dsid, level, preselection, syst)
     else:
         dsid = fpath.split('.')[0]
-        outfilename = "ntuples_GAN/tree.%s.%s.%s.%s.root" % (
+        outfilename = "ntuples_MC/tree.%s.%s.%s.%s.root" % (
             dsid, level, preselection, syst)
 
 print "INFO: level:              ", level
@@ -97,6 +97,14 @@ b_ljet2_eta = array('f', [0.])
 b_ljet2_phi = array('f', [0.])
 b_ljet2_E = array('f', [0.])
 b_ljet2_m = array('f', [0.])
+b_jj_pt = array('f', [0.])
+b_jj_eta = array('f', [0.])
+b_jj_phi = array('f', [0.])
+b_jj_E = array('f', [0.])
+b_jj_m = array('f', [0.])
+b_jj_dEta = array('f', [0.])
+b_jj_dPhi = array('f', [0.])
+b_jj_dR = array('f', [0.])
 
 outtree = TTree(syst, "MG5 generated events")
 outtree.Branch('eventNumber',        b_eventNumber,     'eventNumber/l')
@@ -111,6 +119,14 @@ outtree.Branch('ljet2_eta',  b_ljet2_eta, 'ljet2_eta/F')
 outtree.Branch('ljet2_phi',  b_ljet2_phi, 'ljet2_phi/F')
 outtree.Branch('ljet2_E',    b_ljet2_E,   'ljet2_E/F')
 outtree.Branch('ljet2_m',    b_ljet2_m,   'ljet2_m/F')
+outtree.Branch('jj_pt',   b_jj_pt,  'jj_pt/F')
+outtree.Branch('jj_eta',  b_jj_eta, 'jj_eta/F')
+outtree.Branch('jj_phi',  b_jj_phi, 'jj_phi/F')
+outtree.Branch('jj_E',    b_jj_E,   'jj_E/F')
+outtree.Branch('jj_m',    b_jj_m,   'jj_m/F')
+outtree.Branch('jj_dEta', b_jj_dEta, 'jj_dEta/F')
+outtree.Branch('jj_dPhi', b_jj_dPhi, 'jj_dPhi/F')
+outtree.Branch('jj_dR',   b_jj_dR,   'jj_dR/F')
 
 n_good = 0
 ientry = 0
@@ -130,8 +146,6 @@ for ientry in range(n_entries):
         ljets_n = tree.GetLeaf("GenJet.PT").GetLen()
     else:
         ljets_n = tree.GetLeaf("Jet.PT").GetLen()
-    ljet1 = TLorentzVector()
-    ljet2 = TLorentzVector()
 
     # do sanity checks first
     if ljets_n < 2:
@@ -165,6 +179,8 @@ for ientry in range(n_entries):
             tree.GetLeaf("Jet.Phi").GetValue(1),
             tree.GetLeaf("Jet.Mass").GetValue(1))
 
+    jj = ljet1 + ljet2
+
     b_ljet1_pt[0] = ljet1.Pt()
     b_ljet1_eta[0] = ljet1.Eta()
     b_ljet1_phi[0] = ljet1.Phi()
@@ -176,6 +192,16 @@ for ientry in range(n_entries):
     b_ljet2_phi[0] = ljet2.Phi()
     b_ljet2_E[0] = ljet2.E()
     b_ljet2_m[0] = ljet2.M()
+
+    b_jj_pt[0] = jj.Pt()
+    b_jj_eta[0] = jj.Eta()
+    b_jj_phi[0] = jj.Phi()
+    b_jj_E[0] = jj.E()
+    b_jj_m[0] = jj.M()
+
+    b_jj_dEta = ljet1.Eta() - ljet2.Eta()
+    b_jj_dPhi = ljet1.DeltaPhi( ljet2 )
+    b_jj_dR   = ljet1.DeltaR( ljet2 )
 
     outtree.Fill()
     n_good += 1

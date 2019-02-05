@@ -23,25 +23,20 @@ def make_csv_row(eventInfo, ljets, jj):
         "%i" % eventInfo['eventNumber'], "%.3f" % eventInfo['weight'],
 
         # leading jet
-        "%4.1f" % ljets[0].Px(),  "%4.1f" % ljets[0].Py(
-        ), "%4.1f" % ljets[0].Pz(),
         "%4.1f" % ljets[0].Pt(),  "%.2f" % ljets[0].Eta(
         ), "%.2f" % ljets[0].Phi(),
         "%4.1f" % ljets[0].E(),   "%4.1f" % ljets[0].M(),
 
         # subleading jet
-        "%4.1f" % ljets[1].Px(),  "%4.1f" % ljets[1].Py(
-        ), "%4.1f" % ljets[1].Pz(),
         "%4.1f" % ljets[1].Pt(),  "%.2f" % ljets[1].Eta(
         ), "%.2f" % ljets[1].Phi(),
         "%4.1f" % ljets[1].E(),   "%4.1f" % ljets[1].M(),
 
         # dijet system
-        "%4.1f" % jj.Px(),  "%4.1f" % jj.Py(), "%4.1f" % jj.Pz(),
         "%4.1f" % jj.Pt(),  "%.2f" % jj.Eta(), "%.2f" % jj.Phi(),
         "%4.1f" % jj.E(),   "%4.1f" % jj.M(),
 
-        "%.2f" % jj.dPhi,  "%.2f" % jj.dEta, "%.2f" % jj.dR,
+        "%.2f" % jj.dEta,  "%.2f" % jj.dPhi, "%.2f" % jj.dR,
 
     )
     return row

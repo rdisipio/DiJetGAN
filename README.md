@@ -42,6 +42,7 @@ ls ntuples_MC/tree.mg5_dijet_ht500.reco.pt250.nominal.root > filelists/mg5_dijet
 
 ## Initialize scaler
 ```
+mkdir -p GAN
 ./init_scaler.py csv/mg5_dijet_ht500.reco.pt250.nominal.csv
 ./init_scaler.py csv/mg5_dijet_ht500.ptcl.pt250.nominal.csv 
 ```
