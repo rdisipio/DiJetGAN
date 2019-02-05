@@ -17,6 +17,9 @@ gROOT.SetBatch(1)
 
 rng = TRandom3()
 
+GeV = 1.
+TeV = 1e3
+
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 
@@ -88,7 +91,7 @@ _h['jj_pt'] = TH1F(
 _h['jj_eta'] = TH1F(
     "jj_eta", ";Dijet system #eta;Events / Bin Width", 60, -6.0, 6.0)
 _h['jj_m'] = TH1F(
-    "jj_m",  ";Dijet system m [GeV];Events / Bin Width", 40, 0., 2000.)
+    "jj_m",  ";Dijet system m [GeV];Events / Bin Width", 40, 0., 2.)
 
 
 mc_filename = "histograms/histograms.%s.%s.%s.MC.root" % (
@@ -169,50 +172,74 @@ for model_filename in gen_filepaths:
 
         jj = lj1+lj2
 
-        _h['ljet1_pt'].Fill(lj1.Pt())
+        _h['ljet1_pt'].Fill(lj1.Pt()/GeV)
         _h['ljet1_eta'].Fill(lj1.Eta())
-        _h['ljet1_m'].Fill(lj1.M())
+        _h['ljet1_m'].Fill(lj1.M()/GeV)
 
-        _h['ljet2_pt'].Fill(lj2.Pt())
+        _h['ljet2_pt'].Fill(lj2.Pt()/GeV)
         _h['ljet2_eta'].Fill(lj2.Eta())
-        _h['ljet2_m'].Fill(lj2.M())
+        _h['ljet2_m'].Fill(lj2.M()/GeV)
 
-        _h['jj_pt'].Fill(jj.Pt())
+        _h['jj_pt'].Fill(jj.Pt()/GeV)
         _h['jj_eta'].Fill(jj.Eta())
-        _h['jj_m'].Fill(jj.M())
+        _h['jj_m'].Fill(jj.M()/TeV)
 
     for h in _h.values():
         Normalize(h)
 
+    def PrintChi2(hname):
+        chi2 = _h_mc[hname].Chi2Test(_h[hname], "WW CHI2/NDF")
+        l = TLatex()
+        l.SetNDC()
+        l.SetTextFont(42)
+        l.SetTextSize(0.04)
+        txt = "#chi^{2}/NDF = %.2f" % chi2
+        l.DrawLatex(0.3, 0.85, txt)
+
     c.cd(1)
     _h_mc['ljet1_pt'].Draw("h")
     _h['ljet1_pt'].Draw("h same")
+    PrintChi2('ljet1_pt')
+
     c.cd(2)
     _h_mc['ljet1_eta'].Draw("h")
     _h['ljet1_eta'].Draw("h same")
+    PrintChi2('ljet1_eta')
+
     c.cd(3)
     _h_mc['ljet1_m'].Draw("h")
     _h['ljet1_m'].Draw("h same")
+    PrintChi2('ljet1_m')
 
     c.cd(4)
     _h_mc['ljet2_pt'].Draw("h")
     _h['ljet2_pt'].Draw("h same")
+    PrintChi2('ljet2_pt')
+
     c.cd(5)
     _h_mc['ljet2_eta'].Draw("h")
     _h['ljet2_eta'].Draw("h same")
+    PrintChi2('ljet2_eta')
+
     c.cd(6)
     _h_mc['ljet2_m'].Draw("h")
     _h['ljet2_m'].Draw("h same")
+    PrintChi2('ljet2_m')
 
     c.cd(7)
     _h_mc['jj_pt'].Draw("h")
     _h['jj_pt'].Draw("h same")
+    PrintChi2('jj_pt')
+
     c.cd(8)
     _h_mc['jj_eta'].Draw("h")
     _h['jj_eta'].Draw("h same")
+    PrintChi2('jj_eta')
+
     c.cd(9)
     _h_mc['jj_m'].Draw("h")
     _h['jj_m'].Draw("h same")
+    PrintChi2('jj_m')
 
     c.cd()
 
