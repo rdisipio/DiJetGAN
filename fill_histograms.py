@@ -109,13 +109,13 @@ _h['ljet2_eta_vs_ljet1_eta'] = TH2F(
     "ljet2_eta_vs_ljet1_eta", ";Leading large-R jet #eta;2nd leading large-R jet #eta", 20, 0, 2.0, 20, 0, 2.0)
 
 _h['jj_dR_vs_jj_m'] = TH2F(
-    "jj_dR_vs_jj_m", ";Dijet system mass [GeV];Dijet system #Delta R",  80, 0., 4000., 60, 2., 5)
+    "jj_dR_vs_jj_m", ";Dijet system mass [GeV];Dijet system #Delta R",  80, 0., 4., 60, 2., 5)
 _h['jj_m_vs_jj_pt'] = TH2F(
-    "jj_m_vs_jj_pt", ";Dijet system p_{T} [GeV];Dijet system mass [GeV]", 40,    0., 800, 80, 0., 4000.)
+    "jj_m_vs_jj_pt", ";Dijet system p_{T} [GeV];Dijet system mass [GeV]", 40, 0., 800, 80, 0., 4.)
 _h['ljet1_pt_vs_jj_m'] = TH2F(
-    "ljet1_pt_vs_jj_m", ";Dijet system m [GeV];Leading large-R jet p_{T} [GeV];", 80, 0., 4000., 40,   200., 800)
+    "ljet1_pt_vs_jj_m", ";Dijet system m [GeV];Leading large-R jet p_{T} [GeV];", 80, 0., 4., 40,   200., 800)
 _h['ljet2_pt_vs_jj_m'] = TH2F(
-    "ljet2_pt_vs_jj_m", ";Dijet system m [GeV];2nd leading large-R jet p_{T} [GeV];", 80, 0., 4000., 40,   200., 800)
+    "ljet2_pt_vs_jj_m", ";Dijet system m [GeV];2nd leading large-R jet p_{T} [GeV];", 80, 0., 4., 40,   200., 800)
 
 for h in _h.values():
     h.Sumw2()

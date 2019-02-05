@@ -22,11 +22,9 @@ parser.add_argument('-l', '--level',             default="reco")
 parser.add_argument('-p', '--preselection',      default="pt250")
 parser.add_argument('-s', '--systematic',        default="nominal")
 parser.add_argument('-d', '--dsid',              default="mg5_dijet_ht500")
-parser.add_argument('-r', '--p4repr',            default="PtEtaPhiEMdR")
 parser.add_argument('-n', '--nevents',           default=10000)
 args = parser.parse_args()
 
-p4repr = args.p4repr
 level = args.level
 preselection = args.preselection
 systematic = args.systematic
@@ -77,6 +75,14 @@ b_ljet2_eta = array('f', [0.])
 b_ljet2_phi = array('f', [0.])
 b_ljet2_E = array('f', [0.])
 b_ljet2_m = array('f', [0.])
+b_jj_pt = array('f', [0.])
+b_jj_eta = array('f', [0.])
+b_jj_phi = array('f', [0.])
+b_jj_E = array('f', [0.])
+b_jj_m = array('f', [0.])
+b_jj_dEta = array('f', [0.])
+b_jj_dPhi = array('f', [0.])
+b_jj_dR = array('f', [0.])
 
 outtree = TTree(systematic, "GAN generated events")
 outtree.Branch('eventNumber',        b_eventNumber,     'eventNumber/l')
@@ -91,6 +97,14 @@ outtree.Branch('ljet2_eta',  b_ljet2_eta, 'ljet2_eta/F')
 outtree.Branch('ljet2_phi',  b_ljet2_phi, 'ljet2_phi/F')
 outtree.Branch('ljet2_E',    b_ljet2_E,   'ljet2_E/F')
 outtree.Branch('ljet2_m',    b_ljet2_m,   'ljet2_m/F')
+outtree.Branch('jj_pt',   b_jj_pt,  'jj_pt/F')
+outtree.Branch('jj_eta',  b_jj_eta, 'jj_eta/F')
+outtree.Branch('jj_phi',  b_jj_phi, 'jj_phi/F')
+outtree.Branch('jj_E',    b_jj_E,   'jj_E/F')
+outtree.Branch('jj_m',    b_jj_m,   'jj_m/F')
+outtree.Branch('jj_dEta', b_jj_dEta, 'jj_dEta/F')
+outtree.Branch('jj_dPhi', b_jj_dPhi, 'jj_dPhi/F')
+outtree.Branch('jj_dR',   b_jj_dR,   'jj_dR/F')
 
 print "INFO: generating %i events..." % n_events
 
@@ -123,43 +137,14 @@ for ievent in range(n_events):
     ljet1 = ljets[0]
     ljet2 = ljets[1]
 
-    # sort jets by pT
-    #ljets.sort( key=lambda jet: jet.Pt(), reverse=True )
-    if p4repr in ["PtEtaPhiM", "PtEtaPhiEM"]:
-        ljet1.SetPtEtaPhiM(X_generated[ievent][0],
-                           X_generated[ievent][1],
-                           X_generated[ievent][2],
-                           X_generated[ievent][4])
-
-        ljet2.SetPtEtaPhiM(X_generated[ievent][5],
-                           X_generated[ievent][6],
-                           X_generated[ievent][7],
-                           X_generated[ievent][9])
-
-    elif p4repr == "PtEtaPhiEMdR":
-        ljet1.SetPtEtaPhiM(X_generated[ievent][0],
-                           X_generated[ievent][1],
-                           X_generated[ievent][2],
-                           X_generated[ievent][4])
-
-        ljet2.SetPtEtaPhiM(X_generated[ievent][5],
-                           X_generated[ievent][6],
-                           X_generated[ievent][7],
-                           X_generated[ievent][9])
-
-    elif p4repr == "PxPyPzE":
-        ljet1.SetPxPyPzE(X_generated[ievent][0],
-                         X_generated[ievent][1],
-                         X_generated[ievent][2],
-                         X_generated[ievent][3])
-
-        ljet2.SetPxPyPzE(X_generated[ievent][4],
-                         X_generated[ievent][5],
-                         X_generated[ievent][6],
-                         X_generated[ievent][7])
-    else:
-        print "ERROR: unknown four-momentum representation", p4repr
-        exit(1)
+    ljet1.SetPtEtaPhiM( X_generated[ievent][0],
+                        X_generated[ievent][1],
+                        0.,
+                        X_generated[ievent][2] )
+    ljet2.SetPtEtaPhiM( X_generated[ievent][3],
+                        X_generated[ievent][4],
+                        X_generated[ievent][5],
+                        X_generated[ievent][6] )
 
     #jj_dPhi   = X_generated[ievent][21]
     # rotate jets' P4's:
@@ -185,10 +170,10 @@ for ievent in range(n_events):
 
     n_good += 1
 
-    #jj = lj1 + lj2
-    #jj.dEta = lj1.Eta() - lj2.Eta()
-    #jj.dPhi = lj1.DeltaPhi(lj2)
-    #jj.dR = lj1.DeltaR(lj2)
+    jj = ljet1 + ljet2
+    jj.dEta = ljet1.Eta() - ljet2.Eta()
+    jj.dPhi = ljet1.DeltaPhi(ljet2)
+    jj.dR = ljet1.DeltaR(ljet2)
 
     # Fill branches
     b_ljet1_pt[0] = ljet1.Pt()
@@ -202,6 +187,12 @@ for ievent in range(n_events):
     b_ljet2_phi[0] = ljet2.Phi()
     b_ljet2_E[0] = ljet2.E()
     b_ljet2_m[0] = ljet2.M()
+
+    b_jj_pt[0] = jj.Pt()
+    b_jj_eta[0] = jj.Eta()
+    b_jj_phi[0] = jj.Phi()
+    b_jj_E[0] = jj.E()
+    b_jj_m[0] = jj.M()
 
     outtree.Fill()
 
