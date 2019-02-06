@@ -163,8 +163,8 @@ GAN_noise_size = 128  # number of random numbers (input noise)
 # d_optimizer = Adam(0.0001)  # , clipnorm=1.0)
 # g_optimizer = Adam(0.0001)  # , clipnorm=1.0)
 
-#d_optimizer = Adam(0.0001)  # , 0.5)
-#g_optimizer = Adam(0.0001) #, 0.5)
+# d_optimizer = Adam(0.0001)  # , 0.5)
+# g_optimizer = Adam(0.0001) #, 0.5)
 
 #d_optimizer = Adam(0.0001)
 #g_optimizer = Adam(0.0001)

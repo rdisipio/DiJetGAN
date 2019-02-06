@@ -218,7 +218,7 @@ def make_generator_cnn(GAN_noise_size, GAN_output_size):
 
     G = Reshape([8, 8, 2])(G)  # default: channel last
 
-    G = Conv2D(filters=16, kernel_size=2, padding="same")(G)
+    G = Conv2D(filters=2, kernel_size=4, padding="same")(G)
     G = LeakyReLU(alpha=0.2)(G)
     G = BatchNormalization()(G)
 
@@ -228,7 +228,7 @@ def make_generator_cnn(GAN_noise_size, GAN_output_size):
     # Upsample to make the input larger
     G = UpSampling2D(size=2)(G)
 
-    G = Conv2D(filters=4, kernel_size=3, strides=1, padding='same')(G)
+    G = Conv2D(filters=4, kernel_size=2, strides=1, padding='same')(G)
     G = LeakyReLU(alpha=0.2)(G)
     G = BatchNormalization()(G)
 
@@ -251,10 +251,10 @@ def make_discriminator_cnn(GAN_output_size):
 
     D_input = Input(shape=(GAN_output_size,))
 
-    D = Dense(256)(D_input)
-    D = Reshape((8, 8, 4))(D)
+    D = Dense(512)(D_input)
+    D = Reshape((8, 8, 8))(D)
 
-    D = Conv2D(8, 2, strides=1)(D)
+    D = Conv2D(64, 2, strides=1)(D)
     D = LeakyReLU(alpha=0.2)(D)
     # D = BatchNormalization()(D)
 
@@ -262,7 +262,7 @@ def make_discriminator_cnn(GAN_output_size):
     D = LeakyReLU(alpha=0.2)(D)
     # D = BatchNormalization()(D)
 
-    D = Conv2D(64, 4, strides=1)(D)
+    D = Conv2D(16, 3, strides=1)(D)
     D = LeakyReLU(alpha=0.2)(D)
 
     D = Flatten()(D)
