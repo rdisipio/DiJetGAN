@@ -103,7 +103,7 @@ SetHistogramStyle(d_acc_r, color=kBlue, linewidth=3)
 
 SetHistogramStyle(g_loss, color=kGreen-1, linewidth=3)
 
-c = TCanvas("C", "C", 1200, 1200)
+c = TCanvas("C", "C", 1600, 1200)
 
 gPad.Divide(1, 2)
 gPad.SetLeftMargin(0.05)
