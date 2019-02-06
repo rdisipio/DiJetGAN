@@ -2,6 +2,7 @@
 
 import sys
 import glob
+import ctypes
 
 from ROOT import *
 import numpy as np
@@ -185,62 +186,93 @@ for h in _h.values():
 
 
 def PrintChi2(hname):
-    chi2 = _h_mc[hname].Chi2Test(_h[hname], "WW CHI2/NDF")
+    chi2 = Double(0.)
+    ndf = ctypes.c_int(0)
+    igood = ctypes.c_int(0)
+    #chi2 = _h_mc[hname].Chi2Test(_h[hname], "WW CHI2/NDF")
+    _h_mc[hname].Chi2TestX(_h[hname], chi2, ndf, igood, "WW")
+    ndf = ndf.value
     l = TLatex()
     l.SetNDC()
     l.SetTextFont(42)
     l.SetTextSize(0.04)
-    txt = "#chi^{2}/NDF = %.2f" % chi2
-    l.DrawLatex(0.3, 0.85, txt)
+    txt = "#chi^{2}/NDF = %.1f/%i = %.1f" % (chi2, ndf, chi2/ndf)
+    l.DrawLatex(0.3, 0.87, txt)
+
+    return chi2, ndf
 
 
+chi2_tot = 0.
+ndf_tot = 0
 c.cd(1)
 _h_mc['ljet1_pt'].Draw("h")
 _h['ljet1_pt'].Draw("h same")
-PrintChi2('ljet1_pt')
+chi2, ndf = PrintChi2('ljet1_pt')
+chi2_tot += chi2
+ndf_tot += ndf
 
 c.cd(2)
 _h_mc['ljet1_eta'].Draw("h")
 _h['ljet1_eta'].Draw("h same")
-PrintChi2('ljet1_eta')
+chi2, ndf = PrintChi2('ljet1_eta')
+chi2_tot += chi2
+ndf_tot += ndf
 
 c.cd(3)
 _h_mc['ljet1_m'].Draw("h")
 _h['ljet1_m'].Draw("h same")
-PrintChi2('ljet1_m')
+chi2, ndf = PrintChi2('ljet1_m')
+chi2_tot += chi2
+ndf_tot += ndf
 
 c.cd(4)
 _h_mc['ljet2_pt'].Draw("h")
 _h['ljet2_pt'].Draw("h same")
-PrintChi2('ljet2_pt')
+chi2, ndf = PrintChi2('ljet2_pt')
+chi2_tot += chi2
+ndf_tot += ndf
 
 c.cd(5)
 _h_mc['ljet2_eta'].Draw("h")
 _h['ljet2_eta'].Draw("h same")
-PrintChi2('ljet2_eta')
+chi2, ndf = PrintChi2('ljet2_eta')
+chi2_tot += chi2
+ndf_tot += ndf
 
 c.cd(6)
 _h_mc['ljet2_m'].Draw("h")
 _h['ljet2_m'].Draw("h same")
-PrintChi2('ljet2_m')
+chi2, ndf = PrintChi2('ljet2_m')
+chi2_tot += chi2
+ndf_tot += ndf
 
 c.cd(7)
 _h_mc['jj_pt'].Draw("h")
 _h['jj_pt'].Draw("h same")
-PrintChi2('jj_pt')
+chi2, ndf = PrintChi2('jj_pt')
+chi2_tot += chi2
+ndf_tot += ndf
 
 c.cd(8)
 _h_mc['jj_eta'].Draw("h")
 _h['jj_eta'].Draw("h same")
-PrintChi2('jj_eta')
+chi2, ndf = PrintChi2('jj_eta')
+chi2_tot += chi2
+ndf_tot += ndf
 
 c.cd(9)
 _h_mc['jj_m'].Draw("h")
 _h['jj_m'].Draw("h same")
-PrintChi2('jj_m')
+chi2, ndf = PrintChi2('jj_m')
+chi2_tot += chi2
+ndf_tot += ndf
 
 c.cd()
 
 imgname = "img/training_%s_%s_%s_epoch_%05i.png" % (
     dsid, level, preselection, epoch)
 c.SaveAs(imgname)
+
+chi2_o_ndf = chi2_tot / ndf_tot
+print "RESULT: epoch %i : chi2/ndf = %.1f / %i = %.1f" % (
+    epoch, chi2_tot, ndf_tot, chi2_o_ndf)
