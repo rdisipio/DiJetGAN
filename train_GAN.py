@@ -135,7 +135,7 @@ from models import *
 
 def make_generator():
     # return make_generator_mlp_LorentzVector( GAN_noise_size )
-    # return make_generator_mlp( GAN_noise_size, n_features )
+    # return make_generator_mlp(GAN_noise_size, n_features)
     # return make_generator_rnn( GAN_noise_size, n_features )
     return make_generator_cnn(GAN_noise_size, n_features)
 
@@ -181,6 +181,12 @@ GAN_noise_size = 128  # number of random numbers (input noise)
 
 d_optimizer = SGD(0.01)
 g_optimizer = SGD(0.01)
+
+#d_optimizer = Adam(0.0001, 0.9)
+#g_optimizer = Adam(0.0001, 0.9)
+
+#d_optimizer = RMSprop(lr=0.01)
+#g_optimizer = SGD(0.01)
 
 ###########
 # Generator

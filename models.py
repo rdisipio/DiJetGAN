@@ -153,12 +153,12 @@ def make_generator_mlp(GAN_noise_size, GAN_output_size):
     G = LeakyReLU(alpha=0.2)(G)
     G = BatchNormalization()(G)  # 0.8
 
-#   G = Dense( 128 )(G)
-#   G  = LeakyReLU(alpha=0.2)(G)
-#   G = BatchNormalization(momentum=0.8)(G)
-
-    G = Dense(256)(G)
+    G = Dense(64)(G)
     G = LeakyReLU(alpha=0.2)(G)
+    #G = BatchNormalization()(G)
+
+    #G = Dense(64)(G)
+    #G = LeakyReLU(alpha=0.2)(G)
 
     G = Dense(GAN_output_size, activation="tanh")(G)
 
@@ -177,17 +177,17 @@ def make_discriminator_mlp(GAN_output_size):
     D = Dense(128)(D_input)
     D = LeakyReLU(0.2)(D)
     #D = Activation('tanh')(D)
-    # D = BatchNormalization(momentum=0.99)(D)  # 0.8
+    D = BatchNormalization(momentum=0.99)(D)  # 0.8
 
     D = Dense(64)(D)
     D = LeakyReLU(0.2)(D)
     #D = Activation('tanh')(D)
-    #D = BatchNormalization(momentum=0.99)(D)
+    D = BatchNormalization(momentum=0.99)(D)
 
-    D = Dense(32)(D)
-    D = LeakyReLU(0.2)(D)
+    #D = Dense(32)(D)
+    #D = LeakyReLU(0.2)(D)
     #D = Activation('tanh')(D)
-    # D = BatchNormalization(momentum=0.99)(D)
+    #D = BatchNormalization(momentum=0.99)(D)
 
     # D = Dense( 8 )(D)
     # D = Activation('tanh')(D)
@@ -213,31 +213,28 @@ def make_generator_cnn(GAN_noise_size, GAN_output_size):
     G_input = Input(shape=(GAN_noise_size,))
 
     G = Dense(128, kernel_initializer='glorot_uniform')(G_input)
+    #G = Dropout(0.2)(G)
     G = LeakyReLU(alpha=0.2)(G)
-    G = BatchNormalization(momentum=0.8)(G)
+    #G = Activation("relu")(G)
+    G = BatchNormalization()(G)
 
     G = Reshape([8, 8, 2])(G)  # default: channel last
 
-    G = Conv2D(filters=2, kernel_size=4, padding="same")(G)
+    G = Conv2DTranspose(64, kernel_size=2, strides=1, padding="same")(G)
+    #G = Activation("relu")(G)
     G = LeakyReLU(alpha=0.2)(G)
     G = BatchNormalization()(G)
 
-#   G = Conv2D( filters=8, kernel_size=2, padding="same" )(G)
-#   G = LeakyReLU(alpha=0.2)(G)
-
-    # Upsample to make the input larger
-    G = UpSampling2D(size=2)(G)
-
-    G = Conv2D(filters=4, kernel_size=2, strides=1, padding='same')(G)
+    G = Conv2DTranspose(16, kernel_size=3, strides=1, padding="same")(G)
     G = LeakyReLU(alpha=0.2)(G)
     G = BatchNormalization()(G)
-
-    #G = MaxPooling2D((2, 2))(G)
 
     G = Flatten()(G)
 
-    G_output = Dense(GAN_output_size, activation="tanh")(G)
-
+    G_output = Dense(GAN_output_size)(G)
+    G_output = Activation("tanh")(G_output)
+    #G_output = Dense(GAN_output_size)(G)
+    #G_output = LeakyReLU(0.2)(G_output)
     generator = Model(G_input, G_output)
 
     return generator
@@ -251,21 +248,24 @@ def make_discriminator_cnn(GAN_output_size):
 
     D_input = Input(shape=(GAN_output_size,))
 
-    D = Dense(512)(D_input)
-    D = Reshape((8, 8, 8))(D)
+    D = Dense(128)(D_input)
+    D = Reshape((8, 8, 2))(D)
 
-    D = Conv2D(64, 2, strides=1)(D)
+    D = Conv2D(64, kernel_size=3, strides=1, padding="same")(D)
     D = LeakyReLU(alpha=0.2)(D)
-    # D = BatchNormalization()(D)
 
-    D = Conv2D(32, 3, strides=1)(D)
+    D = Conv2D(32, kernel_size=3, strides=1, padding="same")(D)
+    #D = BatchNormalization()(D)
     D = LeakyReLU(alpha=0.2)(D)
-    # D = BatchNormalization()(D)
 
-    D = Conv2D(16, 3, strides=1)(D)
+    D = Conv2D(16, kernel_size=3, strides=1, padding="same")(D)
+    #D = BatchNormalization()(D)
     D = LeakyReLU(alpha=0.2)(D)
 
     D = Flatten()(D)
+    #D = BatchNormalization()(D)
+    D = LeakyReLU(alpha=0.2)(D)
+
     D = Dropout(0.2)(D)
 
     D_output = Dense(1, activation="sigmoid")(D)

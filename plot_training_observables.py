@@ -77,25 +77,25 @@ with open(scaler_filename, "rb") as file_scaler:
 
 _h = {}
 _h['ljet1_pt'] = TH1F(
-    "ljet1_pt", ";Leading large-R jet p_{T} [GeV];Events / Bin Width", 40,  200.,  800)
+    "ljet1_pt", ";Leading large-R jet p_{T} [GeV];Events / Bin Width", 20,  200.,  800)
 _h['ljet1_eta'] = TH1F(
-    "ljet1_eta", ";Leading large-R jet #eta;Events / Bin Width", 40, -2.0, 2.0)
+    "ljet1_eta", ";Leading large-R jet #eta;Events / Bin Width", 25, -2.5, 2.5)
 _h['ljet1_m'] = TH1F(
-    "ljet1_m",  ";Leading large-R jet m [GeV];Events / Bin Width", 40, 0., 200.)
+    "ljet1_m",  ";Leading large-R jet m [GeV];Events / Bin Width", 20, 0., 200.)
 
 _h['ljet2_pt'] = TH1F(
-    "ljet2_pt", ";2nd leading large-R jet p_{T} [GeV];Events / Bin Width", 40,  200.,  600)
+    "ljet2_pt", ";2nd leading large-R jet p_{T} [GeV];Events / Bin Width", 20,  200.,  600)
 _h['ljet2_eta'] = TH1F(
-    "ljet2_eta", ";2nd leading large-R jet #eta;Events / Bin Width", 40, -2.0, 2.0)
+    "ljet2_eta", ";2nd leading large-R jet #eta;Events / Bin Width", 25, -2.5, 2.5)
 _h['ljet2_m'] = TH1F(
-    "ljet2_m",  ";2nd leading large-R jet m [GeV];Events / Bin Width", 40, 0., 200.)
+    "ljet2_m",  ";2nd leading large-R jet m [GeV];Events / Bin Width", 20, 0., 200.)
 
 _h['jj_pt'] = TH1F(
-    "jj_pt", ";Dijet system p_{T} [GeV];Events / Bin Width", 30,    0., 300)
+    "jj_pt", ";Dijet system p_{T} [GeV];Events / Bin Width", 15, 0., 300)
 _h['jj_eta'] = TH1F(
-    "jj_eta", ";Dijet system #eta;Events / Bin Width", 60, -6.0, 6.0)
+    "jj_eta", ";Dijet system #eta;Events / Bin Width", 30, -6.0, 6.0)
 _h['jj_m'] = TH1F(
-    "jj_m",  ";Dijet system m [GeV];Events / Bin Width", 40, 0., 2.)
+    "jj_m",  ";Dijet system m [GeV];Events / Bin Width", 20, 0., 2.)
 
 
 mc_filename = "histograms/histograms.%s.%s.%s.MC.root" % (
