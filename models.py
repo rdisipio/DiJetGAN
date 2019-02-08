@@ -14,6 +14,7 @@ from keras.optimizers import *
 from keras.regularizers import *
 from keras.models import load_model
 
+#from ROOT import *
 # from ROOT import TLorentzVector
 # from lorentz import *
 
@@ -35,6 +36,51 @@ def wasserstein_loss(y_true, y_pred):
 
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
+
+def chi2_loss(y_true, y_pred):
+
+    h_true = tf.histogram_fixed_width(
+        y_true, value_range=(-1., 1.), nbins=20)
+    h_pred = tf.histogram_fixed_width(
+        y_true, value_range=(-1., 1.), nbins=20)
+    h_true = tf.to_float(h_true)
+    h_pred = tf.to_float(h_pred)
+    h_diff = tf.subtract(h_true, h_pred)
+    h_diff2 = tf.square(h_diff)
+
+    # return tf.reduce_sum(h_diff2)
+    return K.mean(h_diff2)
+
+
+#~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+def gaussian_kernel(x,y):
+
+  norm = lambda x: tf.reduce_sum(tf.square(x), 1)
+
+  sigmas = [ 1., 1., 1., 1., 1., 1., 1. ]
+  sigmas = tf.constant(sigmas)
+
+  dist = tf.transpose(norm(tf.expand_dims(x, 2) - tf.transpose(y)))
+
+  beta = 1. / (2. * (tf.expand_dims(sigmas, 1)))
+
+  s = tf.matmul(beta, tf.reshape(dist, (1, -1)))
+
+  return tf.reshape(tf.reduce_sum(tf.exp(-s), 0), tf.shape(dist))
+
+def mmd_loss( y_true, y_pred ):
+   """ MMD^2(P, Q) = \E{ K(x, x) } + \E{ K(y, y) } - 2 \E{ K(x, y) },
+       where K = <\phi(x), \phi(y)> is a radial basis kernel (gaussian)
+   """
+
+   cost = tf.reduce_mean(gaussian_kernel(y_true, y_true))
+   cost += tf.reduce_mean(gaussian_kernel(y_pred, y_pred))
+   cost -= 2 * tf.reduce_mean(gaussian_kernel(y_true, y_pred))
+   cost = tf.where(cost > 0, cost, 0, name='value')
+   return cost
+
+#~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 def gradient_penalty_loss(self, y_true, y_pred, averaged_samples):
 
@@ -155,10 +201,10 @@ def make_generator_mlp(GAN_noise_size, GAN_output_size):
 
     G = Dense(64)(G)
     G = LeakyReLU(alpha=0.2)(G)
-    #G = BatchNormalization()(G)
+    G = BatchNormalization()(G)
 
-    #G = Dense(64)(G)
-    #G = LeakyReLU(alpha=0.2)(G)
+    G = Dense(32)(G)
+    G = LeakyReLU(alpha=0.2)(G)
 
     G = Dense(GAN_output_size, activation="tanh")(G)
 
@@ -220,7 +266,7 @@ def make_generator_cnn(GAN_noise_size, GAN_output_size):
 
     G = Reshape([8, 8, 2])(G)  # default: channel last
 
-    G = Conv2DTranspose(64, kernel_size=2, strides=1, padding="same")(G)
+    G = Conv2DTranspose(32, kernel_size=2, strides=1, padding="same")(G)
     #G = Activation("relu")(G)
     G = LeakyReLU(alpha=0.2)(G)
     G = BatchNormalization()(G)

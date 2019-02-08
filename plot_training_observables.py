@@ -8,6 +8,7 @@ from ROOT import *
 import numpy as np
 from keras.models import load_model
 import cPickle as pickle
+from models import chi2_loss, wasserstein_loss
 
 gROOT.LoadMacro("AtlasStyle.C")
 gROOT.LoadMacro("AtlasUtils.C")
@@ -127,6 +128,10 @@ c = TCanvas("c", "C", 1200, 1200)
 c.Divide(3, 3)
 
 generator = load_model(model_filename)
+#                       custom_objects={
+#                       'wasserstein_loss': wasserstein_loss,
+#                       "chi2_loss"       : chi2_loss,
+#   })
 
 GAN_noise_size = generator.layers[0].input_shape[1]
 
