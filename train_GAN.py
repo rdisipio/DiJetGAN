@@ -34,12 +34,13 @@ gROOT.SetBatch(1)
 ############
 
 parser = argparse.ArgumentParser(
-    description='ttbar diffxs sqrt(s) = 13 TeV classifier training')
+    description='Di-jet GAN training')
 parser.add_argument('-i', '--training_filename', default="")
 parser.add_argument('-l', '--level',             default="reco")
 parser.add_argument('-p', '--preselection',      default="pt250")
 parser.add_argument('-s', '--systematic',        default="nominal")
 parser.add_argument('-d', '--dsid',              default="mg5_dijet_ht500")
+parser.add_argument('-o', '--outputFolder',      default="GAN")
 parser.add_argument('-e', '--epochs',            default=1000)
 args = parser.parse_args()
 
@@ -48,7 +49,10 @@ level = args.level
 preselection = args.preselection
 systematic = args.systematic
 dsid = args.dsid
+outputFolder = args.outputFolder
 n_epochs = int(args.epochs)
+
+print outputFolder
 
 if training_filename == "":
     #   training_filename = "csv/training.%s.%s.%s.%s.csv" % ( classifier_arch, classifier_feat, preselection, systematic )
@@ -238,12 +242,15 @@ GAN.summary()
 
 
 print "INFO: saving models to png files"
+directory="img/%s/" % (outputFolder)
+if not os.path.exists(directory):
+    os.makedirs(directory)
 plot_model(generator,      show_shapes=True,
-           to_file="img/model_%s_generator.png" % (dsid))
+           to_file="img/%s/model_%s_generator.png" % (outputFolder, dsid))
 plot_model(discriminator,  show_shapes=True,
-           to_file="img/model_%s_discriminator.png" % (dsid))
+           to_file="img/%s/model_%s_discriminator.png" % (outputFolder,dsid))
 plot_model(GAN,            show_shapes=True,
-           to_file="img/model_%s_GAN.png" % (dsid))
+           to_file="img/%s/model_%s_GAN.png" % (outputFolder, dsid))
 
 # Training:
 # 1) pick up ntrain events from real dataset
@@ -379,8 +386,8 @@ def train_loop(nb_epoch=1000, BATCH_SIZE=32, TRAINING_RATIO=1):
             print "Epoch: %5i/%5i :: BS = %i, d_lr = %.5f, g_lr = %.5f :: d_loss = %.2f ( real = %.2f, fake = %.2f ), d_acc = %.2f ( real = %.2f, fake = %.2f ), g_loss = %.2f" % (
                 epoch, nb_epoch, BATCH_SIZE, d_lr, g_lr, d_loss, d_loss_r, d_loss_f, d_acc, d_acc_r, d_acc_f, g_loss)
 
-            model_filename = "GAN/generator.%s.%s.%s.%s.epoch_%05i.h5" % (
-                dsid, level, preselection, systematic, epoch_overall)
+            model_filename = "%s/generator.%s.%s.%s.%s.epoch_%05i.h5" % (
+                outputFolder, dsid, level, preselection, systematic, epoch_overall)
             generator.save(model_filename)
 
         epoch_overall += 1
@@ -389,7 +396,11 @@ def train_loop(nb_epoch=1000, BATCH_SIZE=32, TRAINING_RATIO=1):
 
 #######################
 
-
+directory="%s/" % (outputFolder)
+print "Output directory: " + directory
+if not os.path.exists(directory):
+    os.makedirs(directory)
+ 
 epoch_overall = 0
 
 train_loop(nb_epoch=n_epochs, BATCH_SIZE=32,  TRAINING_RATIO=1)
@@ -411,13 +422,14 @@ train_loop(nb_epoch=n_epochs, BATCH_SIZE=32,  TRAINING_RATIO=1)
 #train_loop(nb_epoch=n_epochs/2, BATCH_SIZE=32,  TRAINING_RATIO=1)
 
 # save model to file
-model_filename = "GAN/generator.%s.%s.%s.%s.h5" % (
-    dsid, level, preselection, systematic)
+
+model_filename = "%s/generator.%s.%s.%s.%s.h5" % (
+    outputFolder, dsid, level, preselection, systematic)
 generator.save(model_filename)
 print "INFO: generator model saved to file", model_filename
 
-training_root = TFile.Open("GAN/training_history.%s.%s.%s.%s.root" % (
-    dsid, level, preselection, systematic), "RECREATE")
+training_root = TFile.Open("%s/training_history.%s.%s.%s.%s.root" % (
+    outputFolder, dsid, level, preselection, systematic), "RECREATE")
 print "INFO: saving training history..."
 
 h_d_lr     = TGraphErrors()

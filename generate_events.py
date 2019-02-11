@@ -22,6 +22,8 @@ parser.add_argument('-l', '--level',             default="reco")
 parser.add_argument('-p', '--preselection',      default="pt250")
 parser.add_argument('-s', '--systematic',        default="nominal")
 parser.add_argument('-d', '--dsid',              default="mg5_dijet_ht500")
+parser.add_argument('-f', '--GANFolder',         default="GAN")
+parser.add_argument('-o', '--outputFolder',      default="GAN")
 parser.add_argument('-n', '--nevents',           default=10000)
 args = parser.parse_args()
 
@@ -30,6 +32,8 @@ preselection = args.preselection
 systematic = args.systematic
 dsid = args.dsid
 syst = args.systematic
+GANFolder = args.GANFolder
+outputFolder = args.outputFolder
 n_events = int(args.nevents)
 
 ljets_n_max = 2
@@ -41,8 +45,8 @@ dnn = None
 print "INFO: Systematic:", syst
 print "INFO: Level", level
 
-model_filename = "GAN/generator.%s.%s.%s.%s.h5" % (
-    dsid, level, preselection, systematic)
+model_filename = "%s/generator.%s.%s.%s.%s.h5" % (
+    GANFolder, dsid, level, preselection, systematic)
 
 print "INFO: loading generator model from", model_filename
 generator = load_model(model_filename, custom_objects={
@@ -59,8 +63,12 @@ GAN_output_size = generator.layers[-1].output_shape[1]
 print "GAN noise size:", GAN_noise_size
 print "GAN output size:", GAN_output_size
 
-outfname = "ntuples_GAN/tree.%s.%s.%s.%s.root" % (
-    dsid, level, preselection, systematic)
+directory="ntuples_GAN/%s/" % (outputFolder)
+if not os.path.exists(directory):
+    os.makedirs(directory)
+
+outfname = "ntuples_GAN/%s/tree.%s.%s.%s.%s.root" % (
+    outputFolder, dsid, level, preselection, systematic)
 outfile = TFile.Open(outfname, "RECREATE")
 
 b_eventNumber = array('l', [0])

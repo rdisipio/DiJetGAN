@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 
 import os, sys
+import argparse
 
 from ROOT import *
 from math import sqrt, pow, log
@@ -235,20 +236,24 @@ def DrawRatio( data, prediction, xtitle = "", yrange=[0.4,1.6] ):
 
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-obs = "ljet1_pt"
-lvl = "reco"
-dsid = "mg5_dijet_ht500"
-preselection = "pt250"
+parser = argparse.ArgumentParser(description="Plot observables")
+parser.add_argument('-o', '--observable',          default="ljet1_pt")
+parser.add_argument('-l', '--level',               default="reco")
+parser.add_argument('-p', '--preselection',        default="pt250")
+parser.add_argument('-d', '--dsid',                default="mg5_dijet_ht500")
+parser.add_argument('-n', '--GANName',             default="GAN")
+args = parser.parse_args()
 
-if len(sys.argv) > 1: obs = sys.argv[1]
-if len(sys.argv) > 2: lvl = sys.argv[2]
-if len(sys.argv) > 3: dsid = sys.argv[3]
-if len(sys.argv) > 4: preselection = sys.argv[4]
+obs = args.observable
+level = args.level
+preselection = args.preselection
+dsid = args.dsid
+name = args.GANName
 
 hname = "%s" % (obs)
 
-infilename_GAN  = "histograms/histograms.%s.%s.%s.GAN.root" % ( dsid, lvl, preselection )
-infilename_MC   = "histograms/histograms.%s.%s.%s.MC.root" % ( dsid, lvl, preselection )
+infilename_GAN  = "histograms/%s/histograms.%s.%s.%s.GAN.root" % ( name, dsid, level, preselection )
+infilename_MC   = "histograms/%s/histograms.%s.%s.%s.MC.root" % ( name, dsid, level, preselection )
 
 infile_GAN = TFile.Open( infilename_GAN )
 infile_MC  = TFile.Open( infilename_MC )
@@ -339,4 +344,4 @@ gPad.RedrawAxis()
 
 c.cd()
 
-c.SaveAs( "img/GAN_%s_%s_%s.png" % (dsid,lvl,hname) )
+c.SaveAs( "img/%s/GAN_%s_%s_%s.png" % (name, dsid, level, hname) )

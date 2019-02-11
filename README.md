@@ -52,30 +52,37 @@ mkdir -p GAN
 ```
 mkdir -p GAN
 mkdir -p img
-./train_GAN.py -e 5000 -d mg5_dijet_ht500 -l reco
-./train_GAN.py -e 5000 -d mg5_dijet_ht500 -l ptcl
+./train_GAN.py -e 5000 -d mg5_dijet_ht500 -l reco -o GAN
+./train_GAN.py -e 5000 -d mg5_dijet_ht500 -l ptcl -o GAN
 ```
-The generator model and the scaler have been saved to the GAN folder.
+The generator model is saved in the folder specified with the -o option while the scaler was saved in the "GAN" folder.
 
 Plot training history:
 ```
-./plot_traninig.py reco
-./plot_traninig.py ptcl
+./plot_traninig.py -l reco -d mg5_dijet_ht500 -o GAN
+./plot_traninig.py -l ptcl -d mg5_dijet_ht500 -o GAN
 
 # only if you have already created the MG5 histograms:
-./plot_training_observables.py ptcl
-./plot_training_observables.py reco
+./plot_training_observables.py -l ptcl -e 500 -n GAN
+./plot_training_observables.py -l reco -e 500 -n GAN
 ```
+
+The -e specifies the epoch number that will be plotted. The -n option defined the GAN name used also for defining the output folder.
 
 ## Generate events
 
 ```
 mkdir -p ntuples_GAN
-./generate_events.py -l reco -n 500000
-./generate_events.py -l ptcl -n 500000
+./generate_events.py -l reco -n 500000 -o GAN_name
+./generate_events.py -l ptcl -n 500000 -o GAN_name
 
-ls ntuples_GAN/tree.mg5_dijet_ht500.ptcl.pt250.nominal.root > filelists/mg5_dijet_ht500.ptcl.pt250.GAN.txt
-ls ntuples_GAN/tree.mg5_dijet_ht500.reco.pt250.nominal.root > filelists/mg5_dijet_ht500.reco.pt250.GAN.txt 
+The events will be stored in the folder ntuples_GAN/GAN_name 
+Then create the file list using the script 
+
+source makeGANFileLists.sh $name
+
+Where $name is the GAN name used in the -o option
+
 ```
 
 ## Fill histograms
@@ -87,21 +94,27 @@ We want to compare three series of data:
 
 ```
 mkdir -p histograms
-./fill_histograms.py filelists/mg5_dijet_ht500.ptcl.pt250.MC.txt
-./fill_histograms.py filelists/mg5_dijet_ht500.ptcl.pt250.GAN.txt
+./fill_histograms.py -f filelists/GAN_name/$dsid.$level.$preselection.GAN.txt -o GAN_name
+./fill_histograms.py -f filelists/$dsid.$level.$preselection.MC.txt -o GAN_name
+
+Note the different folder structure for GAN and MC. The output will be stored for both MC anf GAN in histograms/GAN_name folder.
 
 ```
 
 ## Make final plots
 
 ```
-cat observables.txt | parallel ./plot_observables.py {} ptcl mg5_dijet_ht500
-cat observables.txt | parallel ./plot_observables.py {} reco mg5_dijet_ht500
+cat observables.txt | parallel ./plot_observables.py -o {} -l ptcl -d mg5_dijet_ht500 -n GAN_name
+cat observables.txt | parallel ./plot_observables.py -o {} -l reco -d mg5_dijet_ht500 -n GAN_name
 ```
+
+All plots will be stored in the img/GAN_name folder.
 
 You can do all the above with the following script:
 
 ```
-./workflow.sh -d mg5_dijet_ht500 -l reco -e ${n_training_epochs} -n ${n_generate_events}
-./workflow.sh -d mg5_dijet_ht500 -l ptcl -e ${n_training_epochs} -n ${n_generate_events}
+./workflow.sh -d mg5_dijet_ht500 -l reco -e ${n_training_epochs} -n ${n_generate_events} -o GAN_name
+./workflow.sh -d mg5_dijet_ht500 -l ptcl -e ${n_training_epochs} -n ${n_generate_events} -o GAN_name
 ```
+
+In this case, 

@@ -2,6 +2,7 @@
 
 import os
 import sys
+import argparse
 
 from ROOT import *
 from math import sqrt, pow, log
@@ -32,19 +33,23 @@ def SetHistogramStyle(h, color=kBlack, linewidth=1, fillcolor=0, fillstyle=0, ma
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 
-level = "ptcl"
-preselection = "pt250"
-dsid = "mg5_dijet_ht500"
+parser = argparse.ArgumentParser(
+    description='Di-jet GAN plot training')
+parser.add_argument('-l', '--level',             default="reco")
+parser.add_argument('-p', '--preselection',      default="pt250")
+parser.add_argument('-s', '--systematic',        default="nominal")
+parser.add_argument('-d', '--dsid',              default="mg5_dijet_ht500")
+parser.add_argument('-o', '--outputFolder',      default="GAN")
+args = parser.parse_args()
 
-if len(sys.argv) > 1:
-    level = sys.argv[1]
-if len(sys.argv) > 2:
-    preselection = sys.argv[2]
-if len(sys.argv) > 3:
-    dsid = sys.argv[3]
+level = args.level
+preselection = args.preselection
+systematic = args.systematic
+dsid = args.dsid
+outputFolder = args.outputFolder
 
-infilename = "GAN/training_history.%s.%s.%s.nominal.root" % (
-    dsid, level, preselection)
+infilename = "%s/training_history.%s.%s.%s.nominal.root" % (
+    outputFolder, dsid, level, preselection)
 infile = TFile.Open(infilename)
 
 d_loss = infile.Get("d_loss")
@@ -177,5 +182,5 @@ gPad.RedrawAxis()
 
 c.cd()
 
-imgname = "img/training_%s_%s_%s.png" % (dsid, level, preselection)
+imgname = "img/%s/training_%s_%s_%s.png" % (outputFolder, dsid, level, preselection)
 c.SaveAs(imgname)

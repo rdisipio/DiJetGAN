@@ -2,6 +2,7 @@
 
 import os
 import sys
+import argparse
 from ROOT import *
 from array import array
 
@@ -10,11 +11,15 @@ TeV = 1e3
 
 gROOT.SetBatch(1)
 
-filelistname = sys.argv[1]
+parser = argparse.ArgumentParser(description="Fill histograms from files")
+parser.add_argument('-n', '--nevents',             default=-1)
+parser.add_argument('-f', '--fileName',            default="jj_MC.root")
+parser.add_argument('-o', '--outputFolder',        default="GAN")
+args = parser.parse_args()
 
-n_events_max = -1
-if len(sys.argv) > 2:
-    n_events_max = int(sys.argv[2])
+filelistname = args.fileName
+n_events_max = args.nevents
+outputFolder = args.outputFolder
 
 tree_name = "nominal"
 tree = TChain(tree_name, tree_name)
@@ -25,7 +30,11 @@ for fname in f.readlines():
 n_entries = tree.GetEntries()
 print "INFO: entries found:", n_entries
 
-outfilename = "histograms/histograms." + \
+directory="histograms/%s/" % (outputFolder)
+if not os.path.exists(directory):
+    os.makedirs(directory)
+
+outfilename = "histograms/"+outputFolder+"/histograms." + \
     filelistname.split("/")[-1].replace(".txt", ".root")
 outfile = TFile.Open(outfilename, "RECREATE")
 

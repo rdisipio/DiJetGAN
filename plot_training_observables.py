@@ -3,6 +3,7 @@
 import sys
 import glob
 import ctypes
+import argparse
 
 from ROOT import *
 import numpy as np
@@ -54,22 +55,22 @@ def SetTH1FStyle(h, color=kBlack, linewidth=1, linestyle=kSolid, fillcolor=0, fi
 
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
+parser = argparse.ArgumentParser(description="Plot observables")
+parser.add_argument('-l', '--level',               default="reco")
+parser.add_argument('-p', '--preselection',        default="pt250")
+parser.add_argument('-d', '--dsid',                default="mg5_dijet_ht500")
+parser.add_argument('-n', '--GANName',             default="GAN")
+parser.add_argument('-e', '--epoch',               default=5000)
+args = parser.parse_args()
 
-model_filename = sys.argv[1]
-
-# GAN/generator.mg5_dijet_ht500.ptcl.pt250.nominal.epoch_00000.h5
-level = model_filename.split('/')[-1].split('.')[-5]
-epoch = model_filename.split('/')[-1].split('.')[-2].split('_')[-1]
-epoch = int(epoch)
-
+level = args.level
+preselection = args.preselection
+dsid = args.dsid
+name = args.GANName
+epoch = int(args.epoch)
 n_examples = 50000
-if len(sys.argv) > 2:
-    n_examples = int(sys.argv[2])
 
-dsid = "mg5_dijet_ht500"
-preselection = "pt250"
-systematic = "nominal"
-
+model_filename="%s/generator.%s.%s.%s.nominal.epoch_%05d.h5" % (name, dsid, level, preselection, epoch)
 
 scaler_filename = "GAN/scaler.%s.pkl" % level
 print "INFO: loading scaler from", scaler_filename
@@ -99,8 +100,8 @@ _h['jj_m'] = TH1F(
     "jj_m",  ";Dijet system m [GeV];Events / Bin Width", 20, 0., 2.)
 
 
-mc_filename = "histograms/histograms.%s.%s.%s.MC.root" % (
-    dsid, level, preselection)
+mc_filename = "histograms/%s/histograms.%s.%s.%s.MC.root" % (
+    name, dsid, level, preselection)
 f_mc = TFile.Open(mc_filename)
 _h_mc = {}
 _h_mc['ljet1_pt'] = f_mc.Get('ljet1_pt')
@@ -274,8 +275,8 @@ ndf_tot += ndf
 
 c.cd()
 
-imgname = "img/training_%s_%s_%s_epoch_%05i.png" % (
-    dsid, level, preselection, epoch)
+imgname = "img/%s/training_%s_%s_%s_epoch_%05i.png" % (
+    name, dsid, level, preselection, epoch)
 c.SaveAs(imgname)
 
 chi2_o_ndf = chi2_tot / ndf_tot
