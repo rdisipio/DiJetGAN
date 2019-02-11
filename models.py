@@ -24,6 +24,50 @@ import numpy as np
 #######################################
 
 
+def entropy(model):
+    H = 0.
+    for layer in model.layers:
+        conf = layer.get_config()
+
+        if not "leaky_re_lu" in conf['name']:
+            continue
+        print conf
+
+        weights = layer.get_weights()
+        print weights
+        shape = weights.shape
+        print weights.shape
+
+    return H
+
+
+def filters_entropy(model):
+    H = 0.
+    for layer in model.layers:
+        conf = layer.get_config()
+        if not "conv2d" in conf['name']:
+            continue
+        print conf['name'], conf['filters']
+        weights = layer.get_weights()[0]
+        shape = weights.shape
+        #print weights.shape
+        kernel_size = shape[0]
+        nchannels = shape[2]
+        nfilters = shape[3]
+        #print nchannels, nfilters, "(%i,%i)" % (kernel_size, kernel_size)
+        for ichannel in range(nchannels):
+            for ifilter in range(nfilters):
+                w = weights[:, :, ichannel, ifilter]
+                #print w
+                H_i = sum(sum(w*np.log2(abs(w))))
+                # print "%s :: ch=%i : filt=%i, H_i=%.3f" % (
+                #    model.name, ichannel, ifilter, H_i)
+                H += H_i
+    return H
+
+#~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+
 def clip_weights(discriminator, c=0.01):
     weights = [np.clip(w, -c, c) for w in discriminator.get_weights()]
     discriminator.set_weights(weights)
@@ -37,7 +81,42 @@ def wasserstein_loss(y_true, y_pred):
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 
+def g(x, beta=0.1):
+    z = K.square(x/beta)
+    z = K.exp(-0.5*z)
+    z = K.mean(z)
+    return z
+
+
+def gauss_loss_D(y_true, y_pred):
+    alpha = 1.0
+    beta = 0.05
+    y_diff = y_true - y_pred
+    loss = alpha*g(y_true, beta) -\
+        (alpha-1.0)*g(y_diff, beta) - \
+        g(y_pred, beta)
+
+    return loss
+
+
+def gauss_loss_G(y_true, y_pred):
+    alpha = 1.0
+    beta = 0.05
+    y_diff = y_true - y_pred
+    loss = g(y_true, beta) + g(y_pred, beta) - 2.0*g(y_diff, beta)
+    #loss = gauss_loss(y_true, y_pred, alpha, beta)
+    return loss
+
+
 def chi2_loss(y_true, y_pred):
+    y_diff = y_true - y_pred
+    y_diff = K.square(y_diff)
+    y_diff = y_diff / y_true
+    #y_diff = K.exp(-y_diff)
+    return K.sum(y_diff)
+
+
+def chi2_hist_loss(y_true, y_pred):
 
     h_true = tf.histogram_fixed_width(
         y_true, value_range=(-1., 1.), nbins=20)
@@ -54,33 +133,35 @@ def chi2_loss(y_true, y_pred):
 
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-def gaussian_kernel(x,y):
+def gaussian_kernel(x, y):
 
-  norm = lambda x: tf.reduce_sum(tf.square(x), 1)
+    def norm(x): return tf.reduce_sum(tf.square(x), 1)
 
-  sigmas = [ 1., 1., 1., 1., 1., 1., 1. ]
-  sigmas = tf.constant(sigmas)
+    sigmas = [1., 1., 1., 1., 1., 1., 1.]
+    sigmas = tf.constant(sigmas)
 
-  dist = tf.transpose(norm(tf.expand_dims(x, 2) - tf.transpose(y)))
+    dist = tf.transpose(norm(tf.expand_dims(x, 2) - tf.transpose(y)))
 
-  beta = 1. / (2. * (tf.expand_dims(sigmas, 1)))
+    beta = 1. / (2. * (tf.expand_dims(sigmas, 1)))
 
-  s = tf.matmul(beta, tf.reshape(dist, (1, -1)))
+    s = tf.matmul(beta, tf.reshape(dist, (1, -1)))
 
-  return tf.reshape(tf.reduce_sum(tf.exp(-s), 0), tf.shape(dist))
+    return tf.reshape(tf.reduce_sum(tf.exp(-s), 0), tf.shape(dist))
 
-def mmd_loss( y_true, y_pred ):
-   """ MMD^2(P, Q) = \E{ K(x, x) } + \E{ K(y, y) } - 2 \E{ K(x, y) },
-       where K = <\phi(x), \phi(y)> is a radial basis kernel (gaussian)
-   """
 
-   cost = tf.reduce_mean(gaussian_kernel(y_true, y_true))
-   cost += tf.reduce_mean(gaussian_kernel(y_pred, y_pred))
-   cost -= 2 * tf.reduce_mean(gaussian_kernel(y_true, y_pred))
-   cost = tf.where(cost > 0, cost, 0, name='value')
-   return cost
+def mmd_loss(y_true, y_pred):
+    """ MMD^2(P, Q) = \E{ K(x, x) } + \E{ K(y, y) } - 2 \E{ K(x, y) },
+        where K = <\phi(x), \phi(y)> is a radial basis kernel (gaussian)
+    """
+
+    cost = tf.reduce_mean(gaussian_kernel(y_true, y_true))
+    cost += tf.reduce_mean(gaussian_kernel(y_pred, y_pred))
+    cost -= 2 * tf.reduce_mean(gaussian_kernel(y_true, y_pred))
+    cost = tf.where(cost > 0, cost, 0, name='value')
+    return cost
 
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
 
 def gradient_penalty_loss(self, y_true, y_pred, averaged_samples):
 
@@ -258,6 +339,8 @@ def make_generator_cnn(GAN_noise_size, GAN_output_size):
 
     G_input = Input(shape=(GAN_noise_size,))
 
+    reg = None  # l2(0.001)
+
     G = Dense(128, kernel_initializer='glorot_uniform')(G_input)
     #G = Dropout(0.2)(G)
     G = LeakyReLU(alpha=0.2)(G)
@@ -266,12 +349,20 @@ def make_generator_cnn(GAN_noise_size, GAN_output_size):
 
     G = Reshape([8, 8, 2])(G)  # default: channel last
 
-    G = Conv2DTranspose(32, kernel_size=2, strides=1, padding="same")(G)
+    G = Conv2DTranspose(8, kernel_size=(2, 2), strides=1,
+                        padding="same", kernel_regularizer=reg)(G)
     #G = Activation("relu")(G)
     G = LeakyReLU(alpha=0.2)(G)
     G = BatchNormalization()(G)
 
-    G = Conv2DTranspose(16, kernel_size=3, strides=1, padding="same")(G)
+    G = Conv2DTranspose(4, kernel_size=(3, 3), strides=1,
+                        padding="same", kernel_regularizer=reg)(G)
+    #G = Activation("relu")(G)
+    G = LeakyReLU(alpha=0.2)(G)
+    G = BatchNormalization()(G)
+
+    G = Conv2DTranspose(1, kernel_size=(4, 4), strides=1,
+                        padding="same", kernel_regularizer=reg)(G)
     G = LeakyReLU(alpha=0.2)(G)
     G = BatchNormalization()(G)
 
@@ -294,17 +385,22 @@ def make_discriminator_cnn(GAN_output_size):
 
     D_input = Input(shape=(GAN_output_size,))
 
+    reg = None  # l2(0.001)
+
     D = Dense(128)(D_input)
     D = Reshape((8, 8, 2))(D)
 
-    D = Conv2D(64, kernel_size=3, strides=1, padding="same")(D)
+    D = Conv2D(64, kernel_size=(2, 2), strides=1,
+               padding="same", kernel_regularizer=reg)(D)
     D = LeakyReLU(alpha=0.2)(D)
 
-    D = Conv2D(32, kernel_size=3, strides=1, padding="same")(D)
+    D = Conv2D(32, kernel_size=(3, 3), strides=1,
+               padding="same", kernel_regularizer=reg)(D)
     #D = BatchNormalization()(D)
     D = LeakyReLU(alpha=0.2)(D)
 
-    D = Conv2D(16, kernel_size=3, strides=1, padding="same")(D)
+    D = Conv2D(16, kernel_size=(4, 4), strides=1,
+               padding="same", kernel_regularizer=reg)(D)
     #D = BatchNormalization()(D)
     D = LeakyReLU(alpha=0.2)(D)
 
@@ -327,6 +423,8 @@ def make_discriminator_cnn(GAN_output_size):
 def make_generator_rnn(GAN_noise_size, GAN_output_size):
 
     G_input = Input(shape=(GAN_noise_size,))
+
+    # reg.regularizers.l2(0.001)
 
     G = Dense(128, kernel_initializer='glorot_normal')(G_input)
     G = Activation('tanh')(G)

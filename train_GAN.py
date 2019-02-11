@@ -4,7 +4,8 @@ import os
 import sys
 import csv
 import argparse
-import random, math
+import random
+import math
 
 try:
     import cPickle as pickle
@@ -135,7 +136,7 @@ from models import *
 
 def make_generator():
     # return make_generator_mlp_LorentzVector( GAN_noise_size )
-    #return make_generator_mlp(GAN_noise_size, n_features)
+    # return make_generator_mlp(GAN_noise_size, n_features)
     # return make_generator_rnn( GAN_noise_size, n_features )
     return make_generator_cnn(GAN_noise_size, n_features)
 
@@ -148,17 +149,17 @@ def make_discriminator():
 #~~~~~~~~~~~~~~~~~~~~~~
 
 
-#GAN_noise_size = 128  # number of random numbers (input noise)
-GAN_noise_size = 64
+GAN_noise_size = 128  # number of random numbers (input noise)
+# GAN_noise_size = 64
 
-#d_optimizer = RMSprop(lr=0.0001, rho=0.9)  # clipvalue=0.01)
-#g_optimizer = RMSprop(lr=0.0005, rho=0.9)  # , clipvalue=0.01)
+# d_optimizer = RMSprop(lr=0.00001, rho=0.9)  # clipvalue=0.01)
+# g_optimizer = RMSprop(lr=0.00001, rho=0.9)  # , clipvalue=0.01)
 
 #d_optimizer = Adamax()
 #g_optimizer = Adadelta()
 
-#d_optimizer = Adam(0.0001, beta_1=0.5, beta_2=0.9)
-#g_optimizer = Adam(0.0001, beta_1=0.5, beta_2=0.9)
+#d_optimizer = Adam(1e-4, beta_1=0.5, beta_2=0.9)
+#g_optimizer = Adam(1e-4, beta_1=0.5, beta_2=0.9)
 
 # d_optimizer = Adam(0.0001)  # , clipnorm=1.0)
 # g_optimizer = Adam(0.0001)  # , clipnorm=1.0)
@@ -196,11 +197,13 @@ generator = make_generator()
 generator.name = "Generator"
 generator.compile(
     # loss='mean_absolute_error',
-    loss='mean_squared_error',
+    # loss='mean_squared_error',
     # loss='mean_absolute_percentage_error',
-    #loss='logcosh',
+    # loss='logcosh',
     # loss=wasserstein_loss,
-    #loss=mmd_loss,
+    # loss=mmd_loss,
+    # loss=chi2_loss,
+    loss=gauss_loss_G,
     optimizer=g_optimizer)
 generator.summary()
 
@@ -211,11 +214,13 @@ generator.summary()
 discriminator = make_discriminator()
 discriminator.name = "Discriminator"
 discriminator.compile(
-    loss='binary_crossentropy',
+    # loss='binary_crossentropy',
     # loss=wasserstein_loss,
-    #loss='mean_squared_error',
-    #loss='logcosh',
-    #loss=mmd_loss,
+    # loss='mean_squared_error',
+    # loss='logcosh',
+    # loss=mmd_loss,
+    # loss=chi2_loss,
+    loss=gauss_loss_D,
     optimizer=d_optimizer,
     metrics=['accuracy'])
 discriminator.summary()
@@ -229,10 +234,12 @@ GAN = Model(GAN_input, GAN_output)
 GAN.name = "GAN"
 GAN.compile(
     # loss=wasserstein_loss,
-    loss='binary_crossentropy',
-    #loss='mean_squared_error',
-    #loss='logcosh',
-    #loss=mmd_loss,
+    # loss='binary_crossentropy',
+    # loss='mean_squared_error',
+    # loss='logcosh',
+    # loss=mmd_loss,
+    # loss=chi2_loss,
+    loss=gauss_loss_G,
     optimizer=g_optimizer)
 GAN.summary()
 
@@ -276,7 +283,7 @@ discriminator.trainable = True
 discriminator.fit(X, y, epochs=1, batch_size=128)
 
 history = {
-    "d_lr" : [], "g_lr" : [],
+    "d_lr": [], "g_lr": [],
     "d_loss": [], "d_loss_r": [], "d_loss_f": [],
     "g_loss": [],
     "d_acc": [], "d_acc_r": [], "d_acc_f": [],
@@ -285,9 +292,12 @@ history = {
 #######################
 
 # learning rate schedule
-def step_decay(epoch, initial_lrate = 0.01, drop = 0.5, epochs_drop = 10.0):
-	lrate = initial_lrate * math.pow(drop, math.floor((1+epoch)/epochs_drop))
-	return lrate
+
+
+def step_decay(epoch, initial_lrate=0.01, drop=0.5, epochs_drop=10.0):
+    lrate = initial_lrate * math.pow(drop, math.floor((1+epoch)/epochs_drop))
+    return lrate
+
 
 def train_loop(nb_epoch=1000, BATCH_SIZE=32, TRAINING_RATIO=1):
     global epoch_overall
@@ -307,11 +317,11 @@ def train_loop(nb_epoch=1000, BATCH_SIZE=32, TRAINING_RATIO=1):
 
     for epoch in range(nb_epoch):
 
-        d_lr = float( K.get_value( discriminator.optimizer.lr ) )
-        history['d_lr'].append( d_lr )
+        d_lr = float(K.get_value(discriminator.optimizer.lr))
+        history['d_lr'].append(d_lr)
 
-        g_lr = float( K.get_value( generator.optimizer.lr ) )
-        history['g_lr'].append( g_lr )
+        g_lr = float(K.get_value(generator.optimizer.lr))
+        history['g_lr'].append(g_lr)
 
 #        d_lr = step_decay( epoch, initial_lrate=d_lr_0, drop=0.5, epochs_drop=nb_epoch/10.)
 #        d_decay = d_lr_0 / float(nb_epoch)
@@ -383,6 +393,8 @@ def train_loop(nb_epoch=1000, BATCH_SIZE=32, TRAINING_RATIO=1):
                 dsid, level, preselection, systematic, epoch_overall)
             generator.save(model_filename)
 
+            # print "H(d) = %f : H(g) = %f" % (
+            #    entropy(discriminator), entropy(generator))
         epoch_overall += 1
 
     return history
@@ -420,8 +432,8 @@ training_root = TFile.Open("GAN/training_history.%s.%s.%s.%s.root" % (
     dsid, level, preselection, systematic), "RECREATE")
 print "INFO: saving training history..."
 
-h_d_lr     = TGraphErrors()
-h_g_lr     = TGraphErrors()
+h_d_lr = TGraphErrors()
+h_g_lr = TGraphErrors()
 h_d_loss = TGraphErrors()
 h_d_loss_r = TGraphErrors()
 h_d_loss_f = TGraphErrors()
@@ -433,8 +445,8 @@ h_d_acc_r = TGraphErrors()
 
 n_epochs = len(history['d_loss'])
 for i in range(n_epochs):
-    d_lr    = history['d_lr'][i]
-    g_lr    = history['g_lr'][i]
+    d_lr = history['d_lr'][i]
+    g_lr = history['g_lr'][i]
     d_loss = history['d_loss'][i]
     d_loss_r = history['d_loss_r'][i]
     d_loss_f = history['d_loss_f'][i]
@@ -443,8 +455,8 @@ for i in range(n_epochs):
     d_acc_r = history['d_acc_r'][i]
     g_loss = history['g_loss'][i]
 
-    h_d_lr.SetPoint(i,i,d_lr)
-    h_g_lr.SetPoint(i,i,g_lr)
+    h_d_lr.SetPoint(i, i, d_lr)
+    h_g_lr.SetPoint(i, i, g_lr)
     h_d_loss.SetPoint(i, i, d_loss)
     h_d_loss_r.SetPoint(i, i, d_loss_r)
     h_d_loss_f.SetPoint(i, i, d_loss_f)
