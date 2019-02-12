@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 
 import os, sys
+import ctypes
 
 from ROOT import *
 from math import sqrt, pow, log
@@ -319,14 +320,23 @@ leg.AddEntry( h_GAN, "GAN", "f" )
 leg.SetY1( leg.GetY1() - 0.05 * leg.GetNRows() )
 leg.Draw()
 
-KS = h_MC.KolmogorovTest( h_GAN )
-X2 = h_MC.Chi2Test( h_GAN, "WW CHI2/NDF" )
-l = TLatex()
-l.SetNDC()
-l.SetTextFont(42)
-l.SetTextColor(kBlack)
-#l.DrawLatex( 0.7, 0.85, "KS test: %.2f" % KS )
-l.DrawLatex( 0.7, 0.80, "#chi^{2}/NDF = %.2f" % X2 )
+def PrintChi2(h_MC, h_GAN):
+    chi2 = Double(0.)
+    ndf = ctypes.c_int(0)
+    igood = ctypes.c_int(0)
+    #chi2 = _h_mc[hname].Chi2Test(_h[hname], "WW CHI2/NDF")
+    h_MC.Chi2TestX(h_GAN, chi2, ndf, igood, "WW")
+    ndf = ndf.value
+    l = TLatex()
+    l.SetNDC()
+    l.SetTextFont(42)
+    l.SetTextSize(0.04)
+    txt = "#chi^{2}/NDF = %.1f/%i = %.1f" % (chi2, ndf, chi2/ndf)
+    l.DrawLatex(0.3, 0.87, txt)
+
+    return chi2, ndf
+
+#chi2, ndf = PrintChi2( h_MC, h_GAN )
 
 gPad.RedrawAxis()
 

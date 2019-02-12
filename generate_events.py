@@ -41,7 +41,8 @@ dnn = None
 print "INFO: Systematic:", syst
 print "INFO: Level", level
 
-model_filename = "GAN/generator.%s.%s.%s.%s.h5" % (
+#generator.mg5_dijet_ht500.ptcl.pt250.nominal.epoch_47500.h5
+model_filename = "GAN/generator.%s.%s.%s.%s.epoch_47500.h5" % (
     dsid, level, preselection, systematic)
 
 print "INFO: loading generator model from", model_filename
