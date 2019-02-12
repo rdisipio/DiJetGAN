@@ -152,14 +152,17 @@ def make_discriminator():
 GAN_noise_size = 128  # number of random numbers (input noise)
 # GAN_noise_size = 64
 
-#d_optimizer = RMSprop(lr=1e-5, rho=0.9)  # clipvalue=0.01)
-#g_optimizer = RMSprop(lr=1e-5, rho=0.9)  # , clipvalue=0.01)
+#d_optimizer = RMSprop(lr=1e-4, rho=0.9)  # clipvalue=0.01)
+#g_optimizer = RMSprop(lr=1e-4, rho=0.9)  # , clipvalue=0.01)
 
 #d_optimizer = Adamax()
 #g_optimizer = Adadelta()
 
-d_optimizer = Adam(1e-4, beta_1=0.5, beta_2=0.9)
-g_optimizer = Adam(1e-4, beta_1=0.5, beta_2=0.9)
+d_optimizer = Adam(1e-5, beta_1=0.5, beta_2=0.9)
+g_optimizer = Adam(1e-5, beta_1=0.5, beta_2=0.9)
+
+#d_optimizer = Adam(1e-4, beta_1=0.5, beta_2=0.9)
+#g_optimizer = Adam(1e-4, beta_1=0.5, beta_2=0.9)
 
 # d_optimizer = Adam(0.0001)  # , clipnorm=1.0)
 # g_optimizer = Adam(0.0001)  # , clipnorm=1.0)
@@ -199,11 +202,11 @@ generator.compile(
     # loss='mean_absolute_error',
     # loss='mean_squared_error',
     # loss='mean_absolute_percentage_error',
-    # loss='logcosh',
+    loss='logcosh',
     # loss=wasserstein_loss,
-    # loss=mmd_loss,
+    #loss=gauss_loss,
     # loss=chi2_loss,
-    loss=mmd_loss,
+    #loss=mmd_loss,
     optimizer=g_optimizer)
 generator.summary()
 
@@ -214,13 +217,13 @@ generator.summary()
 discriminator = make_discriminator()
 discriminator.name = "Discriminator"
 discriminator.compile(
-    # loss='binary_crossentropy',
+    loss='binary_crossentropy',
     # loss=wasserstein_loss,
     # loss='mean_squared_error',
     # loss='logcosh',
-    # loss=mmd_loss,
+    #loss=gauss_loss,
     # loss=chi2_loss,
-    loss=mmd_loss,
+    #loss=mmd_loss,
     optimizer=d_optimizer,
     metrics=['accuracy'])
 discriminator.summary()
@@ -234,12 +237,12 @@ GAN = Model(GAN_input, GAN_output)
 GAN.name = "GAN"
 GAN.compile(
     # loss=wasserstein_loss,
-    # loss='binary_crossentropy',
+    loss='binary_crossentropy',
     # loss='mean_squared_error',
     # loss='logcosh',
     # loss=mmd_loss,
     # loss=chi2_loss,
-    loss=mmd_loss,
+    #loss=gauss_loss,
     optimizer=g_optimizer)
 GAN.summary()
 

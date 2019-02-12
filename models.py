@@ -85,7 +85,7 @@ def compute_pairwise_distances(x,y):
     return tf.transpose(norm(tf.expand_dims(x, 2) - tf.transpose(y)))
 
 def g(x,y):
-    sigmas = 1 * np.ones(7, dtype="float32")
+    sigmas = 2. * np.ones(7, dtype="float32")
     beta = 1. / (2. * (tf.expand_dims(sigmas, 1)))
 
     dist = compute_pairwise_distances(x, y)
@@ -104,6 +104,26 @@ def mmd_loss(y_true, y_pred):
 #    tf.where(loss > 0, loss, 0, name='value')
 
     return loss
+
+#~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+def gauss_loss(y_true, y_pred):
+   beta = .5
+
+#   rms = K.std(y_pred)
+#   N   = tf.shape(y_pred)[0]
+#   a   = np.power( 4./3., 1./5. )
+#   p = tf.pow( N, -5 )
+#   a = 1.059223841
+#   p = 0.5
+#   beta = a * rms / p
+
+   y_diff = y_true-y_pred
+   z = y_diff / beta
+   #s = K.exp( -0.5*K.square(z) )
+   s = 0.5*K.square(z)
+
+   return K.mean(s)
 
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
@@ -279,7 +299,7 @@ def make_generator_cnn(GAN_noise_size, GAN_output_size):
 
     G = Reshape([8, 8, 2])(G)  # default: channel last
 
-    G = Conv2DTranspose(8, kernel_size=(2, 2), strides=1,
+    G = Conv2DTranspose(2, kernel_size=(3, 3), strides=1,
                         padding="same", kernel_regularizer=reg)(G)
     #G = Activation("relu")(G)
     G = LeakyReLU(alpha=0.2)(G)
@@ -291,7 +311,7 @@ def make_generator_cnn(GAN_noise_size, GAN_output_size):
     G = LeakyReLU(alpha=0.2)(G)
     G = BatchNormalization()(G)
 
-    G = Conv2DTranspose(1, kernel_size=(4, 4), strides=1,
+    G = Conv2DTranspose(8, kernel_size=(5, 5), strides=1,
                         padding="same", kernel_regularizer=reg)(G)
     G = LeakyReLU(alpha=0.2)(G)
     G = BatchNormalization()(G)
@@ -320,7 +340,7 @@ def make_discriminator_cnn(GAN_output_size):
     D = Dense(128)(D_input)
     D = Reshape((8, 8, 2))(D)
 
-    D = Conv2D(64, kernel_size=(2, 2), strides=1,
+    D = Conv2D(64, kernel_size=(3, 3), strides=1,
                padding="same", kernel_regularizer=reg)(D)
     D = LeakyReLU(alpha=0.2)(D)
 
@@ -329,7 +349,7 @@ def make_discriminator_cnn(GAN_output_size):
     #D = BatchNormalization()(D)
     D = LeakyReLU(alpha=0.2)(D)
 
-    D = Conv2D(16, kernel_size=(4, 4), strides=1,
+    D = Conv2D(2, kernel_size=(5, 5), strides=1,
                padding="same", kernel_regularizer=reg)(D)
     #D = BatchNormalization()(D)
     D = LeakyReLU(alpha=0.2)(D)

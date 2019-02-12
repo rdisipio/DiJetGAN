@@ -8,7 +8,7 @@ from ROOT import *
 import numpy as np
 from keras.models import load_model
 import cPickle as pickle
-from models import mmd_loss
+from models import mmd_loss, gauss_loss
 #from models import chi2_loss, wasserstein_loss, gauss_loss
 
 gROOT.LoadMacro("AtlasStyle.C")
