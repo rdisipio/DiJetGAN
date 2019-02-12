@@ -65,7 +65,8 @@ frame_g_loss = TH1F(
 frame_d_acc = TH1F(
     "frame_d_acc",  ";Training Epoch;Discriminator Accuracy", 10, 0, n_epochs)
 
-hmax = 1.6
+#hmax = 1.6
+hmax = 2.5
 frame_d_loss.SetMaximum(hmax)
 frame_d_loss.SetMinimum(0)
 frame_d_loss.GetXaxis().SetTitleSize(0.07)

@@ -59,8 +59,8 @@ The generator model and the scaler have been saved to the GAN folder.
 
 Plot training history:
 ```
-./plot_traninig.py reco
-./plot_traninig.py ptcl
+./plot_traninig_history.py reco
+./plot_traninig_history.py ptcl
 
 # only if you have already created the MG5 histograms:
 ./plot_training_observables.py ptcl

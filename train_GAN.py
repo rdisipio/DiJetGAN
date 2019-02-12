@@ -152,14 +152,14 @@ def make_discriminator():
 GAN_noise_size = 128  # number of random numbers (input noise)
 # GAN_noise_size = 64
 
-# d_optimizer = RMSprop(lr=0.00001, rho=0.9)  # clipvalue=0.01)
-# g_optimizer = RMSprop(lr=0.00001, rho=0.9)  # , clipvalue=0.01)
+#d_optimizer = RMSprop(lr=1e-5, rho=0.9)  # clipvalue=0.01)
+#g_optimizer = RMSprop(lr=1e-5, rho=0.9)  # , clipvalue=0.01)
 
 #d_optimizer = Adamax()
 #g_optimizer = Adadelta()
 
-#d_optimizer = Adam(1e-4, beta_1=0.5, beta_2=0.9)
-#g_optimizer = Adam(1e-4, beta_1=0.5, beta_2=0.9)
+d_optimizer = Adam(1e-4, beta_1=0.5, beta_2=0.9)
+g_optimizer = Adam(1e-4, beta_1=0.5, beta_2=0.9)
 
 # d_optimizer = Adam(0.0001)  # , clipnorm=1.0)
 # g_optimizer = Adam(0.0001)  # , clipnorm=1.0)
@@ -167,8 +167,8 @@ GAN_noise_size = 128  # number of random numbers (input noise)
 # d_optimizer = Adam(0.0001)  # , 0.5)
 # g_optimizer = Adam(0.0001) #, 0.5)
 
-#d_optimizer = Adam(0.0001)
-#g_optimizer = Adam(0.0001)
+#d_optimizer = Adam(1e-4)
+#g_optimizer = Adam(1e-4)
 
 #d_optimizer = SGD(0.0001, 0.9, nesterov=True)
 #g_optimizer = SGD(0.0001, 0.9, nesterov=True)
@@ -181,11 +181,11 @@ GAN_noise_size = 128  # number of random numbers (input noise)
 #g_optimizer = Adam(0.01)
 
 # the best so far, and by far!
-d_optimizer = SGD(0.01)
-g_optimizer = SGD(0.01)
+#d_optimizer = SGD(0.01)
+#g_optimizer = SGD(0.01)
 
-#d_optimizer = Adam(0.0001, 0.9)
-#g_optimizer = Adam(0.0001, 0.9)
+#d_optimizer = Adam(0.001, 0.9)
+#g_optimizer = Adam(0.001, 0.9)
 
 #d_optimizer = RMSprop(lr=0.01)
 #g_optimizer = SGD(0.01)
@@ -203,7 +203,7 @@ generator.compile(
     # loss=wasserstein_loss,
     # loss=mmd_loss,
     # loss=chi2_loss,
-    loss=gauss_loss_G,
+    loss=mmd_loss,
     optimizer=g_optimizer)
 generator.summary()
 
@@ -220,7 +220,7 @@ discriminator.compile(
     # loss='logcosh',
     # loss=mmd_loss,
     # loss=chi2_loss,
-    loss=gauss_loss_D,
+    loss=mmd_loss,
     optimizer=d_optimizer,
     metrics=['accuracy'])
 discriminator.summary()
@@ -239,7 +239,7 @@ GAN.compile(
     # loss='logcosh',
     # loss=mmd_loss,
     # loss=chi2_loss,
-    loss=gauss_loss_G,
+    loss=mmd_loss,
     optimizer=g_optimizer)
 GAN.summary()
 

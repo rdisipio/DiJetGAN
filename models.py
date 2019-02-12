@@ -80,102 +80,32 @@ def wasserstein_loss(y_true, y_pred):
 
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
+def compute_pairwise_distances(x,y):
+    norm = lambda x: tf.reduce_sum(tf.square(x), 1)
+    return tf.transpose(norm(tf.expand_dims(x, 2) - tf.transpose(y)))
 
-def g(x, beta=0.1):
-    z = K.square(x/beta)
-    z = K.exp(-0.5*z)
-    z = K.mean(z)
-    return z
-
-
-def gauss_loss_D(y_true, y_pred):
-    alpha = 1.0
-    beta = 0.05
-    y_diff = y_true - y_pred
-    loss = alpha*g(y_true, beta) -\
-        (alpha-1.0)*g(y_diff, beta) - \
-        g(y_pred, beta)
-
-    return loss
-
-
-def gauss_loss_G(y_true, y_pred):
-    alpha = 1.0
-    beta = 0.05
-    y_diff = y_true - y_pred
-    loss = g(y_true, beta) + g(y_pred, beta) - 2.0*g(y_diff, beta)
-    #loss = gauss_loss(y_true, y_pred, alpha, beta)
-    return loss
-
-
-def chi2_loss(y_true, y_pred):
-    y_diff = y_true - y_pred
-    y_diff = K.square(y_diff)
-    y_diff = y_diff / y_true
-    #y_diff = K.exp(-y_diff)
-    return K.sum(y_diff)
-
-
-def chi2_hist_loss(y_true, y_pred):
-
-    h_true = tf.histogram_fixed_width(
-        y_true, value_range=(-1., 1.), nbins=20)
-    h_pred = tf.histogram_fixed_width(
-        y_true, value_range=(-1., 1.), nbins=20)
-    h_true = tf.to_float(h_true)
-    h_pred = tf.to_float(h_pred)
-    h_diff = tf.subtract(h_true, h_pred)
-    h_diff2 = tf.square(h_diff)
-
-    # return tf.reduce_sum(h_diff2)
-    return K.mean(h_diff2)
-
-
-#~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-def gaussian_kernel(x, y):
-
-    def norm(x): return tf.reduce_sum(tf.square(x), 1)
-
-    sigmas = [1., 1., 1., 1., 1., 1., 1.]
-    sigmas = tf.constant(sigmas)
-
-    dist = tf.transpose(norm(tf.expand_dims(x, 2) - tf.transpose(y)))
-
+def g(x,y):
+    sigmas = 0.1 * np.ones(7, dtype="float32")
     beta = 1. / (2. * (tf.expand_dims(sigmas, 1)))
 
+    dist = compute_pairwise_distances(x, y)
     s = tf.matmul(beta, tf.reshape(dist, (1, -1)))
-
     return tf.reshape(tf.reduce_sum(tf.exp(-s), 0), tf.shape(dist))
 
-
 def mmd_loss(y_true, y_pred):
-    """ MMD^2(P, Q) = \E{ K(x, x) } + \E{ K(y, y) } - 2 \E{ K(x, y) },
-        where K = <\phi(x), \phi(y)> is a radial basis kernel (gaussian)
-    """
+#    alpha = 1.0
+#    loss  = alpha * tf.reduce_mean( g(y_true, y_true) ) \
+#          - tf.reduce_mean( g(y_pred, y_pred) ) \
+#          -(alpha - 1.0) * tf.reduce_mean( g(y_true, y_pred) )
 
-    cost = tf.reduce_mean(gaussian_kernel(y_true, y_true))
-    cost += tf.reduce_mean(gaussian_kernel(y_pred, y_pred))
-    cost -= 2 * tf.reduce_mean(gaussian_kernel(y_true, y_pred))
-    cost = tf.where(cost > 0, cost, 0, name='value')
-    return cost
+    loss = tf.reduce_mean( g(y_true, y_true) ) \
+         + tf.reduce_mean( g(y_pred, y_pred) ) \
+         - 2.*tf.reduce_mean( g(y_true, y_pred) )
+#    tf.where(loss > 0, loss, 0, name='value')
 
-#~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-
-def gradient_penalty_loss(self, y_true, y_pred, averaged_samples):
-
-    gradients = K.gradients(y_pred, averaged_samples)[0]
-    gradients_sqr = K.square(gradients)
-    gradients_sqr_sum = K.sum(gradients_sqr,
-                              axis=np.arange(1, len(gradients_sqr.shape)))
-    gradient_l2_norm = K.sqrt(gradients_sqr_sum)
-    gradient_penalty = K.square(1 - gradient_l2_norm)
-
-    return K.mean(gradient_penalty)
+    return loss
 
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
 
 def PxPyPzE_to_PtEtaPhiM(x):
     # p = TLorentzVector()
