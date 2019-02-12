@@ -85,7 +85,7 @@ def compute_pairwise_distances(x,y):
     return tf.transpose(norm(tf.expand_dims(x, 2) - tf.transpose(y)))
 
 def g(x,y):
-    sigmas = 0.1 * np.ones(7, dtype="float32")
+    sigmas = 1 * np.ones(7, dtype="float32")
     beta = 1. / (2. * (tf.expand_dims(sigmas, 1)))
 
     dist = compute_pairwise_distances(x, y)
