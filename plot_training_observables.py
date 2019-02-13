@@ -208,6 +208,8 @@ def PrintChi2(hname):
 chi2_tot = 0.
 ndf_tot = 0
 c.cd(1)
+gPad.SetLogy(1)
+_h_mc['ljet1_pt'].SetMinimum(1e-2)
 _h_mc['ljet1_pt'].Draw("h")
 _h['ljet1_pt'].Draw("h same")
 chi2, ndf = PrintChi2('ljet1_pt')
@@ -229,6 +231,8 @@ chi2_tot += chi2
 ndf_tot += ndf
 
 c.cd(4)
+_h_mc['ljet2_pt'].SetMinimum(1e-2)
+gPad.SetLogy(1)
 _h_mc['ljet2_pt'].Draw("h")
 _h['ljet2_pt'].Draw("h same")
 chi2, ndf = PrintChi2('ljet2_pt')
@@ -250,6 +254,8 @@ chi2_tot += chi2
 ndf_tot += ndf
 
 c.cd(7)
+_h_mc['jj_pt'].SetMinimum(1e-2)
+gPad.SetLogy(1)
 _h_mc['jj_pt'].Draw("h")
 _h['jj_pt'].Draw("h same")
 chi2, ndf = PrintChi2('jj_pt')

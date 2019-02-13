@@ -78,13 +78,40 @@ def clip_weights(discriminator, c=0.01):
 def wasserstein_loss(y_true, y_pred):
     return K.mean(y_true * y_pred)
 
+
+def mean_loss(y_true, y_pred):
+    return K.mean(y_pred)
+
+
+class GradNorm(Layer):
+    def __init__(self, **kwargs):
+        #self.output_dim = output_dim
+        super(GradNorm, self).__init__(**kwargs)
+
+    def build(self, input_shape):
+        # Create a trainable weight variable for this layer.
+        # Be sure to call this somewhere!
+        super(GradNorm, self).build(input_shape)
+
+    def call(self, x):
+        target, wrt = x
+        grads = K.gradients(target, wrt)
+        assert len(grads) == 1
+        grad = grads[0]
+        return K.sqrt(K.sum(K.batch_flatten(K.square(grad)), axis=1, keepdims=True))
+
+    def compute_output_shape(self, input_shapes):
+        return (input_shapes[1][0], 1)
+
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-def compute_pairwise_distances(x,y):
-    norm = lambda x: tf.reduce_sum(tf.square(x), 1)
+
+def compute_pairwise_distances(x, y):
+    def norm(x): return tf.reduce_sum(tf.square(x), 1)
     return tf.transpose(norm(tf.expand_dims(x, 2) - tf.transpose(y)))
 
-def g(x,y):
+
+def g(x, y):
     sigmas = 2. * np.ones(7, dtype="float32")
     beta = 1. / (2. * (tf.expand_dims(sigmas, 1)))
 
@@ -92,23 +119,25 @@ def g(x,y):
     s = tf.matmul(beta, tf.reshape(dist, (1, -1)))
     return tf.reshape(tf.reduce_sum(tf.exp(-s), 0), tf.shape(dist))
 
-def mmd_loss(y_true, y_pred):
-#    alpha = 1.0
-#    loss  = alpha * tf.reduce_mean( g(y_true, y_true) ) \
-#          - tf.reduce_mean( g(y_pred, y_pred) ) \
-#          -(alpha - 1.0) * tf.reduce_mean( g(y_true, y_pred) )
 
-    loss = tf.reduce_mean( g(y_true, y_true) ) \
-         + tf.reduce_mean( g(y_pred, y_pred) ) \
-         - 2.*tf.reduce_mean( g(y_true, y_pred) )
+def mmd_loss(y_true, y_pred):
+    #    alpha = 1.0
+    #    loss  = alpha * tf.reduce_mean( g(y_true, y_true) ) \
+    #          - tf.reduce_mean( g(y_pred, y_pred) ) \
+    #          -(alpha - 1.0) * tf.reduce_mean( g(y_true, y_pred) )
+
+    loss = tf.reduce_mean(g(y_true, y_true)) \
+        + tf.reduce_mean(g(y_pred, y_pred)) \
+        - 2.*tf.reduce_mean(g(y_true, y_pred))
 #    tf.where(loss > 0, loss, 0, name='value')
 
     return loss
 
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
+
 def gauss_loss(y_true, y_pred):
-   beta = .5
+    beta = .5
 
 #   rms = K.std(y_pred)
 #   N   = tf.shape(y_pred)[0]
@@ -118,14 +147,15 @@ def gauss_loss(y_true, y_pred):
 #   p = 0.5
 #   beta = a * rms / p
 
-   y_diff = y_true-y_pred
-   z = y_diff / beta
-   #s = K.exp( -0.5*K.square(z) )
-   s = 0.5*K.square(z)
+    y_diff = y_true-y_pred
+    z = y_diff / beta
+    #s = K.exp( -0.5*K.square(z) )
+    s = 0.5*K.square(z)
 
-   return K.mean(s)
+    return K.mean(s)
 
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
 
 def PxPyPzE_to_PtEtaPhiM(x):
     # p = TLorentzVector()
@@ -330,9 +360,6 @@ def make_generator_cnn(GAN_noise_size, GAN_output_size):
 
 
 def make_discriminator_cnn(GAN_output_size):
-    # Build Discriminative model ...
-    # print "DEBUG: discriminator: input features:", GAN_output_size
-
     D_input = Input(shape=(GAN_output_size,))
 
     reg = None  # l2(0.001)
