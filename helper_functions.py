@@ -84,8 +84,8 @@ def RotateJets(ljets=[], phi=None):
     if phi == None:
         phi = -ljets[0].Phi()
 
-    for lj in ljets:
-        lj.RotateZ(phi)
+    ljets[1].SetPhi(abs(ljets[0].DeltaPhi(ljets[1])))
+    ljets[0].SetPhi(0)
 
     return phi
 

@@ -14,6 +14,7 @@ jj_phi
 jj_E
 jj_m
 jj_dPhi
+jj_dPhi_zoom
 jj_dEta
 jj_dR
 ljet1_E_vs_pt
@@ -25,6 +26,7 @@ ljet2_m_vs_eta
 ljet1_pt_vs_ljet2_pt
 ljet2_m_vs_ljet1_m
 ljet2_eta_vs_ljet1_eta
+ljet2_phi_vs_ljet1_phi
 jj_dR_vs_jj_m
 jj_m_vs_jj_pt
 ljet1_pt_vs_jj_m

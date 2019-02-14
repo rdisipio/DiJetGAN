@@ -156,10 +156,21 @@ for ievent in range(n_events):
 
     #jj_dPhi   = X_generated[ievent][21]
     # rotate jets' P4's:
+    
+    #flip relative phi
+    if (ievent < 100):
+       print ljet2.Phi()
+  
+    if rng.Uniform() > 0.5:
+      ljet2.SetPtEtaPhiM(ljet2.Pt(), ljet2.Eta(), -ljet2.Phi(), ljet2.M())
+      if (ievent < 100):
+         print ljet2.Phi()
+         
+
     phi = rng.Uniform(-TMath.Pi(), TMath.Pi())
     ljet1.RotateZ(phi)
     ljet2.RotateZ(phi)
-
+      
     # flip eta?
     if rng.Uniform() > 0.5:
         ljet1.SetPtEtaPhiM(ljet1.Pt(), -ljet1.Eta(), ljet1.Phi(), ljet1.M())

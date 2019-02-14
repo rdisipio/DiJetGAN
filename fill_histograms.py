@@ -73,6 +73,8 @@ _h['jj_m'] = TH1F(
     "jj_m",  ";Dijet system m [TeV];Events / Bin Width", 20, 0., 2.)
 _h['jj_dPhi'] = TH1F(
     "jj_dPhi", ";Dijet system #Delta#phi;Events / Bin Width", 32, 0, 3.1415)
+_h['jj_dPhi_zoom'] = TH1F(
+    "jj_dPhi_zoom", ";Dijet system #Delta#phi;Events / Bin Width", 60, 3.0, 3.15)
 _h['jj_dEta'] = TH1F(
     "jj_dEta", ";Dijet system #Delta#eta;Events / Bin Width", 30, -3., 3.)
 _h['jj_dR'] = TH1F(
@@ -98,6 +100,8 @@ _h['ljet2_m_vs_ljet1_m'] = TH2F(
     "ljet2_m_vs_ljet1_m",   ";Leading large-R jet m [GeV];2nd leading large-R jet m [GeV]", 20, 0., 200., 20, 0., 200.)
 _h['ljet2_eta_vs_ljet1_eta'] = TH2F(
     "ljet2_eta_vs_ljet1_eta", ";Leading large-R jet #eta;2nd leading large-R jet #eta", 25, 0, 2.5, 25, 0, 2.5)
+_h['ljet2_phi_vs_ljet1_phi'] = TH2F(
+    "ljet2_phi_vs_ljet1_phi", ";Leading large-R jet #phi;2nd leading large-R jet #phi", 50, -2.5, 2.5, 50, -2.5, 2.5)
 
 _h['jj_dR_vs_jj_m'] = TH2F(
     "jj_dR_vs_jj_m", ";Dijet system mass [GeV];Dijet system #Delta R",  20, 0., 4., 30, 2., 5)
@@ -168,6 +172,7 @@ for ientry in range(n_entries):
     _h['jj_E'].Fill(jj.E()/GeV, w)
     _h['jj_m'].Fill(jj.M()/TeV, w)
     _h['jj_dPhi'].Fill(abs(jj.dPhi), w)
+    _h['jj_dPhi_zoom'].Fill(abs(jj.dPhi), w)
     _h['jj_dEta'].Fill(jj.dEta, w)
     _h['jj_dR'].Fill(jj.dR, w)
 
@@ -182,6 +187,7 @@ for ientry in range(n_entries):
     _h['ljet2_pt_vs_ljet1_pt'].Fill(lj1.Pt()/GeV, lj2.Pt()/GeV, w)
     _h['ljet2_m_vs_ljet1_m'].Fill(lj1.M()/GeV, lj2.M()/GeV, w)
     _h['ljet2_eta_vs_ljet1_eta'].Fill(abs(lj1.Eta()), abs(lj2.Eta()), w)
+    _h['ljet2_eta_vs_ljet1_eta'].Fill(lj1.Phi(), lj2.Phi(), w)
 
     _h['jj_dR_vs_jj_m'].Fill(jj.M()/TeV, jj.dR, w)
     _h['jj_m_vs_jj_pt'].Fill(jj.Pt()/GeV, jj.M()/TeV, w)
