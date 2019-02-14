@@ -33,7 +33,7 @@ gROOT.SetBatch(1)
 parser = argparse.ArgumentParser(
     description='ttbar diffxs sqrt(s) = 13 TeV classifier training')
 parser.add_argument('-i', '--training_filename', default="")
-parser.add_argument('-l', '--level',             default="reco")
+parser.add_argument('-l', '--level',             default="ptcl")
 parser.add_argument('-p', '--preselection',      default="pt250")
 parser.add_argument('-s', '--systematic',        default="nominal")
 parser.add_argument('-d', '--dsid',              default="mg5_dijet_ht500")
@@ -106,11 +106,14 @@ from models import make_generator_cnn, make_discriminator_cnn
 
 GAN_noise_size = 128  # number of random numbers (input noise)
 
-d_optimizer = Adam(1e-5, beta_1=0.5, beta_2=0.9)
-g_optimizer = Adam(1e-5, beta_1=0.5, beta_2=0.9)
+d_optimizer = Adam(1e-4, beta_1=0.5, beta_2=0.9)
+g_optimizer = Adam(1e-4, beta_1=0.5, beta_2=0.9)
 
 generator = make_generator_cnn(GAN_noise_size, n_features)
 generator.name = "Generator"
+generator.compile(
+    loss='mse',
+    optimizer=g_optimizer)
 print "INFO: generator:"
 generator.summary()
 
@@ -134,24 +137,29 @@ GAN.summary()
 
 # Build Discriminator w/ gradient
 
-D_input_fake = Input(shape=(n_features,), name="in_fake")
-D_input_real = Input(shape=(n_features,), name="in_real")
-D_input_grad = Input(shape=(n_features,), name="in_grad")
+shape = discriminator.get_input_shape_at(0)[1:]
+D_input_fake = Input(shape=shape, name="in_fake")
+D_input_real = Input(shape=shape, name="in_real")
+D_input_grad = Input(shape=shape, name="in_grad")
 diff = subtract([discriminator(D_input_fake),
                  discriminator(D_input_real)], name="diff")
-norm = GradNorm(name="grad")([discriminator(D_input_grad), D_input_grad])
+norm = GradNorm(name="gradient")([discriminator(D_input_grad), D_input_grad])
 discriminator_grad = Model(
-    inputs=[D_input_real, D_input_real, D_input_grad], outputs=[diff, norm])
+    inputs=[D_input_fake, D_input_real, D_input_grad], outputs=[diff, norm])
 discriminator.trainable = True
+lmbd = 10.
 discriminator_grad.compile(
     loss=[mean_loss, 'mse'],
-    loss_weights=[1.0, 10.],
-    optimizer=d_optimizer
+    loss_weights=[1.0, lmbd],
+    optimizer=d_optimizer,
+    metrics=['accuracy']
 )
 print "INFO: discriminator w/ gradient:"
 discriminator_grad.summary()
 
 print "INFO: saving models to png files"
+if not os.path.exists("img/"):
+    os.makedirs("img/")
 plot_model(generator,      show_shapes=True,
            to_file="img/model_WGANGP_%s_generator.png" % (dsid))
 plot_model(discriminator,  show_shapes=True,
@@ -161,10 +169,13 @@ plot_model(GAN,            show_shapes=True,
 
 history = {
     "d_lr": [], "g_lr": [],
-    "d_loss": [], "d_loss_r": [], "d_loss_f": [],
+    "d_loss": [],
     "g_loss": [],
-    "d_acc": [], "d_acc_r": [], "d_acc_f": [],
+    "d_acc": [],
 }
+
+if not os.path.exists("GAN/"):
+    os.makedirs("GAN/")
 
 
 def train_loop(nb_epoch=1000, BATCH_SIZE=32, TRAINING_RATIO=1):
@@ -180,7 +191,7 @@ def train_loop(nb_epoch=1000, BATCH_SIZE=32, TRAINING_RATIO=1):
 
     for epoch in range(nb_epoch):
 
-        d_lr = float(K.get_value(discriminator.optimizer.lr))
+        d_lr = float(K.get_value(discriminator_grad.optimizer.lr))
         history['d_lr'].append(d_lr)
 
         g_lr = float(K.get_value(generator.optimizer.lr))
@@ -189,6 +200,10 @@ def train_loop(nb_epoch=1000, BATCH_SIZE=32, TRAINING_RATIO=1):
         # ---------------------
         #  Train Generator
         # ---------------------
+
+        # generate fake events
+        X_noise = np.random.uniform(
+            0, 1, size=[BATCH_SIZE, GAN_noise_size]).astype('float32')
 
         g_loss = GAN.train_on_batch(X_noise, y_real)
         history["g_loss"].append(g_loss)
@@ -201,20 +216,30 @@ def train_loop(nb_epoch=1000, BATCH_SIZE=32, TRAINING_RATIO=1):
         train_idx = np.random.randint(0, X_train.shape[0], size=BATCH_SIZE)
         X_train_real = X_train[train_idx, :]
 
-        # generate fake events
-        X_noise = np.random.uniform(
-            0, 1, size=[BATCH_SIZE, GAN_noise_size])
         X_train_fake = generator.predict(X_noise)
 
-        lmbd = np.random.uniform(0, 1, size=(BATCH_SIZE, 1, 1, 1))
+        epsilon = np.random.uniform(0, 1, size=(BATCH_SIZE, 1))
+        X_train_grad = epsilon*X_train_real + (1-epsilon)*X_train_fake
 
-        X_train_grad = lmbd*X_train_real + (1-lmbd)*X_train_fake
-        d_loss, d_diff, d_norm = discriminator_grad.train_on_batch([X_train_fake, X_train_real, X_train_grad],
-                                                                   [y_true, y_true])
+        #print X_train_fake.shape
+        #print X_train_real.shape
+        #print X_train_grad.shape
+
+        y_identity = np.ones((BATCH_SIZE, 1))
+
+        d_loss, d_loss_diff, d_loss_norm, d_acc_diff, d_acc_norm = discriminator_grad.train_on_batch(
+            [X_train_fake, X_train_real, X_train_grad],
+            [y_identity, y_identity])
+
+        d_acc = 0.5*(d_acc_diff + d_acc_norm)
+
+        history['d_loss'].append(d_loss)
+        history['d_acc'].append(d_acc)
 
         if epoch % plt_frq == 0:
-            print "Epoch: %5i/%5i :: BS = %i, d_lr = %.5f, g_lr = %.5f :: d_loss = %.2f ( real = %.2f, fake = %.2f ), d_acc = %.2f ( real = %.2f, fake = %.2f ), g_loss = %.2f" % (
-                epoch, nb_epoch, BATCH_SIZE, d_lr, g_lr, d_loss, d_loss_r, d_loss_f, d_acc, d_acc_r, d_acc_f, g_loss)
+            print "Epoch: %5i/%5i :: BS = %i, d_lr = %.5f, g_lr = %.5f :: d_loss = %.2f, d_acc = %.2f, g_loss = %.2f" % (
+                epoch, nb_epoch, BATCH_SIZE, d_lr, g_lr,
+                d_loss, d_acc, g_loss)
 
             model_filename = "GAN/WGANGP.generator.%s.%s.%s.%s.epoch_%05i.h5" % (
                 dsid, level, preselection, systematic, epoch_overall)
@@ -246,45 +271,28 @@ print "INFO: saving training history..."
 h_d_lr = TGraphErrors()
 h_g_lr = TGraphErrors()
 h_d_loss = TGraphErrors()
-h_d_loss_r = TGraphErrors()
-h_d_loss_f = TGraphErrors()
 h_d_acc = TGraphErrors()
 h_g_loss = TGraphErrors()
-h_d_acc = TGraphErrors()
-h_d_acc_f = TGraphErrors()
-h_d_acc_r = TGraphErrors()
 
 n_epochs = len(history['d_loss'])
 for i in range(n_epochs):
     d_lr = history['d_lr'][i]
     g_lr = history['g_lr'][i]
     d_loss = history['d_loss'][i]
-    d_loss_r = history['d_loss_r'][i]
-    d_loss_f = history['d_loss_f'][i]
     d_acc = history['d_acc'][i]
-    d_acc_f = history['d_acc_f'][i]
-    d_acc_r = history['d_acc_r'][i]
     g_loss = history['g_loss'][i]
 
     h_d_lr.SetPoint(i, i, d_lr)
     h_g_lr.SetPoint(i, i, g_lr)
     h_d_loss.SetPoint(i, i, d_loss)
-    h_d_loss_r.SetPoint(i, i, d_loss_r)
-    h_d_loss_f.SetPoint(i, i, d_loss_f)
     h_d_acc.SetPoint(i, i, d_acc)
-    h_d_acc_f.SetPoint(i, i, d_acc_f)
-    h_d_acc_r.SetPoint(i, i, d_acc_r)
     h_g_loss.SetPoint(i, i, g_loss)
 
 h_d_lr.Write("d_lr")
 h_g_lr.Write("g_lr")
 h_d_loss.Write("d_loss")
-h_d_loss_r.Write("d_loss_r")
-h_d_loss_f.Write("d_loss_f")
 h_g_loss.Write("g_loss")
 h_d_acc.Write("d_acc")
-h_d_acc_f.Write("d_acc_f")
-h_d_acc_r.Write("d_acc_r")
 
 training_root.Write()
 training_root.Close()
