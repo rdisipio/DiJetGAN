@@ -129,7 +129,7 @@ c = TCanvas("c", "C", 1200, 1200)
 c.Divide(3, 3)
 
 generator = load_model(model_filename,
-                       custom_objects={'mmd_loss' : mmd_loss })
+                       custom_objects={'mmd_loss': mmd_loss})
 
 GAN_noise_size = generator.layers[0].input_shape[1]
 
@@ -153,14 +153,20 @@ _h['jj_m'].Reset()
 for i in range(n_examples):
 
     lj1 = TLorentzVector()
-    lj1.SetPtEtaPhiM(events[i][0], events[i][1], 0., events[i][2])
+    lj1.SetPtEtaPhiM(events[i][0],
+                     events[i][1],
+                     0.,
+                     events[i][2])
 
     lj2 = TLorentzVector()
-    lj2.SetPtEtaPhiM(events[i][3], events[i][4],
-                     events[i][5], events[i][6])
+    lj2.SetPtEtaPhiM(events[i][3],
+                     events[i][4],
+                     events[i][5],
+                     events[i][6])
 
+    # flip and rotate phi
     if rng.Uniform() > 0.5:
-      lj2.SetPtEtaPhiM(lj2.Pt(), lj2.Eta(), -lj2.Phi(), lj2.M())
+        lj2.SetPtEtaPhiM(lj2.Pt(), lj2.Eta(), -lj2.Phi(), lj2.M())
 
     phi = rng.Uniform(-TMath.Pi(), TMath.Pi())
     lj1.RotateZ(phi)
@@ -211,8 +217,8 @@ def PrintChi2(hname):
 chi2_tot = 0.
 ndf_tot = 0
 c.cd(1)
-gPad.SetLogy(1)
-_h_mc['ljet1_pt'].SetMinimum(1e-2)
+# gPad.SetLogy(1)
+#_h_mc['ljet1_pt'].SetMinimum(1e-2)
 _h_mc['ljet1_pt'].Draw("h")
 _h['ljet1_pt'].Draw("h same")
 chi2, ndf = PrintChi2('ljet1_pt')
@@ -234,8 +240,8 @@ chi2_tot += chi2
 ndf_tot += ndf
 
 c.cd(4)
-_h_mc['ljet2_pt'].SetMinimum(1e-2)
-gPad.SetLogy(1)
+#_h_mc['ljet2_pt'].SetMinimum(1e-2)
+# gPad.SetLogy(1)
 _h_mc['ljet2_pt'].Draw("h")
 _h['ljet2_pt'].Draw("h same")
 chi2, ndf = PrintChi2('ljet2_pt')
@@ -257,8 +263,8 @@ chi2_tot += chi2
 ndf_tot += ndf
 
 c.cd(7)
-_h_mc['jj_pt'].SetMinimum(1e-2)
-gPad.SetLogy(1)
+#_h_mc['jj_pt'].SetMinimum(1e-2)
+# gPad.SetLogy(1)
 _h_mc['jj_pt'].Draw("h")
 _h['jj_pt'].Draw("h same")
 chi2, ndf = PrintChi2('jj_pt')
