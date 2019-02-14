@@ -159,6 +159,9 @@ for i in range(n_examples):
     lj2.SetPtEtaPhiM(events[i][3], events[i][4],
                      events[i][5], events[i][6])
 
+    if rng.Uniform() > 0.5:
+      lj2.SetPtEtaPhiM(lj2.Pt(), lj2.Eta(), -lj2.Phi(), lj2.M())
+
     phi = rng.Uniform(-TMath.Pi(), TMath.Pi())
     lj1.RotateZ(phi)
     lj2.RotateZ(phi)

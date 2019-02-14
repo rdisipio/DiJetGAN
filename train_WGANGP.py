@@ -161,11 +161,11 @@ print "INFO: saving models to png files"
 if not os.path.exists("img/"):
     os.makedirs("img/")
 plot_model(generator,      show_shapes=True,
-           to_file="img/model_WGANGP_%s_generator.png" % (dsid))
+           to_file="img/WGANGP_model_%s_generator.png" % (dsid))
 plot_model(discriminator,  show_shapes=True,
-           to_file="img/model_WGANGP_%s_discriminator.png" % (dsid))
+           to_file="img/WGANGP_model_%s_discriminator.png" % (dsid))
 plot_model(GAN,            show_shapes=True,
-           to_file="img/model_WGANGP_%s_GAN.png" % (dsid))
+           to_file="img/WGANGP_model_%s_GAN.png" % (dsid))
 
 history = {
     "d_lr": [], "g_lr": [],
@@ -174,8 +174,8 @@ history = {
     "d_acc": [],
 }
 
-if not os.path.exists("GAN/"):
-    os.makedirs("GAN/")
+if not os.path.exists("WGANGP/"):
+    os.makedirs("WGANGP/")
 
 
 def train_loop(nb_epoch=1000, BATCH_SIZE=32, TRAINING_RATIO=1):

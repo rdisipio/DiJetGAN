@@ -130,14 +130,11 @@ for ientry in range(n_entries):
                      tree.ljet2_phi,
                      tree.ljet2_m)
 
-    lj1_phi = lj1.Phi()
-    helper_functions.RotateJets(ljets, -lj1_phi)
-
-    #lj1_eta = ljets[0].Eta()
-    # if lj1_eta < 0:
-
-    # for do_flip_eta in [ False, True ]:
-    #  if do_flip_eta == True:
+    # rotate jets to enforce symmetry along phi angle
+    # rotate back during event generation
+    dPhi = lj1.DeltaPhi(lj2)
+    lj1.SetPhi(0.)
+    lj2.SetPhi(abs(dPhi))
 
     for do_flip_eta in [False, True]:
 
@@ -145,7 +142,7 @@ for ientry in range(n_entries):
             helper_functions.FlipEta(ljets)
 
         jj = ljets[0] + ljets[1]
-        jj.dPhi = ljets[0].DeltaPhi(ljets[1])
+        jj.dPhi = abs(dPhi)
         jj.dEta = ljets[0].Eta() - ljets[1].Eta()
         jj.dR = TMath.Sqrt(jj.dPhi*jj.dPhi + jj.dEta*jj.dEta)
 

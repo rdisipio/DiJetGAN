@@ -43,7 +43,7 @@ if len(sys.argv) > 2:
 if len(sys.argv) > 3:
     dsid = sys.argv[3]
 
-infilename = "GAN/training_history.%s.%s.%s.nominal.root" % (
+infilename = "GAN/DCGAN.training_history.%s.%s.%s.nominal.root" % (
     dsid, level, preselection)
 infile = TFile.Open(infilename)
 

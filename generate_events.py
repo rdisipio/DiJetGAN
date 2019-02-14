@@ -42,7 +42,7 @@ print "INFO: Systematic:", syst
 print "INFO: Level", level
 
 #generator.mg5_dijet_ht500.ptcl.pt250.nominal.epoch_47500.h5
-model_filename = "GAN/generator.%s.%s.%s.%s.epoch_47500.h5" % (
+model_filename = "GAN/generator.%s.%s.%s.%s.epoch_50000.h5" % (
     dsid, level, preselection, systematic)
 
 print "INFO: loading generator model from", model_filename
@@ -147,11 +147,14 @@ for ievent in range(n_events):
                         X_generated[ievent][5],
                         X_generated[ievent][6] )
 
-    #jj_dPhi   = X_generated[ievent][21]
-    # rotate jets' P4's:
+    # rotate jets' P4's to make flat distribution
+
     phi = rng.Uniform(-TMath.Pi(), TMath.Pi())
     ljet1.RotateZ(phi)
     ljet2.RotateZ(phi)
+
+    if rng.Uniform() > 0.5:
+      ljet2.SetPtEtaPhiM( ljet2.Pt(), ljet2.Eta(), -ljet2.Phi(), ljet2.M() )
 
     # flip eta?
     if rng.Uniform() > 0.5:
