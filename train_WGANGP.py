@@ -206,6 +206,7 @@ def train_loop(nb_epoch=1000, BATCH_SIZE=32, TRAINING_RATIO=1):
             0, 1, size=[BATCH_SIZE, GAN_noise_size]).astype('float32')
 
         g_loss = GAN.train_on_batch(X_noise, y_real)
+        g_loss = -1*g_loss
         history["g_loss"].append(g_loss)
 
         # ---------------------
