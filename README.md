@@ -47,13 +47,13 @@ mkdir -p GAN
 ./init_scaler.py csv/mg5_dijet_ht500.ptcl.pt250.nominal.csv 
 ```
 
-## Train the generative-adversarial network (GAN): 
+## Train the generative-adversarial network (DC-GAN): 
 
 ```
 mkdir -p GAN
 mkdir -p img
-./train_GAN.py -e 5000 -d mg5_dijet_ht500 -l reco
-./train_GAN.py -e 5000 -d mg5_dijet_ht500 -l ptcl
+./train_DCGAN.py -e 5000 -d mg5_dijet_ht500 -l reco
+./train_DCGAN.py -e 5000 -d mg5_dijet_ht500 -l ptcl
 ```
 The generator model and the scaler have been saved to the GAN folder.
 
