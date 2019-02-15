@@ -7,7 +7,7 @@ from array import array
 
 GeV = 1.
 TeV = 1e3
-
+pi = 3.1415
 gROOT.SetBatch(1)
 
 filelistname = sys.argv[1]
@@ -63,11 +63,11 @@ _h['jj_E'] = TH1F(
 _h['jj_m'] = TH1F(
     "jj_m",  ";Dijet system m [TeV];Events / Bin Width", 20, 0., 2.)
 _h['jj_dPhi'] = TH1F(
-    "jj_dPhi", ";Dijet system #Delta#phi;Events / Bin Width", 32, 0, 3.1415)
+    "jj_dPhi", ";Dijet system #Delta#phi;Events / Bin Width", 16, pi/2., pi)
 _h['jj_dEta'] = TH1F(
     "jj_dEta", ";Dijet system #Delta#eta;Events / Bin Width", 30, -3., 3.)
 _h['jj_dR'] = TH1F(
-    "jj_dR",   ";Dijet system #Delta R;Events / Bin Width",   30, 2., 5)
+    "jj_dR",   ";Dijet system #Delta R;Events / Bin Width",   15, 2., 5)
 
 _h['ljet1_E_vs_pt'] = TH2F(
     "ljet1_E_vs_pt",  ";Leading large-R jet p_{T} [GeV];Leading large-R jet E [GeV]", 20, 200., 800., 25, 0., 2000)
@@ -91,7 +91,7 @@ _h['ljet2_eta_vs_ljet1_eta'] = TH2F(
     "ljet2_eta_vs_ljet1_eta", ";Leading large-R jet #eta;2nd leading large-R jet #eta", 25, 0, 2.5, 25, 0, 2.5)
 
 _h['jj_dR_vs_jj_m'] = TH2F(
-    "jj_dR_vs_jj_m", ";Dijet system mass [GeV];Dijet system #Delta R",  20, 0., 4., 30, 2., 5)
+    "jj_dR_vs_jj_m", ";Dijet system mass [GeV];Dijet system #Delta R",  20, 0., 4., 15, 2., 5)
 _h['jj_m_vs_jj_pt'] = TH2F(
     "jj_m_vs_jj_pt", ";Dijet system p_{T} [GeV];Dijet system mass [GeV]", 20, 0., 800, 20, 0., 4.)
 _h['ljet1_pt_vs_jj_m'] = TH2F(

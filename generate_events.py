@@ -23,6 +23,7 @@ parser.add_argument('-p', '--preselection',      default="pt250")
 parser.add_argument('-s', '--systematic',        default="nominal")
 parser.add_argument('-d', '--dsid',              default="mg5_dijet_ht500")
 parser.add_argument('-n', '--nevents',           default=10000)
+parser.add_argument('-e', '--epoch',             default=-1)
 args = parser.parse_args()
 
 level = args.level
@@ -42,8 +43,12 @@ print "INFO: Systematic:", syst
 print "INFO: Level", level
 
 #model_filename = "GAN/DCGAN.generator.%s.%s.%s.%s.epoch_95000.h5" % (
+if epoch == -1:
 model_filename = "GAN/DCGAN.generator.%s.%s.%s.%s.h5" % (
     dsid, level, preselection, systematic)
+else:
+model_filename = "GAN/DCGAN.generator.%s.%s.%s.%s.epoch_%05i.h5" % (
+    dsid, level, preselection, systematic, epoch)
 
 print "INFO: loading generator model from", model_filename
 generator = load_model(model_filename, custom_objects={

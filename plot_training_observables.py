@@ -22,6 +22,7 @@ rng = TRandom3()
 
 GeV = 1.
 TeV = 1e3
+pi = 3.1415
 
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
@@ -100,11 +101,11 @@ _h['jj_m'] = TH1F(
     "jj_m",  ";Dijet system m [GeV];Events / Bin Width", 20, 0., 2.)
 
 _h['jj_dPhi'] = TH1F(
-    "jj_dPhi", ";Dijet system #Delta#phi;Events / Bin Width", 32, 0, 3.1415)
+    "jj_dPhi", ";Dijet system #Delta#phi;Events / Bin Width", 16, pi/2., pi)
 _h['jj_dEta'] = TH1F(
     "jj_dEta", ";Dijet system #Delta#eta;Events / Bin Width", 30, -3., 3.)
 _h['jj_dR'] = TH1F(
-    "jj_dR",   ";Dijet system #Delta R;Events / Bin Width",   30, 2., 5)
+    "jj_dR",   ";Dijet system #Delta R;Events / Bin Width",   15, 2., 5)
 
 mc_filename = "histograms/histograms.%s.%s.%s.MC.root" % (
     dsid, level, preselection)
