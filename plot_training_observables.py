@@ -99,6 +99,12 @@ _h['jj_eta'] = TH1F(
 _h['jj_m'] = TH1F(
     "jj_m",  ";Dijet system m [GeV];Events / Bin Width", 20, 0., 2.)
 
+_h['jj_dPhi'] = TH1F(
+    "jj_dPhi", ";Dijet system #Delta#phi;Events / Bin Width", 32, 0, 3.1415)
+_h['jj_dEta'] = TH1F(
+    "jj_dEta", ";Dijet system #Delta#eta;Events / Bin Width", 30, -3., 3.)
+_h['jj_dR'] = TH1F(
+    "jj_dR",   ";Dijet system #Delta R;Events / Bin Width",   30, 2., 5)
 
 mc_filename = "histograms/histograms.%s.%s.%s.MC.root" % (
     dsid, level, preselection)
@@ -113,6 +119,9 @@ _h_mc['ljet2_m'] = f_mc.Get('ljet2_m')
 _h_mc['jj_pt'] = f_mc.Get('jj_pt')
 _h_mc['jj_eta'] = f_mc.Get('jj_eta')
 _h_mc['jj_m'] = f_mc.Get('jj_m')
+_h_mc['jj_dEta'] = f_mc.Get('jj_dEta')
+_h_mc['jj_dPhi'] = f_mc.Get('jj_dPhi')
+_h_mc['jj_dR'] = f_mc.Get('jj_dR')
 
 for h in _h_mc.values():
     SetTH1FStyle(h,  color=kGray+2, fillstyle=1001,
@@ -126,7 +135,7 @@ for h in _h.values():
                  markerstyle=20, linewidth=3)
 
 c = TCanvas("c", "C", 1200, 1200)
-c.Divide(3, 3)
+c.Divide(3, 4)
 
 generator = load_model(model_filename,
                        custom_objects={'mmd_loss': mmd_loss})
@@ -180,6 +189,9 @@ for i in range(n_examples):
         continue
 
     jj = lj1+lj2
+    jj.dEta = lj1.Eta() - lj2.Eta()
+    jj.dPhi = lj1.DeltaPhi( lj2 )
+    jj.dR   = lj1.DeltaR( lj2 )
 
     _h['ljet1_pt'].Fill(lj1.Pt()/GeV)
     _h['ljet1_eta'].Fill(lj1.Eta())
@@ -193,9 +205,12 @@ for i in range(n_examples):
     _h['jj_eta'].Fill(jj.Eta())
     _h['jj_m'].Fill(jj.M()/TeV)
 
+    _h['jj_dEta'].Fill( jj.dEta )
+    _h['jj_dPhi'].Fill( abs(jj.dPhi) )
+    _h['jj_dR'].Fill( jj.dR )
+
 for h in _h.values():
     Normalize(h)
-
 
 def PrintChi2(hname):
     chi2 = Double(0.)
@@ -282,6 +297,27 @@ c.cd(9)
 _h_mc['jj_m'].Draw("h")
 _h['jj_m'].Draw("h same")
 chi2, ndf = PrintChi2('jj_m')
+chi2_tot += chi2
+ndf_tot += ndf
+
+c.cd(10)
+_h_mc['jj_dEta'].Draw("h")
+_h['jj_dEta'].Draw("h same")
+chi2, ndf = PrintChi2('jj_dEta')
+chi2_tot += chi2
+ndf_tot += ndf
+
+c.cd(11)
+_h_mc['jj_dPhi'].Draw("h")
+_h['jj_dPhi'].Draw("h same")
+chi2, ndf = PrintChi2('jj_dPhi')
+chi2_tot += chi2
+ndf_tot += ndf
+
+c.cd(12)
+_h_mc['jj_dR'].Draw("h")
+_h['jj_dR'].Draw("h same")
+chi2, ndf = PrintChi2('jj_dR')
 chi2_tot += chi2
 ndf_tot += ndf
 

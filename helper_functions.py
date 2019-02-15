@@ -102,3 +102,57 @@ def FlipEta(ljets=[]):
 
 ####################
 
+def save_training_history( history, filename = "GAN/training_history.root", verbose=True ):
+   training_root = TFile.Open( filename, "RECREATE" )
+
+   if verbose == True:
+      print "INFO: saving training history..."
+
+   h_d_lr = TGraphErrors()
+   h_g_lr = TGraphErrors()
+   h_d_loss = TGraphErrors()
+   h_d_loss_r = TGraphErrors()
+   h_d_loss_f = TGraphErrors()
+   h_d_acc = TGraphErrors()
+   h_g_loss = TGraphErrors()
+   h_d_acc = TGraphErrors()
+   h_d_acc_f = TGraphErrors()
+   h_d_acc_r = TGraphErrors()
+
+   n_epochs = len(history['d_loss'])
+   for i in range(n_epochs):
+       d_lr = history['d_lr'][i]
+       g_lr = history['g_lr'][i]
+       d_loss = history['d_loss'][i]
+       d_loss_r = history['d_loss_r'][i]
+       d_loss_f = history['d_loss_f'][i]
+       d_acc = history['d_acc'][i]
+       d_acc_f = history['d_acc_f'][i]
+       d_acc_r = history['d_acc_r'][i]
+       g_loss = history['g_loss'][i]
+
+       h_d_lr.SetPoint(i, i, d_lr)
+       h_g_lr.SetPoint(i, i, g_lr)
+       h_d_loss.SetPoint(i, i, d_loss)
+       h_d_loss_r.SetPoint(i, i, d_loss_r)
+       h_d_loss_f.SetPoint(i, i, d_loss_f)
+       h_d_acc.SetPoint(i, i, d_acc)
+       h_d_acc_f.SetPoint(i, i, d_acc_f)
+       h_d_acc_r.SetPoint(i, i, d_acc_r)
+       h_g_loss.SetPoint(i, i, g_loss)
+
+   h_d_lr.Write("d_lr")
+   h_g_lr.Write("g_lr")
+   h_d_loss.Write("d_loss")
+   h_d_loss_r.Write("d_loss_r")
+   h_d_loss_f.Write("d_loss_f")
+   h_g_loss.Write("g_loss")
+   h_d_acc.Write("d_acc")
+   h_d_acc_f.Write("d_acc_f")
+   h_d_acc_r.Write("d_acc_r")
+
+   training_root.Write()
+   training_root.Close()
+
+   if verbose == True:
+      print "INFO: training history saved to file:", training_root.GetName()

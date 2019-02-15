@@ -142,7 +142,7 @@ for ientry in range(n_entries):
             helper_functions.FlipEta(ljets)
 
         jj = ljets[0] + ljets[1]
-        jj.dPhi = abs(dPhi)
+        jj.dPhi = dPhi
         jj.dEta = ljets[0].Eta() - ljets[1].Eta()
         jj.dR = TMath.Sqrt(jj.dPhi*jj.dPhi + jj.dEta*jj.dEta)
 
