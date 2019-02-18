@@ -73,7 +73,7 @@ print "INFO: entries found:", n_entries
 
 # switch on only useful branches
 branches_active = [
-    "Event.Number", "Event.ProcessID", "Event.Weight",
+    "Event.Number", "Event.ProcessID", "Event.Weight", "Vertex_size",
     "Electron.PT", "Muon.PT",
     "Jet.PT", "Jet.Eta", "Jet.Phi", "Jet.T", "Jet.Mass",
     "GenJet.PT", "GenJet.Eta", "GenJet.Phi", "GenJet.T", "GenJet.Mass",
@@ -86,6 +86,7 @@ for branch in branches_active:
 outfile = TFile.Open(outfilename, "RECREATE")
 b_eventNumber = array('l', [0])
 b_weight_mc = array('f', [1.])
+b_mu = array('l', [1])
 
 b_ljet1_pt = array('f', [0.])
 b_ljet1_eta = array('f', [0.])
@@ -109,6 +110,7 @@ b_jj_dR = array('f', [0.])
 outtree = TTree(syst, "MG5 generated events")
 outtree.Branch('eventNumber',        b_eventNumber,     'eventNumber/l')
 outtree.Branch('weight_mc',          b_weight_mc,       'weight_mc/F')
+outtree.Branch('mu',         b_mu,        'mu/l' )
 outtree.Branch('ljet1_pt',   b_ljet1_pt,  'ljet1_pt/F')
 outtree.Branch('ljet1_eta',  b_ljet1_eta, 'ljet1_eta/F')
 outtree.Branch('ljet1_phi',  b_ljet1_phi, 'ljet1_phi/F')
@@ -139,7 +141,7 @@ for ientry in range(n_entries):
         print "INFO: Event %-9i  (%3.0f %%)" % (ientry, perc)
 
     b_weight_mc[0] = tree.GetLeaf("Event.Weight").GetValue(0)
-
+    b_mu[0] = int( tree.GetLeaf("Vertex_size").GetValue(0) )
     ljets_n = tree.GetLeaf("Jet.PT").GetLen()
 
     if level == "ptcl":
@@ -167,6 +169,9 @@ for ientry in range(n_entries):
             tree.GetLeaf("GenJet.Phi").GetValue(1),
             tree.GetLeaf("GenJet.Mass").GetValue(1))
     else:
+        if tree.GetLeaf("Jet.Mass").GetValue(0) < 0.: continue
+        if tree.GetLeaf("Jet.Mass").GetValue(1) < 0.: continue
+
         ljet1.SetPtEtaPhiM(
             tree.GetLeaf("Jet.PT").GetValue(0),
             tree.GetLeaf("Jet.Eta").GetValue(0),

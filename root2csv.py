@@ -20,7 +20,7 @@ rng = TRandom3()
 
 def make_csv_row(eventInfo, ljets, jj):
     row = (
-        "%i" % eventInfo['eventNumber'], "%.3f" % eventInfo['weight'],
+        "%i" % eventInfo['eventNumber'], "%.3f" % eventInfo['weight'], "%i" % eventInfo['mu'],
 
         # leading jet
         "%4.1f" % ljets[0].Pt(),  "%.2f" % ljets[0].Eta(
@@ -149,7 +149,8 @@ for ientry in range(n_entries):
         eventInfo = {
             #'runNumber': tree.runNumber,
             'eventNumber': tree.eventNumber,
-            'weight': w
+            'weight': w,
+            'mu' : tree.mu,
         }
 
         csv_row = make_csv_row(eventInfo, ljets, jj)

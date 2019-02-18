@@ -32,6 +32,7 @@ systematic = args.systematic
 dsid = args.dsid
 syst = args.systematic
 n_events = int(args.nevents)
+epoch = int(args.epoch)
 
 ljets_n_max = 2
 
@@ -44,10 +45,10 @@ print "INFO: Level", level
 
 #model_filename = "GAN/DCGAN.generator.%s.%s.%s.%s.epoch_95000.h5" % (
 if epoch == -1:
-model_filename = "GAN/DCGAN.generator.%s.%s.%s.%s.h5" % (
+  model_filename = "GAN/DCGAN.generator.%s.%s.%s.%s.h5" % (
     dsid, level, preselection, systematic)
 else:
-model_filename = "GAN/DCGAN.generator.%s.%s.%s.%s.epoch_%05i.h5" % (
+  model_filename = "GAN/DCGAN.generator.%s.%s.%s.%s.epoch_%05i.h5" % (
     dsid, level, preselection, systematic, epoch)
 
 print "INFO: loading generator model from", model_filename
