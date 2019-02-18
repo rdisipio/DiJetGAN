@@ -72,6 +72,7 @@ outfile = TFile.Open(outfname, "RECREATE")
 
 b_eventNumber = array('l', [0])
 b_weight_mc = array('f', [1.])
+b_mu = array('l', [1] )
 b_ljet1_pt = array('f', [0.])
 b_ljet1_eta = array('f', [0.])
 b_ljet1_phi = array('f', [0.])
@@ -94,6 +95,7 @@ b_jj_dR = array('f', [0.])
 outtree = TTree(systematic, "GAN generated events")
 outtree.Branch('eventNumber',        b_eventNumber,     'eventNumber/l')
 outtree.Branch('weight_mc',          b_weight_mc,       'weight_mc/F')
+outtree.Branch('mu',         b_mu,        'mu/l' )
 outtree.Branch('ljet1_pt',   b_ljet1_pt,  'ljet1_pt/F')
 outtree.Branch('ljet1_eta',  b_ljet1_eta, 'ljet1_eta/F')
 outtree.Branch('ljet1_phi',  b_ljet1_phi, 'ljet1_phi/F')
@@ -139,6 +141,7 @@ for ievent in range(n_events):
 
     b_eventNumber[0] = ievent
     b_weight_mc[0] = 1.0
+    b_mu[0] = 1
 
     ljets = [TLorentzVector(), TLorentzVector()]
     ljet1 = ljets[0]
@@ -152,6 +155,8 @@ for ievent in range(n_events):
                        X_generated[ievent][4],
                        X_generated[ievent][5],
                        X_generated[ievent][6])
+    if level == "reco":
+       b_mu[0] = int( X_generated[ievent][7] )
 
     # rotate jets' P4's to make flat distribution
     if rng.Uniform() > 0.5:

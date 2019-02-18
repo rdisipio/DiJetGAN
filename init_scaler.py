@@ -16,40 +16,29 @@ np.set_printoptions(precision=4, linewidth=200, suppress=True)
 
 from features import *
 
-features = [
+# read in input file
+infilename = "csv/mc16a.mg5_dijet_ht500.reco.pt250.nominal.csv"
+if len(sys.argv) > 1:
+    infilename = sys.argv[1]
+level = infilename.split("/")[-1].split('.')[1]
+
+if level == "ptcl":
+  features = [
     "ljet1_pt", "ljet1_eta", "ljet1_M",
     "ljet2_pt", "ljet2_eta", "ljet2_phi", "ljet2_M"
-]
-
-# features = [
-#    "ljet1_pt", "ljet1_eta", "ljet1_phi", "ljet1_E", "ljet1_M",
-#    "ljet2_pt", "ljet2_eta", "ljet2_phi", "ljet2_E", "ljet2_M",
-#    "jj_pt",    "jj_eta",    "jj_phi", "jj_E", "jj_M",
-#    "jj_dPhi",  "jj_dEta",   "jj_dR",
-#]
-
-# features = [
-#    "ljet1_pt", "ljet1_eta", "ljet1_phi", "ljet1_M",
-#    "ljet2_pt", "ljet2_eta", "ljet2_phi", "ljet2_M",
-#    "jj_pt",    "jj_eta",    "jj_phi",    "jj_M",
-#]
-
-# features = [
-#    "ljet1_px", "ljet1_py", "ljet1_pz", "ljet1_E",
-#    "ljet2_px", "ljet2_py", "ljet2_pz", "ljet2_E",
-#    "jj_px", "jj_py", "jj_pz", "jj_E",
-#]
+  ]
+else:
+  features = [
+    "ljet1_pt", "ljet1_eta", "ljet1_M",
+    "ljet2_pt", "ljet2_eta", "ljet2_phi", "ljet2_M",
+    "mu",
+  ]
 
 n_features = len(features)
 print "INFO: input features:"
 print features
 print "INFO: total number of input features:     ", n_features
 
-# read in input file
-infilename = "csv/mc16a.mg5_dijet_ht500.reco.pt250.nominal.csv"
-if len(sys.argv) > 1:
-    infilename = sys.argv[1]
-level = infilename.split("/")[-1].split('.')[1]
 
 data = pd.read_csv(infilename, delimiter=',', names=header)
 print "INFO: dataset loaded into memory"

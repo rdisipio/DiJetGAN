@@ -64,23 +64,17 @@ print "INFO: training systematic: %s" % systematic
 
 from features import *
 
-features = [
+if level == "ptcl":
+  features = [
     "ljet1_pt", "ljet1_eta", "ljet1_M",
     "ljet2_pt", "ljet2_eta", "ljet2_phi", "ljet2_M"
-]
-
-# features = [
-#    "ljet1_pt", "ljet1_eta", "ljet1_phi", "ljet1_E", "ljet1_M",
-#    "ljet2_pt", "ljet2_eta", "ljet2_phi", "ljet2_E", "ljet2_M",
-#    "jj_pt",    "jj_eta",    "jj_phi", "jj_E", "jj_M",
-#    "jj_dEta",  "jj_dPhi",   "jj_dR",
-#]
-
-# features = [
-#    "ljet1_pt", "ljet1_eta", "ljet1_phi", "ljet1_M",
-#    "ljet2_pt", "ljet2_eta", "ljet2_phi", "ljet2_M",
-#    "jj_pt",    "jj_eta",    "jj_phi",    "jj_M",
-#]
+ ]
+else:
+  features = [
+    "ljet1_pt", "ljet1_eta", "ljet1_M",
+    "ljet2_pt", "ljet2_eta", "ljet2_phi", "ljet2_M",
+    "mu",
+ ]
 
 n_features = len(features)
 print "INFO: input features:"

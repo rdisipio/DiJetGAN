@@ -30,6 +30,8 @@ outfilename = "histograms/histograms." + \
 outfile = TFile.Open(outfilename, "RECREATE")
 
 _h = {}
+_h['mu'] = TH1F(
+    "mu",  ";Average no. of pileup interactions;Events", 25, 0, 50 )
 _h['ljet1_pt'] = TH1F(
     "ljet1_pt", ";Leading large-R jet p_{T} [GeV];Events / Bin Width", 20,  200.,  800)
 _h['ljet1_eta'] = TH1F(
@@ -139,7 +141,7 @@ for ientry in range(n_entries):
     jj.dEta = lj1.Eta() - lj2.Eta()
     jj.dR = lj1.DeltaR(lj2)
 
-    #abcd16 = tree.abcd16
+    _h['mu'].Fill( tree.mu, w )
 
     _h['ljet1_pt'].Fill(lj1.Pt()/GeV, w)
     _h['ljet1_eta'].Fill(lj1.Eta(), w)
