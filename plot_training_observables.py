@@ -73,7 +73,7 @@ preselection = "pt250"
 systematic = "nominal"
 
 
-scaler_filename = "GAN/scaler.%s.pkl" % level
+scaler_filename = "GAN_%s/scaler.%s.pkl" % (level,level)
 print "INFO: loading scaler from", scaler_filename
 with open(scaler_filename, "rb") as file_scaler:
     scaler = pickle.load(file_scaler)
@@ -83,6 +83,8 @@ _h['ljet1_pt'] = TH1F(
     "ljet1_pt", ";Leading large-R jet p_{T} [GeV];Events / Bin Width", 20,  200.,  800)
 _h['ljet1_eta'] = TH1F(
     "ljet1_eta", ";Leading large-R jet #eta;Events / Bin Width", 25, -2.5, 2.5)
+_h['ljet1_E'] = TH1F(
+    "ljet1_E",  ";Leading large-R jet E [GeV];Events / Bin Width", 25, 0., 1500)
 _h['ljet1_m'] = TH1F(
     "ljet1_m",  ";Leading large-R jet m [GeV];Events / Bin Width", 20, 0., 200.)
 
@@ -90,6 +92,8 @@ _h['ljet2_pt'] = TH1F(
     "ljet2_pt", ";2nd leading large-R jet p_{T} [GeV];Events / Bin Width", 20,  200.,  600)
 _h['ljet2_eta'] = TH1F(
     "ljet2_eta", ";2nd leading large-R jet #eta;Events / Bin Width", 25, -2.5, 2.5)
+_h['ljet2_E'] = TH1F(
+    "ljet2_E",  ";2nd leading large-R jet E [GeV];Events / Bin Width", 25, 0., 1500)
 _h['ljet2_m'] = TH1F(
     "ljet2_m",  ";2nd leading large-R jet m [GeV];Events / Bin Width", 20, 0., 200.)
 
@@ -97,8 +101,12 @@ _h['jj_pt'] = TH1F(
     "jj_pt", ";Dijet system p_{T} [GeV];Events / Bin Width", 15, 0., 300)
 _h['jj_eta'] = TH1F(
     "jj_eta", ";Dijet system #eta;Events / Bin Width", 30, -6.0, 6.0)
+_h['jj_E'] = TH1F(
+    "jj_E",  ";Dijet system E [GeV];Events / Bin Width", 15, 0., 3000)
 _h['jj_m'] = TH1F(
     "jj_m",  ";Dijet system m [GeV];Events / Bin Width", 20, 0., 2.)
+_h['jj_dM'] = TH1F(
+    "jj_dM",   ";Dijet system #Delta M;Events / Bin Width",  20, -200, 200 )
 
 _h['jj_dPhi'] = TH1F(
     "jj_dPhi", ";Dijet system #Delta#phi;Events / Bin Width", 16, pi/2., pi)
@@ -113,16 +121,20 @@ f_mc = TFile.Open(mc_filename)
 _h_mc = {}
 _h_mc['ljet1_pt'] = f_mc.Get('ljet1_pt')
 _h_mc['ljet1_eta'] = f_mc.Get('ljet1_eta')
+_h_mc['ljet1_E'] = f_mc.Get('ljet1_E')
 _h_mc['ljet1_m'] = f_mc.Get('ljet1_m')
 _h_mc['ljet2_pt'] = f_mc.Get('ljet2_pt')
 _h_mc['ljet2_eta'] = f_mc.Get('ljet2_eta')
+_h_mc['ljet2_E'] = f_mc.Get('ljet2_E')
 _h_mc['ljet2_m'] = f_mc.Get('ljet2_m')
 _h_mc['jj_pt'] = f_mc.Get('jj_pt')
 _h_mc['jj_eta'] = f_mc.Get('jj_eta')
+_h_mc['jj_E'] = f_mc.Get('jj_E')
 _h_mc['jj_m'] = f_mc.Get('jj_m')
 _h_mc['jj_dEta'] = f_mc.Get('jj_dEta')
 _h_mc['jj_dPhi'] = f_mc.Get('jj_dPhi')
 _h_mc['jj_dR'] = f_mc.Get('jj_dR')
+_h_mc['jj_dM'] = f_mc.Get('jj_dM')
 
 for h in _h_mc.values():
     SetTH1FStyle(h,  color=kGray+2, fillstyle=1001,
@@ -136,7 +148,7 @@ for h in _h.values():
                  markerstyle=20, linewidth=3)
 
 c = TCanvas("c", "C", 1200, 1200)
-c.Divide(3, 4)
+c.Divide(4, 4)
 
 generator = load_model(model_filename,
                        custom_objects={'mmd_loss': mmd_loss})
@@ -150,14 +162,17 @@ events = scaler.inverse_transform(events)
 
 _h['ljet1_pt'].Reset()
 _h['ljet1_eta'].Reset()
+_h['ljet1_E'].Reset()
 _h['ljet1_m'].Reset()
 
 _h['ljet2_pt'].Reset()
 _h['ljet2_eta'].Reset()
+_h['ljet2_E'].Reset()
 _h['ljet2_m'].Reset()
 
 _h['jj_pt'].Reset()
 _h['jj_eta'].Reset()
+_h['jj_E'].Reset()
 _h['jj_m'].Reset()
 
 for i in range(n_examples):
@@ -193,18 +208,23 @@ for i in range(n_examples):
     jj.dEta = lj1.Eta() - lj2.Eta()
     jj.dPhi = lj1.DeltaPhi( lj2 )
     jj.dR   = lj1.DeltaR( lj2 )
+    jj.dM   = lj1.M() - lj2.M()
 
     _h['ljet1_pt'].Fill(lj1.Pt()/GeV)
     _h['ljet1_eta'].Fill(lj1.Eta())
+    _h['ljet1_E'].Fill(lj1.E()/GeV)
     _h['ljet1_m'].Fill(lj1.M()/GeV)
 
     _h['ljet2_pt'].Fill(lj2.Pt()/GeV)
     _h['ljet2_eta'].Fill(lj2.Eta())
+    _h['ljet2_E'].Fill(lj2.E()/GeV)
     _h['ljet2_m'].Fill(lj2.M()/GeV)
 
     _h['jj_pt'].Fill(jj.Pt()/GeV)
     _h['jj_eta'].Fill(jj.Eta())
+    _h['jj_E'].Fill(jj.E()/GeV)
     _h['jj_m'].Fill(jj.M()/TeV)
+    _h['jj_dM'].Fill(jj.dM/GeV)
 
     _h['jj_dEta'].Fill( jj.dEta )
     _h['jj_dPhi'].Fill( abs(jj.dPhi) )
@@ -249,13 +269,23 @@ chi2_tot += chi2
 ndf_tot += ndf
 
 c.cd(3)
+_h_mc['ljet1_E'].Draw("h")
+_h['ljet1_E'].Draw("h same")
+chi2, ndf = PrintChi2('ljet1_E')
+chi2_tot += chi2
+ndf_tot += ndf
+
+c.cd(4)
 _h_mc['ljet1_m'].Draw("h")
 _h['ljet1_m'].Draw("h same")
 chi2, ndf = PrintChi2('ljet1_m')
 chi2_tot += chi2
 ndf_tot += ndf
 
-c.cd(4)
+#################
+# 2nd leading jet
+
+c.cd(5)
 #_h_mc['ljet2_pt'].SetMinimum(1e-2)
 # gPad.SetLogy(1)
 _h_mc['ljet2_pt'].Draw("h")
@@ -264,21 +294,31 @@ chi2, ndf = PrintChi2('ljet2_pt')
 chi2_tot += chi2
 ndf_tot += ndf
 
-c.cd(5)
+c.cd(6)
 _h_mc['ljet2_eta'].Draw("h")
 _h['ljet2_eta'].Draw("h same")
 chi2, ndf = PrintChi2('ljet2_eta')
 chi2_tot += chi2
 ndf_tot += ndf
 
-c.cd(6)
+c.cd(7)
+_h_mc['ljet2_E'].Draw("h")
+_h['ljet2_E'].Draw("h same")
+chi2, ndf = PrintChi2('ljet2_E')
+chi2_tot += chi2
+ndf_tot += ndf
+
+c.cd(8)
 _h_mc['ljet2_m'].Draw("h")
 _h['ljet2_m'].Draw("h same")
 chi2, ndf = PrintChi2('ljet2_m')
 chi2_tot += chi2
 ndf_tot += ndf
 
-c.cd(7)
+####################
+# Dijet system
+
+c.cd(9)
 #_h_mc['jj_pt'].SetMinimum(1e-2)
 # gPad.SetLogy(1)
 _h_mc['jj_pt'].Draw("h")
@@ -287,45 +327,63 @@ chi2, ndf = PrintChi2('jj_pt')
 chi2_tot += chi2
 ndf_tot += ndf
 
-c.cd(8)
+c.cd(10)
 _h_mc['jj_eta'].Draw("h")
 _h['jj_eta'].Draw("h same")
 chi2, ndf = PrintChi2('jj_eta')
 chi2_tot += chi2
 ndf_tot += ndf
 
-c.cd(9)
+c.cd(11)
+_h_mc['jj_E'].Draw("h")
+_h['jj_E'].Draw("h same")
+chi2, ndf = PrintChi2('jj_E')
+chi2_tot += chi2
+ndf_tot += ndf
+
+c.cd(12)
 _h_mc['jj_m'].Draw("h")
 _h['jj_m'].Draw("h same")
 chi2, ndf = PrintChi2('jj_m')
 chi2_tot += chi2
 ndf_tot += ndf
 
-c.cd(10)
+
+#######################
+# Angular variables
+
+c.cd(13)
 _h_mc['jj_dEta'].Draw("h")
 _h['jj_dEta'].Draw("h same")
 chi2, ndf = PrintChi2('jj_dEta')
 chi2_tot += chi2
 ndf_tot += ndf
 
-c.cd(11)
+c.cd(14)
 _h_mc['jj_dPhi'].Draw("h")
 _h['jj_dPhi'].Draw("h same")
 chi2, ndf = PrintChi2('jj_dPhi')
 chi2_tot += chi2
 ndf_tot += ndf
 
-c.cd(12)
+c.cd(15)
 _h_mc['jj_dR'].Draw("h")
 _h['jj_dR'].Draw("h same")
 chi2, ndf = PrintChi2('jj_dR')
 chi2_tot += chi2
 ndf_tot += ndf
 
+c.cd(16)
+_h_mc['jj_dM'].Draw("h")
+_h['jj_dM'].Draw("h same")
+chi2, ndf = PrintChi2('jj_dM')
+chi2_tot += chi2
+ndf_tot += ndf
+
 c.cd()
 
-imgname = "img/training_%s_%s_%s_epoch_%05i.png" % (
-    dsid, level, preselection, epoch)
+imgname = "img/%s/training_%s_%s_%s_epoch_%05i.png" % (
+    level, dsid, level, preselection, epoch)
 c.SaveAs(imgname)
 
 chi2_o_ndf = chi2_tot / ndf_tot

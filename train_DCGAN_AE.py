@@ -65,11 +65,16 @@ print "INFO: training systematic: %s" % systematic
 from features import *
 
 if level == "ptcl":
+    # features = [
+    #    "ljet1_pt", "ljet1_eta", "ljet1_M",
+    #    "ljet2_pt", "ljet2_eta", "ljet2_phi", "ljet2_M",
+    #]
     features = [
-        "ljet1_pt", "ljet1_eta", "ljet1_M",
-        "ljet2_pt", "ljet2_eta", "ljet2_phi", "ljet2_M",
+        "ljet1_pt", "ljet1_eta", "ljet1_phi", "ljet1_E", "ljet1_M",
+        "ljet2_pt", "ljet2_eta", "ljet2_phi", "ljet2_E", "ljet2_M",
+        "jj_pt",    "jj_eta",    "jj_phi",    "jj_E",    "jj_M",
+        "jj_dPhi",  "jj_dEta",  "jj_dR",
     ]
-
 else:
     features = [
         "ljet1_pt", "ljet1_eta", "ljet1_M",
@@ -130,7 +135,13 @@ print "INFO: number of training events:", n_events
 from models import *
 
 GAN_noise_size = 128  # number of random numbers (input noise)
-G_output_size = n_features
+G_output_size = 8
+# n_features = 18 (?)
+
+encoder = make_encoder(n_features, G_output_size)
+encoder.name = "Encoder"
+decoder = make_decoder(G_output_size, n_features)
+decoder.name = "Decoder"
 
 
 def make_generator():
@@ -204,27 +215,58 @@ generator.summary()
 # Discriminator
 ###############
 
-discriminator = make_discriminator()
-discriminator.name = "Discriminator"
-discriminator.compile(
-    loss='binary_crossentropy',
-    optimizer=d_optimizer,
-    metrics=['accuracy'])
-print "INFO: Discriminator:"
-discriminator.summary()
+#discriminator = make_discriminator()
+#discriminator.name = "Discriminator"
+# discriminator.compile(
+#    loss='binary_crossentropy',
+#    optimizer=d_optimizer,
+#    metrics=['accuracy'])
+#print "INFO: Discriminator:"
+# discriminator.summary()
 
 # For the combined model we will only train the generator
+#discriminator.trainable = False
+#GAN_input = Input(shape=(GAN_noise_size,))
+#GAN_latent = generator(GAN_input)
+#GAN_output = discriminator(GAN_latent)
+#GAN = Model(GAN_input, GAN_output)
+#GAN.name = "GAN"
+# GAN.compile(
+#    loss='binary_crossentropy',
+#    optimizer=g_optimizer)
+#print "INFO: GAN:"
+# GAN.summary()
+
+discriminator = make_discriminator()
+discriminator.name = "Discriminator"
+
+# autoencoder
+ae_in = Input((n_features,))  # (18)
+ae_hid = encoder(ae_in)        # (8)
+D_out = discriminator(ae_hid)  # (1)
+ae_out = decoder(ae_hid)       # (18)
+AE = Model(ae_in, [ae_out, D_out])  # (18), (18,1)
+AE.name = "Autoencoder"
+AE.compile(
+    loss=['mse', 'binary_crossentropy'],
+    optimizer=d_optimizer,
+    metrics=['accuracy']
+)
+print "INFO: Autoencoder:"
+AE.summary()
+
 discriminator.trainable = False
-GAN_input = Input(shape=(GAN_noise_size,))
-GAN_latent = generator(GAN_input)
-GAN_output = discriminator(GAN_latent)
-GAN = Model(GAN_input, GAN_output)
+GAN_input = Input(shape=(GAN_noise_size,))  # (128)
+GAN_latent = encoder(generator(GAN_input))  # (18)->(8)
+GAN_output = discriminator(GAN_latent)  # (1)
+GAN = Model(GAN_input, GAN_output)  # (18), (1)
 GAN.name = "GAN"
 GAN.compile(
     loss='binary_crossentropy',
     optimizer=g_optimizer)
 print "INFO: GAN:"
 GAN.summary()
+
 
 print "INFO: saving models to png files"
 if not os.path.exists("img/"):
@@ -236,7 +278,8 @@ plot_model(discriminator,  show_shapes=True,
            to_file="img/DCGAN_model_%s_discriminator.png" % (dsid))
 plot_model(GAN,            show_shapes=True,
            to_file="img/DCGAN_model_%s_GAN.png" % (dsid))
-
+plot_model(AE,            show_shapes=True,
+           to_file="img/DCGAN_model_%s_AE.png" % (dsid))
 
 # Training:
 # 1) pick up ntrain events from real dataset
@@ -266,7 +309,8 @@ y[n:] = 0
 
 # print "INFO: pre-training discriminator network"
 discriminator.trainable = True
-discriminator.fit(X, y, epochs=1, batch_size=128)
+#discriminator.fit(X, y, epochs=1, batch_size=128)
+AE.fit(X, [X, y], epochs=1, batch_size=128)
 
 history = {
     "d_lr": [], "g_lr": [],
@@ -301,10 +345,10 @@ def train_loop(nb_epoch=1000, BATCH_SIZE=32, TRAINING_RATIO=1):
 
     for epoch in range(nb_epoch):
 
-        d_lr = float(K.get_value(discriminator.optimizer.lr))
+        d_lr = float(K.get_value(AE.optimizer.lr))
         history['d_lr'].append(d_lr)
 
-        g_lr = float(K.get_value(discriminator.optimizer.lr))
+        g_lr = float(K.get_value(AE.optimizer.lr))
         history['g_lr'].append(g_lr)
 
 #        d_lr = step_decay( epoch, initial_lrate=d_lr_0, drop=0.5, epochs_drop=nb_epoch/10.)
@@ -334,10 +378,10 @@ def train_loop(nb_epoch=1000, BATCH_SIZE=32, TRAINING_RATIO=1):
 
             discriminator.trainable = True
 
-            d_loss_r, d_acc_r = discriminator.train_on_batch(
-                X_train_real, y_real)
-            d_loss_f, d_acc_f = discriminator.train_on_batch(
-                X_train_fake, y_fake)
+            loss_r, dec_loss_r, d_loss_r, dec_acc_r, d_acc_r = AE.train_on_batch(
+                X_train_real, [X_train_real, y_real])
+            loss_f, dec_loss_f, d_loss_f, dec_acc_f, d_acc_f = AE.train_on_batch(
+                X_train_fake, [X_train_fake, y_fake])
 
             #clip_weights(discriminator, 0.01)
 
@@ -358,6 +402,7 @@ def train_loop(nb_epoch=1000, BATCH_SIZE=32, TRAINING_RATIO=1):
 
         # we want discriminator to mistake images as real
         discriminator.trainable = False
+        encoder.trainable = False
 
         g_loss = GAN.train_on_batch(X_noise, y_real)
         history["g_loss"].append(g_loss)
@@ -405,7 +450,7 @@ train_loop(nb_epoch=n_epochs, BATCH_SIZE=32,  TRAINING_RATIO=1)
 # train_loop(nb_epoch=n_epochs/2, BATCH_SIZE=32,  TRAINING_RATIO=1)
 
 # save model to file
-model_filename = "GAN_%s/DCGAN.generator.%s.%s.%s.%s.h5" % (
+model_filename = "GAN/%s/DCGAN.generator.%s.%s.%s.%s.h5" % (
     level, dsid, level, preselection, systematic)
 generator.save(model_filename)
 print "INFO: generator model saved to file", model_filename

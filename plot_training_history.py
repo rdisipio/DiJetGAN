@@ -43,8 +43,11 @@ if len(sys.argv) > 2:
 if len(sys.argv) > 3:
     dsid = sys.argv[3]
 
-infilename = "GAN/DCGAN.training_history.%s.%s.%s.nominal.root" % (
-    dsid, level, preselection)
+if not os.path.exists("img/%s/"%level):
+    os.makedirs("img/%s/"%level)
+
+infilename = "GAN_%s/DCGAN.training_history.%s.%s.%s.nominal.root" % (
+    level, dsid, level, preselection)
 infile = TFile.Open(infilename)
 
 d_loss = infile.Get("d_loss")
@@ -104,7 +107,7 @@ SetHistogramStyle(d_acc_r, color=kBlue, linewidth=3)
 
 SetHistogramStyle(g_loss, color=kGreen-1, linewidth=3)
 
-c = TCanvas("C", "C", 1600, 1200)
+c = TCanvas("C", "C", 2400, 1200)
 
 gPad.Divide(1, 2)
 gPad.SetLeftMargin(0.05)
@@ -178,5 +181,5 @@ gPad.RedrawAxis()
 
 c.cd()
 
-imgname = "img/training_%s_%s_%s.png" % (dsid, level, preselection)
+imgname = "img/%s/training_%s_%s_%s.png" % (level,dsid, level, preselection)
 c.SaveAs(imgname)

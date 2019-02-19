@@ -17,7 +17,7 @@ np.set_printoptions(precision=4, linewidth=200, suppress=True)
 from features import *
 
 # read in input file
-infilename = "csv/mc16a.mg5_dijet_ht500.reco.pt250.nominal.csv"
+infilename = "csv/mg5_dijet_ht500.ptcl.pt250.nominal.csv"
 if len(sys.argv) > 1:
     infilename = sys.argv[1]
 level = infilename.split("/")[-1].split('.')[1]
@@ -71,7 +71,7 @@ X_train = scaler.transform(X_train)
 print "INFO: X_train after standardization:"
 print X_train
 
-scaler_filename = "GAN/scaler.%s.pkl" % level
+scaler_filename = "GAN_%s/scaler.%s.pkl" % (level,level)
 with open(scaler_filename, "wb") as file_scaler:
     pickle.dump(scaler, file_scaler)
 print "INFO: scaler saved to file", scaler_filename

@@ -70,6 +70,8 @@ _h['jj_dEta'] = TH1F(
     "jj_dEta", ";Dijet system #Delta#eta;Events / Bin Width", 30, -3., 3.)
 _h['jj_dR'] = TH1F(
     "jj_dR",   ";Dijet system #Delta R;Events / Bin Width",   15, 2., 5)
+_h['jj_dM'] = TH1F(
+    "jj_dM",   ";Dijet system #Delta M;Events / Bin Width",  20, -200, 200 )
 
 _h['ljet1_E_vs_pt'] = TH2F(
     "ljet1_E_vs_pt",  ";Leading large-R jet p_{T} [GeV];Leading large-R jet E [GeV]", 20, 200., 800., 25, 0., 2000)
@@ -140,6 +142,7 @@ for ientry in range(n_entries):
     jj.dPhi = lj1.DeltaPhi(lj2)
     jj.dEta = lj1.Eta() - lj2.Eta()
     jj.dR = lj1.DeltaR(lj2)
+    jj.dM = lj1.M() - lj2.M()
 
     _h['mu'].Fill( tree.mu, w )
 
@@ -162,7 +165,8 @@ for ientry in range(n_entries):
     _h['jj_m'].Fill(jj.M()/TeV, w)
     _h['jj_dPhi'].Fill(abs(jj.dPhi), w)
     _h['jj_dEta'].Fill(jj.dEta, w)
-    _h['jj_dR'].Fill(jj.dR, w)
+    _h['jj_dR'].Fill(jj.dR, w )
+    _h['jj_dM'].Fill(jj.dM/GeV, w )
 
     _h['ljet1_E_vs_pt'].Fill(lj1.Pt()/GeV, lj1.E()/GeV, w)
     _h['ljet1_m_vs_pt'].Fill(lj1.Pt()/GeV, lj1.M()/GeV, w)

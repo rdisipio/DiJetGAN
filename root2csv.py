@@ -23,20 +23,20 @@ def make_csv_row(eventInfo, ljets, jj):
         "%i" % eventInfo['eventNumber'], "%.3f" % eventInfo['weight'], "%i" % eventInfo['mu'],
 
         # leading jet
-        "%4.1f" % ljets[0].Pt(),  "%.2f" % ljets[0].Eta(
-        ), "%.2f" % ljets[0].Phi(),
-        "%4.1f" % ljets[0].E(),   "%4.1f" % ljets[0].M(),
+        "%4.2f" % ljets[0].Pt(),  "%.4f" % ljets[0].Eta(
+        ), "%.4f" % ljets[0].Phi(),
+        "%4.2f" % ljets[0].E(),   "%4.2f" % ljets[0].M(),
 
         # subleading jet
-        "%4.1f" % ljets[1].Pt(),  "%.2f" % ljets[1].Eta(
-        ), "%.2f" % ljets[1].Phi(),
-        "%4.1f" % ljets[1].E(),   "%4.1f" % ljets[1].M(),
+        "%4.2f" % ljets[1].Pt(),  "%.4f" % ljets[1].Eta(
+        ), "%.4f" % ljets[1].Phi(),
+        "%4.2f" % ljets[1].E(),   "%4.2f" % ljets[1].M(),
 
         # dijet system
-        "%4.1f" % jj.Pt(),  "%.2f" % jj.Eta(), "%.2f" % jj.Phi(),
-        "%4.1f" % jj.E(),   "%4.1f" % jj.M(),
+        "%4.2f" % jj.Pt(),  "%.4f" % jj.Eta(), "%.4f" % jj.Phi(),
+        "%4.2f" % jj.E(),   "%4.2f" % jj.M(),
 
-        "%.2f" % jj.dEta,  "%.2f" % jj.dPhi, "%.2f" % jj.dR,
+        "%.4f" % jj.dEta,  "%.4f" % jj.dPhi, "%.4f" % jj.dR,
 
     )
     return row

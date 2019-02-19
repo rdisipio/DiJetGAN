@@ -14,7 +14,7 @@ from keras.optimizers import *
 from keras.regularizers import *
 from keras.models import load_model
 
-#from ROOT import *
+# from ROOT import *
 # from ROOT import TLorentzVector
 # from lorentz import *
 
@@ -22,6 +22,50 @@ import tensorflow as tf
 import numpy as np
 
 #######################################
+
+###############################
+
+
+def make_encoder(n_in, n_lat):
+    E_input = Input((n_in,))
+
+    encoded = Dense(8*n_lat)(E_input)
+    encoded = LeakyReLU(0.2)(encoded)
+
+    encoded = Dense(4*n_lat)(encoded)
+    encoded = LeakyReLU(0.2)(encoded)
+
+    encoded = Dense(2*n_lat)(encoded)
+    encoded = LeakyReLU(0.2)(encoded)
+
+    encoded = Dense(n_lat)(encoded)
+    encoded = LeakyReLU(0.2)(encoded)
+
+    encoder = Model(E_input, encoded)
+    return encoder
+
+#~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+
+def make_decoder(n_lat, n_out):
+    d_input = Input((n_lat,))
+
+    decoded = Dense(n_lat)(d_input)
+    decoded = LeakyReLU(0.2)(decoded)
+
+    decoded = Dense(2*n_lat)(decoded)
+    decoded = LeakyReLU(0.2)(decoded)
+
+    decoded = Dense(4*n_lat)(decoded)
+    decoded = LeakyReLU(0.2)(decoded)
+
+    decoded = Dense(n_out)(decoded)
+    decoded = LeakyReLU(0.2)(decoded)
+
+    decoder = Model(d_input, decoded)
+    return decoder
+
+#################################
 
 
 def entropy(model):
@@ -50,15 +94,15 @@ def filters_entropy(model):
         print conf['name'], conf['filters']
         weights = layer.get_weights()[0]
         shape = weights.shape
-        #print weights.shape
+        # print weights.shape
         kernel_size = shape[0]
         nchannels = shape[2]
         nfilters = shape[3]
-        #print nchannels, nfilters, "(%i,%i)" % (kernel_size, kernel_size)
+        # print nchannels, nfilters, "(%i,%i)" % (kernel_size, kernel_size)
         for ichannel in range(nchannels):
             for ifilter in range(nfilters):
                 w = weights[:, :, ichannel, ifilter]
-                #print w
+                # print w
                 H_i = sum(sum(w*np.log2(abs(w))))
                 # print "%s :: ch=%i : filt=%i, H_i=%.3f" % (
                 #    model.name, ichannel, ifilter, H_i)
@@ -85,7 +129,7 @@ def mean_loss(y_true, y_pred):
 
 class GradNorm(Layer):
     def __init__(self, **kwargs):
-        #self.output_dim = output_dim
+        # self.output_dim = output_dim
         super(GradNorm, self).__init__(**kwargs)
 
     def build(self, input_shape):
@@ -149,7 +193,7 @@ def gauss_loss(y_true, y_pred):
 
     y_diff = y_true-y_pred
     z = y_diff / beta
-    #s = K.exp( -0.5*K.square(z) )
+    # s = K.exp( -0.5*K.square(z) )
     s = 0.5*K.square(z)
 
     return K.mean(s)
@@ -283,18 +327,18 @@ def make_discriminator_mlp(GAN_output_size):
 
     D = Dense(128)(D_input)
     D = LeakyReLU(0.2)(D)
-    #D = Activation('tanh')(D)
+    # D = Activation('tanh')(D)
     D = BatchNormalization(momentum=0.99)(D)  # 0.8
 
     D = Dense(64)(D)
     D = LeakyReLU(0.2)(D)
-    #D = Activation('tanh')(D)
+    # D = Activation('tanh')(D)
     D = BatchNormalization(momentum=0.99)(D)
 
-    #D = Dense(32)(D)
-    #D = LeakyReLU(0.2)(D)
-    #D = Activation('tanh')(D)
-    #D = BatchNormalization(momentum=0.99)(D)
+    # D = Dense(32)(D)
+    # D = LeakyReLU(0.2)(D)
+    # D = Activation('tanh')(D)
+    # D = BatchNormalization(momentum=0.99)(D)
 
     # D = Dense( 8 )(D)
     # D = Activation('tanh')(D)
@@ -322,27 +366,22 @@ def make_generator_cnn(GAN_noise_size, GAN_output_size):
     reg = None  # l2(0.001)
 
     G = Dense(128, kernel_initializer='glorot_uniform')(G_input)
-    #G = Dropout(0.2)(G)
+    # G = Dropout(0.2)(G)
     G = LeakyReLU(alpha=0.2)(G)
-    #G = Activation("relu")(G)
+    # G = Activation("relu")(G)
     G = BatchNormalization()(G)
 
     G = Reshape([8, 8, 2])(G)  # default: channel last
 
-    G = Conv2DTranspose(2, kernel_size=(3, 3), strides=1,
+    G = Conv2DTranspose(32, kernel_size=(2, 2), strides=1,
                         padding="same", kernel_regularizer=reg)(G)
-    #G = Activation("relu")(G)
+    # G = Activation("relu")(G)
     G = LeakyReLU(alpha=0.2)(G)
     G = BatchNormalization()(G)
 
-    G = Conv2DTranspose(4, kernel_size=(3, 3), strides=1,
+    G = Conv2DTranspose(16, kernel_size=(3, 3), strides=1,
                         padding="same", kernel_regularizer=reg)(G)
-    #G = Activation("relu")(G)
-    G = LeakyReLU(alpha=0.2)(G)
-    G = BatchNormalization()(G)
-
-    G = Conv2DTranspose(8, kernel_size=(5, 5), strides=1,
-                        padding="same", kernel_regularizer=reg)(G)
+    # G = Activation("relu")(G)
     G = LeakyReLU(alpha=0.2)(G)
     G = BatchNormalization()(G)
 
@@ -350,8 +389,8 @@ def make_generator_cnn(GAN_noise_size, GAN_output_size):
 
     G_output = Dense(GAN_output_size)(G)
     G_output = Activation("tanh")(G_output)
-    #G_output = Dense(GAN_output_size)(G)
-    #G_output = LeakyReLU(0.2)(G_output)
+    # G_output = Dense(GAN_output_size)(G)
+    # G_output = LeakyReLU(0.2)(G_output)
     generator = Model(G_input, G_output)
 
     return generator
@@ -373,22 +412,20 @@ def make_discriminator_cnn(GAN_output_size):
 
     D = Conv2D(32, kernel_size=(3, 3), strides=1,
                padding="same", kernel_regularizer=reg)(D)
-    #D = BatchNormalization()(D)
+    # D = BatchNormalization()(D)
     D = LeakyReLU(alpha=0.2)(D)
 
-    D = Conv2D(2, kernel_size=(5, 5), strides=1,
+    D = Conv2D(16, kernel_size=(3, 3), strides=1,
                padding="same", kernel_regularizer=reg)(D)
-    #D = BatchNormalization()(D)
+    # D = BatchNormalization()(D)
     D = LeakyReLU(alpha=0.2)(D)
 
     D = Flatten()(D)
-    #D = BatchNormalization()(D)
+    # D = BatchNormalization()(D)
     D = LeakyReLU(alpha=0.2)(D)
 
-    D = Dropout(0.2)(D)
-
-    D_output = Dense(1, activation="sigmoid")(D)
-#    D_output = Dense(1)(D)
+    D_output = Dropout(0.2)(D)
+    D_output = Dense(1, activation="sigmoid")(D_output)
 
     discriminator = Model(D_input, D_output)
     return discriminator

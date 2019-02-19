@@ -315,7 +315,10 @@ leg.SetFillStyle(0)
 leg.SetBorderSize(0)
 leg.SetTextFont(42)
 leg.SetTextSize(0.05)
-leg.AddEntry( h_MC, "MG5+Py8+Delphes", "f" )
+if lvl == "reco":
+  leg.AddEntry( h_MC, "MG5+Py8+Delphes", "f" )
+else:
+  leg.AddEntry( h_MC, "MG5+Py8", "f")
 leg.AddEntry( h_GAN, "GAN", "f" )
 leg.SetY1( leg.GetY1() - 0.05 * leg.GetNRows() )
 leg.Draw()
