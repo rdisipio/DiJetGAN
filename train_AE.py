@@ -163,22 +163,14 @@ print X_train
 ##################
 # Define models
 
-input_E = Input((n_features,))
-encoded = Dense(128, activation='tanh')(input_E)
-encoded = Dense(64, activation='tanh')(encoded)
-encoded = Dense(32, activation='tanh')(encoded)
-output_E = Dense(n_latent, activation="tanh")(encoded)
-encoder = Model(input_E, output_E)
+from models import *
+
+encoder = make_encoder( n_features, n_latent )
 encoder.name = "Encoder"
 print "INOF: Encoder:"
 encoder.summary()
 
-input_D = Input((n_latent,))
-decoded = Dense(32, activation='tanh')(input_D)
-decoded = Dense(64, activation='tanh')(decoded)
-decoded = Dense(128, activation='tanh')(decoded)
-output_D = Dense(n_features, activation="tanh")(decoded)
-decoder = Model(input_D, output_D)
+decoder = make_decoder( n_latent, n_features )
 decoder.name = "Decoder"
 print "INFO: Decoder:"
 decoder.summary()
