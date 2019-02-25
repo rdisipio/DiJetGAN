@@ -23,46 +23,28 @@ import numpy as np
 
 #######################################
 
-###############################
-
 
 def make_encoder(n_in, n_lat):
-    E_input = Input((n_in,))
+    input_E = Input((n_features,))
+    encoded = Dense(128, activation='tanh')(input_E)
+    encoded = Dense(64, activation='tanh')(encoded)
+    encoded = Dense(32, activation='tanh')(encoded)
+    output_E = Dense(n_latent, activation="tanh")(encoded)
+    encoder = Model(input_E, output_E)
 
-    encoded = Dense(8*n_lat)(E_input)
-    encoded = LeakyReLU(0.2)(encoded)
-
-    encoded = Dense(4*n_lat)(encoded)
-    encoded = LeakyReLU(0.2)(encoded)
-
-    encoded = Dense(2*n_lat)(encoded)
-    encoded = LeakyReLU(0.2)(encoded)
-
-    encoded = Dense(n_lat)(encoded)
-    encoded = LeakyReLU(0.2)(encoded)
-
-    encoder = Model(E_input, encoded)
     return encoder
 
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 
 def make_decoder(n_lat, n_out):
-    d_input = Input((n_lat,))
+    input_D = Input((n_latent,))
+    decoded = Dense(32, activation='tanh')(input_D)
+    decoded = Dense(64, activation='tanh')(decoded)
+    decoded = Dense(128, activation='tanh')(decoded)
+    output_D = Dense(n_features, activation="tanh")(decoded)
+    decoder = Model(input_D, output_D)
 
-    decoded = Dense(n_lat)(d_input)
-    decoded = LeakyReLU(0.2)(decoded)
-
-    decoded = Dense(2*n_lat)(decoded)
-    decoded = LeakyReLU(0.2)(decoded)
-
-    decoded = Dense(4*n_lat)(decoded)
-    decoded = LeakyReLU(0.2)(decoded)
-
-    decoded = Dense(n_out)(decoded)
-    decoded = LeakyReLU(0.2)(decoded)
-
-    decoder = Model(d_input, decoded)
     return decoder
 
 #################################
