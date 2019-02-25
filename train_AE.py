@@ -144,9 +144,14 @@ print "INFO: compression factor: %.3f" % compression_factor
 print "INFO: training sample before scaling:"
 print X_train
 
+if not os.path.exists("lorentz/"):
+    print "INFO: creating output directory lorentz/"
+    os.makedirs("lorent/")
+
+
 scaler = MinMaxScaler([-1, 1])
 X_train = scaler.fit_transform(X_train)
-scaler_filename = "lorentz/scaler.%s.h5" % (level)
+scaler_filename = "lorentz/scaler.%s.pkl" % (level)
 with open(scaler_filename, "wb") as file_scaler:
     pickle.dump(scaler, file_scaler)
 print "INFO: scaler saved to file", scaler_filename
