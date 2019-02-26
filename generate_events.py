@@ -45,18 +45,18 @@ print "INFO: Level", level
 
 #model_filename = "GAN/DCGAN.generator.%s.%s.%s.%s.epoch_95000.h5" % (
 if epoch == -1:
-  model_filename = "GAN/DCGAN.generator.%s.%s.%s.%s.h5" % (
-    dsid, level, preselection, systematic)
+  model_filename = "GAN_%s/DCGAN.generator.%s.%s.%s.%s.h5" % (
+    level, dsid, level, preselection, systematic)
 else:
-  model_filename = "GAN/DCGAN.generator.%s.%s.%s.%s.epoch_%05i.h5" % (
-    dsid, level, preselection, systematic, epoch)
+  model_filename = "GAN_%s/DCGAN.generator.%s.%s.%s.%s.epoch_%05i.h5" % (
+    level, dsid, level, preselection, systematic, epoch)
 
 print "INFO: loading generator model from", model_filename
 generator = load_model(model_filename, custom_objects={
                        'wasserstein_loss': wasserstein_loss})
 print generator.summary()
 
-scaler_filename = "GAN/scaler.%s.pkl" % level
+scaler_filename = "GAN_%s/scaler.%s.pkl" % (level,level)
 print "INFO: loading scaler from", scaler_filename
 with open(scaler_filename, "rb") as file_scaler:
     scaler = pickle.load(file_scaler)

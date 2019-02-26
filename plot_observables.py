@@ -277,9 +277,10 @@ else:
 #  DivideByBinWidth( h_GAN )
 #  DivideByBinWidth( h_MC )
 
-#SetTH1FStyle( h_MC,  color=kBlack, markerstyle=20, markersize=2)
-SetTH1FStyle( h_MC,  color=kGray+2, fillstyle=1001, fillcolor=kGray, linewidth=3, markersize=0 )
-#SetTH1FStyle( h_GAN, color=kRed, fillstyle=1001, fillcolor=kRed-7, linewidth=2, markersize=0, markerstyle=20, fill_alpha=0.4 )
+if h_GAN.Class() == TH2F.Class():
+   SetTH1FStyle( h_MC,  color=kkGray+2, markersize=0, markerstyle=22, linewidth=3 )
+else:
+   SetTH1FStyle( h_MC,  color=kGray+2, fillstyle=1001, fillcolor=kGray, linewidth=3, markersize=0 )
 SetTH1FStyle( h_GAN, color=kBlack, markersize=0, markerstyle=20, linewidth=3 )
 
 c, pad0, pad1 = MakeCanvas()

@@ -24,6 +24,7 @@ from keras.optimizers import *
 from keras import regularizers
 from keras.callbacks import *
 from keras.utils import plot_model
+from keras.models import load_model
 
 import pandas as pd
 import helper_functions as hf
@@ -65,20 +66,18 @@ print "INFO: training systematic: %s" % systematic
 from features import *
 
 if level == "ptcl":
-    # features = [
-    #    "ljet1_pt", "ljet1_eta", "ljet1_M",
-    #    "ljet2_pt", "ljet2_eta", "ljet2_phi", "ljet2_M",
-    #]
     features = [
-        "ljet1_pt", "ljet1_eta", "ljet1_phi", "ljet1_E", "ljet1_M",
-        "ljet2_pt", "ljet2_eta", "ljet2_phi", "ljet2_E", "ljet2_M",
-        "jj_pt",    "jj_eta",    "jj_phi",    "jj_E",    "jj_M",
-        "jj_dPhi",  "jj_dEta",  "jj_dR",
+        "ljet1_pt", "ljet1_eta", "ljet1_M",
+        "ljet2_pt", "ljet2_eta", "ljet2_phi", "ljet2_M",
+        "jj_pt",    "jj_eta",    "jj_phi",    "jj_M",
+        #        "jj_dPhi",  "jj_dEta",  "jj_dR",
     ]
 else:
     features = [
         "ljet1_pt", "ljet1_eta", "ljet1_M",
         "ljet2_pt", "ljet2_eta", "ljet2_phi", "ljet2_M",
+        "jj_pt",    "jj_eta",    "jj_phi",    "jj_M",
+        #       "jj_dPhi",  "jj_dEta",  "jj_dR",
         "mu",
     ]
 
@@ -109,7 +108,7 @@ print "INFO: X_train before standardization:"
 print X_train
 
 # load scaler
-scaler_filename = "GAN_%s/scaler.%s.pkl" % (level, level)
+scaler_filename = "lorentz/scaler.%s.pkl" % (level)
 print "INFO: loading scaler from", scaler_filename
 with open(scaler_filename, "rb") as file_scaler:
     scaler = pickle.load(file_scaler)
@@ -127,6 +126,16 @@ X_train = scaler.transform(X_train)
 print "INFO: X_train after standardization:"
 print X_train
 
+encoder_filename = "lorentz/model_encoder.%s.h5" % (level)
+encoder = load_model(encoder_filename)
+n_latent = encoder.layers[-1].output_shape[1]
+
+print "INFO: encoding input (%i) -> (%i):" % (n_features, n_latent)
+X_train = encoder.predict(X_train)
+
+print "INFO: X_train after encoding:"
+print X_train
+
 n_events = len(X_train)
 print "INFO: number of training events:", n_events
 
@@ -135,70 +144,25 @@ print "INFO: number of training events:", n_events
 from models import *
 
 GAN_noise_size = 128  # number of random numbers (input noise)
-G_output_size = 8
-# n_features = 18 (?)
-
-encoder = make_encoder(n_features, G_output_size)
-encoder.name = "Encoder"
-decoder = make_decoder(G_output_size, n_features)
-decoder.name = "Decoder"
 
 
 def make_generator():
-    # return make_generator_mlp_LorentzVector( GAN_noise_size )
-    # return make_generator_mlp(GAN_noise_size, G_output_size )
-    # return make_generator_rnn( GAN_noise_size, G_output_size )
-    return make_generator_cnn(GAN_noise_size, n_features)
+    return make_generator_mlp(GAN_noise_size, n_latent)
+    # return make_generator_cnn(GAN_noise_size, n_latent)
 
 
 def make_discriminator():
-    # return make_discriminator_mlp( G_output_size )
-    # return make_discriminator_rnn( G_output_size )
-    return make_discriminator_cnn(G_output_size)
+    #    return make_discriminator_mlp( n_latent )
+    return make_discriminator_cnn(n_latent)
 
 #~~~~~~~~~~~~~~~~~~~~~~
 
 
-# d_optimizer = RMSprop(lr=1e-4, rho=0.9)  # clipvalue=0.01)
-# g_optimizer = RMSprop(lr=1e-4, rho=0.9)  # , clipvalue=0.01)
-
-# d_optimizer = Adamax()
-# g_optimizer = Adadelta()
-
 d_optimizer = Adam(1e-5, beta_1=0.5, beta_2=0.9)
 g_optimizer = Adam(1e-5, beta_1=0.5, beta_2=0.9)
 
-#d_optimizer = Adam(1e-5, beta_1=0.8, beta_2=0.999 )
-#g_optimizer = Adam(1e-5, beta_1=0.8, beta_2=0.999 )
-
-# d_optimizer = Adam(0.0001)  # , clipnorm=1.0)
-# g_optimizer = Adam(0.0001)  # , clipnorm=1.0)
-
-# d_optimizer = Adam(0.0001)  # , 0.5)
-# g_optimizer = Adam(0.0001) #, 0.5)
-
-# d_optimizer = Adam(1e-4)
-# g_optimizer = Adam(1e-4)
-
-# d_optimizer = SGD(0.0001, 0.9, nesterov=True)
-# g_optimizer = SGD(0.0001, 0.9, nesterov=True)
-
-# d_optimizer = SGD(0.01, 0.9)
-# g_optimizer = SGD(0.01, 0.9)
-
-
-# d_optimizer = Adam(0.01)
-# g_optimizer = Adam(0.01)
-
-# the best so far, and by far!
-#d_optimizer = SGD(0.01)
-#g_optimizer = SGD(0.01)
-
-# d_optimizer = Adam(0.001, 0.9)
-# g_optimizer = Adam(0.001, 0.9)
-
-# d_optimizer = RMSprop(lr=0.01)
-# g_optimizer = SGD(0.01)
+#d_optimizer = RMSprop(0.001)
+#g_optimizer = RMSprop(0.001)
 
 ###########
 # Generator
@@ -215,51 +179,21 @@ generator.summary()
 # Discriminator
 ###############
 
-#discriminator = make_discriminator()
-#discriminator.name = "Discriminator"
-# discriminator.compile(
-#    loss='binary_crossentropy',
-#    optimizer=d_optimizer,
-#    metrics=['accuracy'])
-#print "INFO: Discriminator:"
-# discriminator.summary()
-
-# For the combined model we will only train the generator
-#discriminator.trainable = False
-#GAN_input = Input(shape=(GAN_noise_size,))
-#GAN_latent = generator(GAN_input)
-#GAN_output = discriminator(GAN_latent)
-#GAN = Model(GAN_input, GAN_output)
-#GAN.name = "GAN"
-# GAN.compile(
-#    loss='binary_crossentropy',
-#    optimizer=g_optimizer)
-#print "INFO: GAN:"
-# GAN.summary()
-
 discriminator = make_discriminator()
 discriminator.name = "Discriminator"
-
-# autoencoder
-ae_in = Input((n_features,))  # (18)
-ae_hid = encoder(ae_in)        # (8)
-D_out = discriminator(ae_hid)  # (1)
-ae_out = decoder(ae_hid)       # (18)
-AE = Model(ae_in, [ae_out, D_out])  # (18), (18,1)
-AE.name = "Autoencoder"
-AE.compile(
-    loss=['mse', 'binary_crossentropy'],
+discriminator.compile(
+    loss='binary_crossentropy',
     optimizer=d_optimizer,
-    metrics=['accuracy']
-)
-print "INFO: Autoencoder:"
-AE.summary()
+    metrics=['accuracy'])
+print "INFO: Discriminator:"
+discriminator.summary()
 
+# For the combined model we will only train the generator
 discriminator.trainable = False
-GAN_input = Input(shape=(GAN_noise_size,))  # (128)
-GAN_latent = encoder(generator(GAN_input))  # (18)->(8)
-GAN_output = discriminator(GAN_latent)  # (1)
-GAN = Model(GAN_input, GAN_output)  # (18), (1)
+GAN_input = Input(shape=(GAN_noise_size,))
+GAN_latent = generator(GAN_input)
+GAN_output = discriminator(GAN_latent)
+GAN = Model(GAN_input, GAN_output)
 GAN.name = "GAN"
 GAN.compile(
     loss='binary_crossentropy',
@@ -278,8 +212,6 @@ plot_model(discriminator,  show_shapes=True,
            to_file="img/DCGAN_model_%s_discriminator.png" % (dsid))
 plot_model(GAN,            show_shapes=True,
            to_file="img/DCGAN_model_%s_GAN.png" % (dsid))
-plot_model(AE,            show_shapes=True,
-           to_file="img/DCGAN_model_%s_AE.png" % (dsid))
 
 # Training:
 # 1) pick up ntrain events from real dataset
@@ -299,8 +231,8 @@ X_train_fake = generator.predict(X_noise)
 X = np.concatenate((X_train_real, X_train_fake))
 n = X_train_real.shape[0]
 y = np.zeros([2*n])
-y[:n] = 1
-y[n:] = 0
+y[:n] = 0.9
+y[n:] = 0.1
 
 # event weights
 # weights_fake = np.array( [ x if not x == 0. else 1./j_pt_max for x in X_train_fake[:,10] ] )
@@ -309,8 +241,7 @@ y[n:] = 0
 
 # print "INFO: pre-training discriminator network"
 discriminator.trainable = True
-#discriminator.fit(X, y, epochs=1, batch_size=128)
-AE.fit(X, [X, y], epochs=1, batch_size=128)
+discriminator.fit(X, y, epochs=1, batch_size=128)
 
 history = {
     "d_lr": [], "g_lr": [],
@@ -337,18 +268,19 @@ def train_loop(nb_epoch=1000, BATCH_SIZE=32, TRAINING_RATIO=1):
 
     plt_frq = max(1, int(nb_epoch)/50)
 
-    y_real = np.ones((BATCH_SIZE, 1))
-    y_fake = np.zeros((BATCH_SIZE, 1))
+    y_real = 0.9*np.ones((BATCH_SIZE, 1))
+    y_fake = 0.1*np.ones((BATCH_SIZE, 1))
+    #y_fake = np.zeros((BATCH_SIZE, 1))
 
     # d_lr_0 = float( K.get_value( discriminator.optimizer.lr ) )
     # g_lr_0 = float( K.get_value( generator.optimizer.lr ) )
 
     for epoch in range(nb_epoch):
 
-        d_lr = float(K.get_value(AE.optimizer.lr))
+        d_lr = float(K.get_value(discriminator.optimizer.lr))
         history['d_lr'].append(d_lr)
 
-        g_lr = float(K.get_value(AE.optimizer.lr))
+        g_lr = float(K.get_value(discriminator.optimizer.lr))
         history['g_lr'].append(g_lr)
 
 #        d_lr = step_decay( epoch, initial_lrate=d_lr_0, drop=0.5, epochs_drop=nb_epoch/10.)
@@ -378,10 +310,10 @@ def train_loop(nb_epoch=1000, BATCH_SIZE=32, TRAINING_RATIO=1):
 
             discriminator.trainable = True
 
-            loss_r, dec_loss_r, d_loss_r, dec_acc_r, d_acc_r = AE.train_on_batch(
-                X_train_real, [X_train_real, y_real])
-            loss_f, dec_loss_f, d_loss_f, dec_acc_f, d_acc_f = AE.train_on_batch(
-                X_train_fake, [X_train_fake, y_fake])
+            d_loss_r, d_acc_r = discriminator.train_on_batch(
+                X_train_real, y_real)
+            d_loss_f, d_acc_f = discriminator.train_on_batch(
+                X_train_fake, y_fake)
 
             #clip_weights(discriminator, 0.01)
 
@@ -402,7 +334,6 @@ def train_loop(nb_epoch=1000, BATCH_SIZE=32, TRAINING_RATIO=1):
 
         # we want discriminator to mistake images as real
         discriminator.trainable = False
-        encoder.trainable = False
 
         g_loss = GAN.train_on_batch(X_noise, y_real)
         history["g_loss"].append(g_loss)
@@ -450,11 +381,11 @@ train_loop(nb_epoch=n_epochs, BATCH_SIZE=32,  TRAINING_RATIO=1)
 # train_loop(nb_epoch=n_epochs/2, BATCH_SIZE=32,  TRAINING_RATIO=1)
 
 # save model to file
-model_filename = "GAN/%s/DCGAN.generator.%s.%s.%s.%s.h5" % (
+model_filename = "GAN_%s/DCGAN.generator.%s.%s.%s.%s.h5" % (
     level, dsid, level, preselection, systematic)
 generator.save(model_filename)
 print "INFO: generator model saved to file", model_filename
 
-training_filename = "GAN/DCGAN.training_history.%s.%s.%s.%s.root" % (
-    dsid, level, preselection, systematic)
+training_filename = "GAN_%s/DCGAN.training_history.%s.%s.%s.%s.root" % (
+    level, dsid, level, preselection, systematic)
 hf.save_training_history(history, training_filename)

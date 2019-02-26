@@ -25,11 +25,11 @@ import numpy as np
 
 
 def make_encoder(n_in, n_lat):
-    input_E = Input((n_features,))
+    input_E = Input((n_in,))
     encoded = Dense(128, activation='tanh')(input_E)
     encoded = Dense(64, activation='tanh')(encoded)
     encoded = Dense(32, activation='tanh')(encoded)
-    output_E = Dense(n_latent, activation="tanh")(encoded)
+    output_E = Dense(n_lat, activation="tanh")(encoded)
     encoder = Model(input_E, output_E)
 
     return encoder
@@ -38,11 +38,11 @@ def make_encoder(n_in, n_lat):
 
 
 def make_decoder(n_lat, n_out):
-    input_D = Input((n_latent,))
+    input_D = Input((n_lat,))
     decoded = Dense(32, activation='tanh')(input_D)
     decoded = Dense(64, activation='tanh')(decoded)
     decoded = Dense(128, activation='tanh')(decoded)
-    output_D = Dense(n_features, activation="tanh")(decoded)
+    output_D = Dense(n_out, activation="tanh")(decoded)
     decoder = Model(input_D, output_D)
 
     return decoder
@@ -282,16 +282,16 @@ def make_generator_mlp(GAN_noise_size, GAN_output_size):
 
     G_input = Input(shape=(GAN_noise_size,), name="Noise")
 
-    G = Dense(128, kernel_initializer='glorot_normal')(G_input)
-    G = LeakyReLU(alpha=0.2)(G)
+    G = Dense(128, activation="tanh", kernel_initializer='glorot_normal')(G_input)
+#    G = LeakyReLU(alpha=0.2)(G)
     G = BatchNormalization()(G)  # 0.8
 
-    G = Dense(64)(G)
-    G = LeakyReLU(alpha=0.2)(G)
+    G = Dense(64, activation="tanh")(G)
+#    G = LeakyReLU(alpha=0.2)(G)
     G = BatchNormalization()(G)
 
-    G = Dense(32)(G)
-    G = LeakyReLU(alpha=0.2)(G)
+    G = Dense(32, activation="tanh")(G)
+#    G = LeakyReLU(alpha=0.2)(G)
 
     G = Dense(GAN_output_size, activation="tanh")(G)
 
@@ -307,13 +307,13 @@ def make_discriminator_mlp(GAN_output_size):
     inshape = (GAN_output_size, )
     D_input = Input(shape=inshape, name='D_input')
 
-    D = Dense(128)(D_input)
-    D = LeakyReLU(0.2)(D)
+    D = Dense(128, activation="tanh")(D_input)
+#    D = LeakyReLU(0.2)(D)
     # D = Activation('tanh')(D)
     D = BatchNormalization(momentum=0.99)(D)  # 0.8
 
-    D = Dense(64)(D)
-    D = LeakyReLU(0.2)(D)
+    D = Dense(64, activation="tanh")(D)
+    #D = LeakyReLU(0.2)(D)
     # D = Activation('tanh')(D)
     D = BatchNormalization(momentum=0.99)(D)
 

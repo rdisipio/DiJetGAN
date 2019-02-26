@@ -73,7 +73,8 @@ preselection = "pt250"
 systematic = "nominal"
 
 
-scaler_filename = "GAN_%s/scaler.%s.pkl" % (level,level)
+#scaler_filename = "GAN_%s/scaler.%s.pkl" % (level,level)
+scaler_filename = "lorentz/scaler.%s.pkl" % ( level )
 print "INFO: loading scaler from", scaler_filename
 with open(scaler_filename, "rb") as file_scaler:
     scaler = pickle.load(file_scaler)
@@ -153,11 +154,19 @@ c.Divide(4, 4)
 generator = load_model(model_filename,
                        custom_objects={'mmd_loss': mmd_loss})
 
+decoder_filename = "lorentz/model_decoder.%s.h5" % (level)
+decoder = load_model( decoder_filename )
+
 GAN_noise_size = generator.layers[0].input_shape[1]
+n_latent       = decoder.layers[0].input_shape[1]
+n_features     = decoder.layers[-1].output_shape[1]
+
+print "INFO: decoder: (%i) -> (%i)" % ( n_latent, n_features )
 
 X_noise = np.random.uniform(
     0, 1, size=[n_examples, GAN_noise_size])
 events = generator.predict(X_noise)
+events = decoder.predict(events)
 events = scaler.inverse_transform(events)
 
 _h['ljet1_pt'].Reset()
@@ -176,6 +185,11 @@ _h['jj_E'].Reset()
 _h['jj_m'].Reset()
 
 for i in range(n_examples):
+
+    #    "ljet1_pt", "ljet1_eta", "ljet1_M",
+    #    "ljet2_pt", "ljet2_eta", "ljet2_phi", "ljet2_M",
+    #    "jj_pt",    "jj_eta",    "jj_phi",    "jj_M",
+    #    "jj_dPhi",  "jj_dEta",  "jj_dR",
 
     lj1 = TLorentzVector()
     lj1.SetPtEtaPhiM(events[i][0],

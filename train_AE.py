@@ -101,7 +101,6 @@ if level == "ptcl":
         "ljet1_pt", "ljet1_eta", "ljet1_M",
         "ljet2_pt", "ljet2_eta", "ljet2_phi", "ljet2_M",
         "jj_pt",    "jj_eta",    "jj_phi",    "jj_M",
-        "jj_dPhi",  "jj_dEta",  "jj_dR",
     ]
 
 else:
@@ -109,9 +108,10 @@ else:
         "ljet1_pt", "ljet1_eta", "ljet1_M",
         "ljet2_pt", "ljet2_eta", "ljet2_phi", "ljet2_M",
         "jj_pt",    "jj_eta",    "jj_phi",    "jj_M",
-        "jj_dPhi",  "jj_dEta",  "jj_dR",
         "mu",
     ]
+n_features = len(features)
+
 data = pd.read_csv(training_filename, delimiter=',', names=header)
 print "INFO: dataset loaded into memory"
 print "INFO: header:"
@@ -127,11 +127,8 @@ print "INFO: number of good events:", len(data)
 X_train = data[features].values
 print "INFO: X_train shape:", X_train.shape
 
-
-# n_features = 3 * 5 + 3  # = 18, in case you were wondering
-#n_features = 3*5
 n_features = len(features)
-n_latent = 8
+n_latent = 6
 compression_factor = float(n_features) / float(n_latent)
 print "INFO: compression factor: %.3f" % compression_factor
 
@@ -148,7 +145,6 @@ if not os.path.exists("lorentz/"):
     print "INFO: creating output directory lorentz/"
     os.makedirs("lorent/")
 
-
 scaler = MinMaxScaler([-1, 1])
 X_train = scaler.fit_transform(X_train)
 scaler_filename = "lorentz/scaler.%s.pkl" % (level)
@@ -158,7 +154,6 @@ print "INFO: scaler saved to file", scaler_filename
 
 print "INFO: training sample after transformation:"
 print X_train
-
 
 ##################
 # Define models
@@ -202,8 +197,8 @@ callbacks = [
     # ModelCheckpoint(filepath=weights_filename, monitor='val_loss', save_best_only=True)
 ]
 
-N_EPOCHS = 10
-BATCH_SIZE = 1024
+N_EPOCHS = 5
+BATCH_SIZE = 512
 
 history = autoencoder.fit(X_train, X_train,
                           epochs=N_EPOCHS, batch_size=BATCH_SIZE,
@@ -221,7 +216,6 @@ print "INFO: ...done."
 print "INFO: decoding encoded input..."
 y_decoded = decoder.predict(y_encoded)
 print "INFO: ..done"
-
 
 X_train = scaler.inverse_transform(X_train)
 X_decoded = scaler.inverse_transform(y_decoded)
@@ -256,9 +250,9 @@ for i in range(20):
                     X_train[i][8],
                     X_train[i][9],
                     X_train[i][10])
-    xx.dEta = X_train[i][11]
-    xx.dPhi = X_train[i][12]
-    xx.dR = X_train[i][13]
+#    xx.dEta = X_train[i][11]
+#    xx.dPhi = X_train[i][12]
+#    xx.dR = X_train[i][13]
 
     y1 = TLorentzVector()
     y2 = TLorentzVector()
@@ -278,18 +272,20 @@ for i in range(20):
                     X_decoded[i][8],
                     X_decoded[i][9],
                     X_decoded[i][10])
-    yy.dEta = X_decoded[i][11]
-    yy.dPhi = X_decoded[i][12]
-    yy.dR = X_decoded[i][13]
+#    yy.dEta = X_decoded[i][11]
+#    yy.dPhi = X_decoded[i][12]
+#    yy.dR = X_decoded[i][13]
 
     print "original: (%.1f, %.2f, %.2f, %.1f) :: (%.1f, %.2f, %.2f, %.1f) :: (%.1f, %.2f, %.2f, %.1f) :: (%.2f, %.2f, %.2f)" % (
         x1.Pt(), x1.Eta(), x1.Phi(), x1.M(),
         x2.Pt(), x2.Eta(), x2.Phi(), x2.M(),
         xx.Pt(), xx.Eta(), xx.Phi(), xx.M(),
-        xx.dEta, xx.dPhi, xx.dR)
+        0., 0., 0. )
+ #       xx.dEta, xx.dPhi, xx.dR)
     print "decoded: (%.1f, %.2f, %.2f, %.1f) :: (%.1f, %.2f, %.2f, %.1f) :: (%.1f, %.2f, %.2f, %.1f) :: (%.2f, %.2f, %.2f)" % (
         y1.Pt(), y1.Eta(), y1.Phi(), y1.M(),
         y2.Pt(), y2.Eta(), y2.Phi(), y2.M(),
         yy.Pt(), yy.Eta(), yy.Phi(), yy.M(),
-        yy.dEta, yy.dPhi, yy.dR)
+        0., 0., 0. )
+#        yy.dEta, yy.dPhi, yy.dR)
     print "-"*20
