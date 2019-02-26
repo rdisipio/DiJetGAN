@@ -147,8 +147,8 @@ GAN_noise_size = 128  # number of random numbers (input noise)
 
 
 def make_generator():
-    return make_generator_mlp(GAN_noise_size, n_latent)
-    # return make_generator_cnn(GAN_noise_size, n_latent)
+    # return make_generator_mlp(GAN_noise_size, n_latent)
+    return make_generator_cnn(GAN_noise_size, n_latent)
 
 
 def make_discriminator():
