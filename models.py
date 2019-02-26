@@ -282,16 +282,16 @@ def make_generator_mlp(GAN_noise_size, GAN_output_size):
 
     G_input = Input(shape=(GAN_noise_size,), name="Noise")
 
-    G = Dense(128, activation="tanh", kernel_initializer='glorot_normal')(G_input)
-#    G = LeakyReLU(alpha=0.2)(G)
+    G = Dense(128, kernel_initializer='glorot_normal')(G_input)
+    G = LeakyReLU(alpha=0.2)(G)
     G = BatchNormalization()(G)  # 0.8
 
-    G = Dense(64, activation="tanh")(G)
-#    G = LeakyReLU(alpha=0.2)(G)
+    G = Dense(64)(G)
+    G = LeakyReLU(alpha=0.2)(G)
     G = BatchNormalization()(G)
 
-    G = Dense(32, activation="tanh")(G)
-#    G = LeakyReLU(alpha=0.2)(G)
+    G = Dense(32)(G)
+    G = LeakyReLU(alpha=0.2)(G)
 
     G = Dense(GAN_output_size, activation="tanh")(G)
 

@@ -183,6 +183,7 @@ discriminator = make_discriminator()
 discriminator.name = "Discriminator"
 discriminator.compile(
     loss='binary_crossentropy',
+    # loss='mse',
     optimizer=d_optimizer,
     metrics=['accuracy'])
 print "INFO: Discriminator:"
@@ -197,6 +198,7 @@ GAN = Model(GAN_input, GAN_output)
 GAN.name = "GAN"
 GAN.compile(
     loss='binary_crossentropy',
+    # loss='mse',
     optimizer=g_optimizer)
 print "INFO: GAN:"
 GAN.summary()
@@ -231,8 +233,8 @@ X_train_fake = generator.predict(X_noise)
 X = np.concatenate((X_train_real, X_train_fake))
 n = X_train_real.shape[0]
 y = np.zeros([2*n])
-y[:n] = 0.9
-y[n:] = 0.1
+y[:n] = 1
+y[n:] = 0
 
 # event weights
 # weights_fake = np.array( [ x if not x == 0. else 1./j_pt_max for x in X_train_fake[:,10] ] )
@@ -268,9 +270,8 @@ def train_loop(nb_epoch=1000, BATCH_SIZE=32, TRAINING_RATIO=1):
 
     plt_frq = max(1, int(nb_epoch)/50)
 
-    y_real = 0.9*np.ones((BATCH_SIZE, 1))
-    y_fake = 0.1*np.ones((BATCH_SIZE, 1))
-    #y_fake = np.zeros((BATCH_SIZE, 1))
+    y_real = np.ones((BATCH_SIZE, 1))
+    y_fake = np.zeros((BATCH_SIZE, 1))
 
     # d_lr_0 = float( K.get_value( discriminator.optimizer.lr ) )
     # g_lr_0 = float( K.get_value( generator.optimizer.lr ) )
