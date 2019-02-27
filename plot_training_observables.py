@@ -24,6 +24,9 @@ GeV = 1.
 TeV = 1e3
 pi = 3.1415
 
+np.set_printoptions(precision=2, suppress=True, linewidth=300)
+
+
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 
@@ -73,8 +76,8 @@ preselection = "pt250"
 systematic = "nominal"
 
 
-#scaler_filename = "GAN_%s/scaler.%s.pkl" % (level,level)
-scaler_filename = "lorentz/scaler.%s.pkl" % ( level )
+scaler_filename = "GAN_%s/scaler.%s.pkl" % (level, level)
+# scaler_filename = "lorentz/scaler.%s.pkl" % ( level ) # DCGAN_AE
 print "INFO: loading scaler from", scaler_filename
 with open(scaler_filename, "rb") as file_scaler:
     scaler = pickle.load(file_scaler)
@@ -107,7 +110,7 @@ _h['jj_E'] = TH1F(
 _h['jj_m'] = TH1F(
     "jj_m",  ";Dijet system m [GeV];Events / Bin Width", 20, 0., 2.)
 _h['jj_dM'] = TH1F(
-    "jj_dM",   ";Dijet system #Delta M;Events / Bin Width",  20, -200, 200 )
+    "jj_dM",   ";Dijet system #Delta M;Events / Bin Width",  20, -200, 200)
 
 _h['jj_dPhi'] = TH1F(
     "jj_dPhi", ";Dijet system #Delta#phi;Events / Bin Width", 16, pi/2., pi)
@@ -154,19 +157,33 @@ c.Divide(4, 4)
 generator = load_model(model_filename,
                        custom_objects={'mmd_loss': mmd_loss})
 
-decoder_filename = "lorentz/model_decoder.%s.h5" % (level)
-decoder = load_model( decoder_filename )
+#decoder_filename = "lorentz/model_decoder.%s.h5" % (level)
+#decoder = load_model(decoder_filename)
 
 GAN_noise_size = generator.layers[0].input_shape[1]
-n_latent       = decoder.layers[0].input_shape[1]
-n_features     = decoder.layers[-1].output_shape[1]
+n_features = generator.layers[-1].output_shape[1]
+#n_latent = decoder.layers[0].input_shape[1]
+#print "INFO: decoder: (%i) -> (%i)" % (n_latent, n_features)
 
-print "INFO: decoder: (%i) -> (%i)" % ( n_latent, n_features )
+# read in input file
+import pandas as pd
+from sklearn.preprocessing import MinMaxScaler
+from features import header
+infilename = "csv/mg5_dijet_ht500.ptcl.pt250.nominal.csv"
+level = infilename.split("/")[-1].split('.')[1]
+data = pd.read_csv(infilename, delimiter=',', names=header)
+idx = np.random.randint(0, len(data), size=n_examples)
+X_jj = data[["jj_M"]].values[idx]
+scaler_jj = MinMaxScaler([-1, 1])
+X_jj = scaler_jj.fit_transform(X_jj)
+#X_jj = np.random.uniform(800, 2000, size=(n_examples, 1))
+#print "INFO: conditional labels:"
+#print X_jj
 
 X_noise = np.random.uniform(
     0, 1, size=[n_examples, GAN_noise_size])
-events = generator.predict(X_noise)
-events = decoder.predict(events)
+events = generator.predict([X_noise, X_jj])
+#events = decoder.predict(events)
 events = scaler.inverse_transform(events)
 
 _h['ljet1_pt'].Reset()
@@ -220,9 +237,9 @@ for i in range(n_examples):
 
     jj = lj1+lj2
     jj.dEta = lj1.Eta() - lj2.Eta()
-    jj.dPhi = lj1.DeltaPhi( lj2 )
-    jj.dR   = lj1.DeltaR( lj2 )
-    jj.dM   = lj1.M() - lj2.M()
+    jj.dPhi = lj1.DeltaPhi(lj2)
+    jj.dR = lj1.DeltaR(lj2)
+    jj.dM = lj1.M() - lj2.M()
 
     _h['ljet1_pt'].Fill(lj1.Pt()/GeV)
     _h['ljet1_eta'].Fill(lj1.Eta())
@@ -240,12 +257,13 @@ for i in range(n_examples):
     _h['jj_m'].Fill(jj.M()/TeV)
     _h['jj_dM'].Fill(jj.dM/GeV)
 
-    _h['jj_dEta'].Fill( jj.dEta )
-    _h['jj_dPhi'].Fill( abs(jj.dPhi) )
-    _h['jj_dR'].Fill( jj.dR )
+    _h['jj_dEta'].Fill(jj.dEta)
+    _h['jj_dPhi'].Fill(abs(jj.dPhi))
+    _h['jj_dR'].Fill(jj.dR)
 
 for h in _h.values():
     Normalize(h)
+
 
 def PrintChi2(hname):
     chi2 = Double(0.)

@@ -95,6 +95,10 @@ if len(sys.argv) > 1:
     level = sys.argv[1]
 training_filename = "csv/mg5_dijet_ht500.%s.pt250.nominal.csv" % (level)
 
+n_latent = 8
+if len(sys.argv) > 2:
+  n_latent = int( sys.argv[2] )
+
 from features import *
 if level == "ptcl":
     features = [
@@ -128,7 +132,6 @@ X_train = data[features].values
 print "INFO: X_train shape:", X_train.shape
 
 n_features = len(features)
-n_latent = 6
 compression_factor = float(n_features) / float(n_latent)
 print "INFO: compression factor: %.3f" % compression_factor
 

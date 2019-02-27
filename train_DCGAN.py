@@ -109,6 +109,15 @@ print "INFO: loading scaler from", scaler_filename
 with open(scaler_filename, "rb") as file_scaler:
     scaler = pickle.load(file_scaler)
 
+# Conditional labels
+obs_jj = ["jj_M"]
+X_jj = data[obs_jj].values
+scaler_jj = MinMaxScaler([-1, 1])
+X_jj = scaler_jj.fit_transform(X_jj)
+
+print "INFO: conditional labels (%s):" % obs_jj
+print X_jj
+
 # Use MC event weights for training?
 # print X_train[:,10]
 # j_pt_max = 1000.
@@ -148,46 +157,9 @@ def make_discriminator():
 #~~~~~~~~~~~~~~~~~~~~~~
 
 
-# d_optimizer = RMSprop(lr=1e-4, rho=0.9)  # clipvalue=0.01)
-# g_optimizer = RMSprop(lr=1e-4, rho=0.9)  # , clipvalue=0.01)
-
-# d_optimizer = Adamax()
-# g_optimizer = Adadelta()
-
 d_optimizer = Adam(1e-5, beta_1=0.5, beta_2=0.9)
 g_optimizer = Adam(1e-5, beta_1=0.5, beta_2=0.9)
 
-#d_optimizer = Adam(1e-5, beta_1=0.8, beta_2=0.999 )
-#g_optimizer = Adam(1e-5, beta_1=0.8, beta_2=0.999 )
-
-# d_optimizer = Adam(0.0001)  # , clipnorm=1.0)
-# g_optimizer = Adam(0.0001)  # , clipnorm=1.0)
-
-# d_optimizer = Adam(0.0001)  # , 0.5)
-# g_optimizer = Adam(0.0001) #, 0.5)
-
-# d_optimizer = Adam(1e-4)
-# g_optimizer = Adam(1e-4)
-
-# d_optimizer = SGD(0.0001, 0.9, nesterov=True)
-# g_optimizer = SGD(0.0001, 0.9, nesterov=True)
-
-# d_optimizer = SGD(0.01, 0.9)
-# g_optimizer = SGD(0.01, 0.9)
-
-
-# d_optimizer = Adam(0.01)
-# g_optimizer = Adam(0.01)
-
-# the best so far, and by far!
-#d_optimizer = SGD(0.01)
-#g_optimizer = SGD(0.01)
-
-# d_optimizer = Adam(0.001, 0.9)
-# g_optimizer = Adam(0.001, 0.9)
-
-# d_optimizer = RMSprop(lr=0.01)
-# g_optimizer = SGD(0.01)
 
 ###########
 # Generator
@@ -215,10 +187,11 @@ discriminator.summary()
 
 # For the combined model we will only train the generator
 discriminator.trainable = False
-GAN_input = Input(shape=(GAN_noise_size,))
-GAN_latent = generator(GAN_input)
-GAN_output = discriminator(GAN_latent)
-GAN = Model(GAN_input, GAN_output)
+GAN_input_noise = Input(shape=(GAN_noise_size,), name="GAN_in_noise")
+GAN_input_jj = Input((1,), name="GAN_in_jj")
+GAN_latent = generator([GAN_input_noise, GAN_input_jj])
+GAN_output = discriminator([GAN_latent, GAN_input_jj])
+GAN = Model([GAN_input_noise, GAN_input_jj], GAN_output)
 GAN.name = "GAN"
 GAN.compile(
     loss='binary_crossentropy',
@@ -237,36 +210,10 @@ plot_model(discriminator,  show_shapes=True,
 plot_model(GAN,            show_shapes=True,
            to_file="img/DCGAN_model_%s_GAN.png" % (dsid))
 
-
-# Training:
-# 1) pick up ntrain events from real dataset
-# 2) generate ntrain fake events
-
-# Pre-train discriminator
-ntrain = 20000
-train_idx = random.sample(range(0, X_train.shape[0]), ntrain)
-X_train_real = X_train[train_idx, :]
-
-X_noise = np.random.uniform(0, 1, size=[X_train_real.shape[0], GAN_noise_size])
-# X_noise = np.random.uniform(-1,1,size=[X_train_real.shape[0], GAN_noise_size])
-# X_noise = np.random.normal(0., 1., (X_train_real.shape[0], GAN_noise_size))
-X_train_fake = generator.predict(X_noise)
-
-# create GAN training dataset
-X = np.concatenate((X_train_real, X_train_fake))
-n = X_train_real.shape[0]
-y = np.zeros([2*n])
-y[:n] = 1
-y[n:] = 0
-
 # event weights
 # weights_fake = np.array( [ x if not x == 0. else 1./j_pt_max for x in X_train_fake[:,10] ] )
 # weights_real = event_weights[train_idx]
 # weights = np.concatenate( (weights_real, weights_fake) )
-
-# print "INFO: pre-training discriminator network"
-discriminator.trainable = True
-discriminator.fit(X, y, epochs=1, batch_size=128)
 
 history = {
     "d_lr": [], "g_lr": [],
@@ -325,19 +272,20 @@ def train_loop(nb_epoch=1000, BATCH_SIZE=32, TRAINING_RATIO=1):
             # select some real events
             train_idx = np.random.randint(0, X_train.shape[0], size=BATCH_SIZE)
             X_train_real = X_train[train_idx, :]
+            y_jj = X_jj[train_idx, :]
 
             # generate fake events
             X_noise = np.random.uniform(
                 0, 1, size=[BATCH_SIZE, GAN_noise_size])
             # X_noise = np.random.normal(0., 1, (BATCH_SIZE, GAN_noise_size))
-            X_train_fake = generator.predict(X_noise)
+            X_train_fake = generator.predict([X_noise, y_jj])
 
             discriminator.trainable = True
 
             d_loss_r, d_acc_r = discriminator.train_on_batch(
-                X_train_real, y_real)
+                [X_train_real, y_jj], y_real)
             d_loss_f, d_acc_f = discriminator.train_on_batch(
-                X_train_fake, y_fake)
+                [X_train_fake, y_jj], y_fake)
 
             #clip_weights(discriminator, 0.01)
 
@@ -359,7 +307,7 @@ def train_loop(nb_epoch=1000, BATCH_SIZE=32, TRAINING_RATIO=1):
         # we want discriminator to mistake images as real
         discriminator.trainable = False
 
-        g_loss = GAN.train_on_batch(X_noise, y_real)
+        g_loss = GAN.train_on_batch([X_noise, y_jj], y_real)
         history["g_loss"].append(g_loss)
 
         if epoch % plt_frq == 0:
@@ -410,6 +358,6 @@ model_filename = "GAN_%s/DCGAN.generator.%s.%s.%s.%s.h5" % (
 generator.save(model_filename)
 print "INFO: generator model saved to file", model_filename
 
-training_filename = "GAN/DCGAN.training_history.%s.%s.%s.%s.root" % (
-    dsid, level, preselection, systematic)
+training_filename = "GAN_%s/DCGAN.training_history.%s.%s.%s.%s.root" % (
+    level, dsid, level, preselection, systematic)
 hf.save_training_history(history, training_filename)

@@ -225,58 +225,6 @@ def flip_eta(x):
 #######################################
 
 
-def make_generator_mlp_LorentzVector(GAN_noise_size):
-    G_input = Input(shape=(GAN_noise_size,))
-
-    G = Dense(GAN_noise_size, kernel_initializer='glorot_normal')(G_input)
-    G = Activation('tanh')(G)
-    # G = BatchNormalization()(G) #0.8
-
-    G = Dense(64, kernel_initializer='glorot_normal')(G_input)
-    G = Activation('tanh')(G)
-    # G = BatchNormalization()(G) #0.8
-
-    # G = Dense( 32 )(G)
-    # G = Activation('tanh')(G)
-
-    j1_PtEtaPhiEM = Dense(64, activation='tanh')(G)
-    j1_PtEtaPhiEM = Dense(32, activation='tanh')(j1_PtEtaPhiEM)
-    j1_PtEtaPhiEM = Dense(5)(j1_PtEtaPhiEM)
-
-    j2_PtEtaPhiEM = Dense(64, activation='tanh')(G)
-    j2_PtEtaPhiEM = Dense(32, activation='tanh')(j2_PtEtaPhiEM)
-    j2_PtEtaPhiEM = Dense(5)(j2_PtEtaPhiEM)
-
-    # j1_PxPyPzE = Dense(4, activation='tanh')(G)
-    # j2_PxPyPzE = Dense(4, activation='tanh')(G)
-
-    jj = concatenate([j1_PtEtaPhiEM, j2_PtEtaPhiEM])
-    # jj = concatenate( [ j1_PxPyPzE, j2_PxPyPzE ] )
-    # jj_PxPyPzE = add( [ j1_PxPyPzE, j2_PxPyPzE ] )
-
-    jj_PtEtaPhiEM = Dense(64, activation='tanh')(jj)
-    jj_PtEtaPhiEM = Dense(32, activation='tanh')(jj_PtEtaPhiEM)
-    jj_PtEtaPhiEM = Dense(5)(jj_PtEtaPhiEM)
-
-    jj_angles = Dense(32, activation='tanh')(jj)
-    jj_angles = Dense(3)(jj_angles)
-
-    G_output = concatenate([
-        # j1_PxPyPzE,
-        j1_PtEtaPhiEM,
-        # j2_PxPyPzE,
-        j2_PtEtaPhiEM,
-        # jj_PxPyPzE,
-        jj_PtEtaPhiEM,
-        jj_angles
-    ])
-    generator = Model(G_input, G_output)
-
-    return generator
-
-#~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-
 def make_generator_mlp(GAN_noise_size, GAN_output_size):
     # Build Generative model ...
 
@@ -293,9 +241,9 @@ def make_generator_mlp(GAN_noise_size, GAN_output_size):
     G = Dense(32)(G)
     G = LeakyReLU(alpha=0.2)(G)
 
-    G = Dense(GAN_output_size, activation="tanh")(G)
+    G_output = Dense(GAN_output_size, activation="tanh")(G)
 
-    generator = Model(G_input, G)
+    generator = Model(G_input, G_output)
 
     return generator
 
@@ -343,7 +291,10 @@ def make_discriminator_mlp(GAN_output_size):
 def make_generator_cnn(GAN_noise_size, GAN_output_size):
     # Build Generative model ...
 
-    G_input = Input(shape=(GAN_noise_size,))
+    G_input_noise = Input(shape=(GAN_noise_size,), name="G_in_noise")
+    G_input_dijet = Input((1,), name="G_in_jj")
+
+    G_input = concatenate([G_input_noise, G_input_dijet])
 
     reg = None  # l2(0.001)
 
@@ -373,7 +324,7 @@ def make_generator_cnn(GAN_noise_size, GAN_output_size):
     G_output = Activation("tanh")(G_output)
     # G_output = Dense(GAN_output_size)(G)
     # G_output = LeakyReLU(0.2)(G_output)
-    generator = Model(G_input, G_output)
+    generator = Model([G_input_noise, G_input_dijet], G_output)
 
     return generator
 
@@ -381,7 +332,10 @@ def make_generator_cnn(GAN_noise_size, GAN_output_size):
 
 
 def make_discriminator_cnn(GAN_output_size):
-    D_input = Input(shape=(GAN_output_size,))
+    D_input_p4 = Input(shape=(GAN_output_size,), name="D_in_p4")
+    D_input_jj = Input((1,), name="D_in_jj")
+
+    D_input = concatenate([D_input_p4, D_input_jj])
 
     reg = None  # l2(0.001)
 
@@ -409,7 +363,7 @@ def make_discriminator_cnn(GAN_output_size):
     D_output = Dropout(0.2)(D)
     D_output = Dense(1, activation="sigmoid")(D_output)
 
-    discriminator = Model(D_input, D_output)
+    discriminator = Model([D_input_p4, D_input_jj], D_output)
     return discriminator
 
 
