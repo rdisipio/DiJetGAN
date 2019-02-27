@@ -143,15 +143,10 @@ G_output_size = n_features
 
 
 def make_generator():
-    # return make_generator_mlp_LorentzVector( GAN_noise_size )
-    # return make_generator_mlp(GAN_noise_size, G_output_size )
-    # return make_generator_rnn( GAN_noise_size, G_output_size )
     return make_generator_cnn(GAN_noise_size, n_features)
 
 
 def make_discriminator():
-    # return make_discriminator_mlp( G_output_size )
-    # return make_discriminator_rnn( G_output_size )
     return make_discriminator_cnn(G_output_size)
 
 #~~~~~~~~~~~~~~~~~~~~~~

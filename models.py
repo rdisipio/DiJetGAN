@@ -50,50 +50,6 @@ def make_decoder(n_lat, n_out):
 #################################
 
 
-def entropy(model):
-    H = 0.
-    for layer in model.layers:
-        conf = layer.get_config()
-
-        if not "leaky_re_lu" in conf['name']:
-            continue
-        print conf
-
-        weights = layer.get_weights()
-        print weights
-        shape = weights.shape
-        print weights.shape
-
-    return H
-
-
-def filters_entropy(model):
-    H = 0.
-    for layer in model.layers:
-        conf = layer.get_config()
-        if not "conv2d" in conf['name']:
-            continue
-        print conf['name'], conf['filters']
-        weights = layer.get_weights()[0]
-        shape = weights.shape
-        # print weights.shape
-        kernel_size = shape[0]
-        nchannels = shape[2]
-        nfilters = shape[3]
-        # print nchannels, nfilters, "(%i,%i)" % (kernel_size, kernel_size)
-        for ichannel in range(nchannels):
-            for ifilter in range(nfilters):
-                w = weights[:, :, ichannel, ifilter]
-                # print w
-                H_i = sum(sum(w*np.log2(abs(w))))
-                # print "%s :: ch=%i : filt=%i, H_i=%.3f" % (
-                #    model.name, ichannel, ifilter, H_i)
-                H += H_i
-    return H
-
-#~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-
 def clip_weights(discriminator, c=0.01):
     weights = [np.clip(w, -c, c) for w in discriminator.get_weights()]
     discriminator.set_weights(weights)
@@ -180,47 +136,6 @@ def gauss_loss(y_true, y_pred):
 
     return K.mean(s)
 
-#~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-
-def PxPyPzE_to_PtEtaPhiM(x):
-    # p = TLorentzVector()
-    # p.SetPxPyPzE( x[0], x[1], x[2], x[3] )
-    p = FourMomentum(x[0], x[1], x[2], x[3])
-
-    return (p.Pt(), p.Eta(), p.Phi(), p.M())
-
-#~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-
-def flip_eta(x):
-    # return x
-
-    # features = [
-    #"ljet1_pt", "ljet1_eta", "ljet1_phi", "ljet1_E", "ljet1_M",
-    #"ljet2_pt", "ljet2_eta", "ljet2_phi", "ljet2_E", "ljet2_M",
-    #"jj_pt",    "jj_eta",    "jj_phi",    "jj_E",    "jj_M",
-    #"jj_dPhi",  "jj_dEta",   "jj_dR",
-    #]
-
-    x_size = 18
-    # x_size = 15
-    # x_size = 10
-    mask = np.ones(x_size, dtype="float32")
-    mask[[1, 6, 11, 16]] = -1
-    # mask[[1,6,11]] = -1
-    # mask[[1,6]] = -1
-    # mask = K.variable(value=mask, dtype='float64', name='mask')
-    a = tf.identity(mask)
-
-    y = a * x
-    # y = tf.multiply( x, a )
-
-    # K.print_tensor( x, "x =" )
-    # K.print_tensor( a, "a =" )
-    # K.print_tensor( y, "y =" )
-
-    return y
 
 #######################################
 
@@ -291,6 +206,39 @@ def make_discriminator_mlp(GAN_output_size):
 def make_generator_cnn(GAN_noise_size, GAN_output_size):
     # Build Generative model ...
 
+    G_input = Input(shape=(GAN_noise_size,), name="G_in")
+
+    reg = None  # l2(0.001)
+
+    G = Dense(128, kernel_initializer='glorot_uniform')(G_input)
+    G = LeakyReLU(alpha=0.2)(G)
+    G = BatchNormalization()(G)
+
+    G = Reshape([8, 8, 2])(G)  # default: channel last
+
+    G = Conv2DTranspose(32, kernel_size=(2, 2), strides=1,
+                        padding="same", kernel_regularizer=reg)(G)
+    G = LeakyReLU(alpha=0.2)(G)
+    G = BatchNormalization()(G)
+
+    G = Conv2DTranspose(16, kernel_size=(3, 3), strides=1,
+                        padding="same", kernel_regularizer=reg)(G)
+    G = LeakyReLU(alpha=0.2)(G)
+    G = BatchNormalization()(G)
+
+    G = Flatten()(G)
+
+    G_output = Dense(GAN_output_size)(G)
+    G_output = Activation("tanh")(G_output)
+    generator = Model(G_input, G_output)
+
+    return generator
+
+#~~~~~~~~~~~~~~~~~~~~~~
+
+
+def make_generator_cnn_cgan(GAN_noise_size, GAN_output_size):
+
     G_input_noise = Input(shape=(GAN_noise_size,), name="G_in_noise")
     G_input_dijet = Input((1,), name="G_in_jj")
 
@@ -299,22 +247,18 @@ def make_generator_cnn(GAN_noise_size, GAN_output_size):
     reg = None  # l2(0.001)
 
     G = Dense(128, kernel_initializer='glorot_uniform')(G_input)
-    # G = Dropout(0.2)(G)
     G = LeakyReLU(alpha=0.2)(G)
-    # G = Activation("relu")(G)
     G = BatchNormalization()(G)
 
     G = Reshape([8, 8, 2])(G)  # default: channel last
 
     G = Conv2DTranspose(32, kernel_size=(2, 2), strides=1,
                         padding="same", kernel_regularizer=reg)(G)
-    # G = Activation("relu")(G)
     G = LeakyReLU(alpha=0.2)(G)
     G = BatchNormalization()(G)
 
     G = Conv2DTranspose(16, kernel_size=(3, 3), strides=1,
                         padding="same", kernel_regularizer=reg)(G)
-    # G = Activation("relu")(G)
     G = LeakyReLU(alpha=0.2)(G)
     G = BatchNormalization()(G)
 
@@ -322,8 +266,7 @@ def make_generator_cnn(GAN_noise_size, GAN_output_size):
 
     G_output = Dense(GAN_output_size)(G)
     G_output = Activation("tanh")(G_output)
-    # G_output = Dense(GAN_output_size)(G)
-    # G_output = LeakyReLU(0.2)(G_output)
+
     generator = Model([G_input_noise, G_input_dijet], G_output)
 
     return generator
@@ -332,6 +275,41 @@ def make_generator_cnn(GAN_noise_size, GAN_output_size):
 
 
 def make_discriminator_cnn(GAN_output_size):
+    D_input = Input(shape=(GAN_output_size,), name="D_in")
+
+    reg = None  # l2(0.001)
+
+    D = Dense(128)(D_input)
+    D = Reshape((8, 8, 2))(D)
+
+    D = Conv2D(64, kernel_size=(3, 3), strides=1,
+               padding="same", kernel_regularizer=reg)(D)
+    D = LeakyReLU(alpha=0.2)(D)
+
+    D = Conv2D(32, kernel_size=(3, 3), strides=1,
+               padding="same", kernel_regularizer=reg)(D)
+    # D = BatchNormalization()(D)
+    D = LeakyReLU(alpha=0.2)(D)
+
+    D = Conv2D(16, kernel_size=(3, 3), strides=1,
+               padding="same", kernel_regularizer=reg)(D)
+    # D = BatchNormalization()(D)
+    D = LeakyReLU(alpha=0.2)(D)
+
+    D = Flatten()(D)
+    # D = BatchNormalization()(D)
+    D = LeakyReLU(alpha=0.2)(D)
+
+    D_output = Dropout(0.2)(D)
+    D_output = Dense(1, activation="sigmoid")(D_output)
+
+    discriminator = Model(D_input, D_output)
+    return discriminator
+
+#~~~~~~~~~~~~~~~~~~~~~~
+
+
+def make_discriminator_cnn_cgan(GAN_output_size):
     D_input_p4 = Input(shape=(GAN_output_size,), name="D_in_p4")
     D_input_jj = Input((1,), name="D_in_jj")
 
@@ -365,7 +343,6 @@ def make_discriminator_cnn(GAN_output_size):
 
     discriminator = Model([D_input_p4, D_input_jj], D_output)
     return discriminator
-
 
 ##########################
 

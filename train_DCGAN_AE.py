@@ -209,11 +209,11 @@ if not os.path.exists("img/"):
     os.makedirs("img/")
 
 plot_model(generator,      show_shapes=True,
-           to_file="img/DCGAN_model_%s_generator.png" % (dsid))
+           to_file="img/DCGAN_AE_model_%s_generator.png" % (dsid))
 plot_model(discriminator,  show_shapes=True,
-           to_file="img/DCGAN_model_%s_discriminator.png" % (dsid))
+           to_file="img/DCGAN_AE_model_%s_discriminator.png" % (dsid))
 plot_model(GAN,            show_shapes=True,
-           to_file="img/DCGAN_model_%s_GAN.png" % (dsid))
+           to_file="img/DCGAN_AE_model_%s_GAN.png" % (dsid))
 
 # Training:
 # 1) pick up ntrain events from real dataset
@@ -343,11 +343,11 @@ def train_loop(nb_epoch=1000, BATCH_SIZE=32, TRAINING_RATIO=1):
             print "Epoch: %5i/%5i :: BS = %i, d_lr = %.5f, g_lr = %.5f :: d_loss = %.2f ( real = %.2f, fake = %.2f ), d_acc = %.2f ( real = %.2f, fake = %.2f ), g_loss = %.2f" % (
                 epoch, nb_epoch, BATCH_SIZE, d_lr, g_lr, d_loss, d_loss_r, d_loss_f, d_acc, d_acc_r, d_acc_f, g_loss)
 
-            model_filename = "GAN_%s/DCGAN.generator.%s.%s.%s.%s.epoch_%05i.h5" % (
+            model_filename = "GAN_%s/DCGAN_AE.generator.%s.%s.%s.%s.epoch_%05i.h5" % (
                 level, dsid, level, preselection, systematic, epoch_overall)
             generator.save(model_filename)
 
-            training_filename = "GAN_%s/DCGAN.training_history.%s.%s.%s.%s.root" % (
+            training_filename = "GAN_%s/DCGAN_AE.training_history.%s.%s.%s.%s.root" % (
                 level, dsid, level, preselection, systematic)
             hf.save_training_history(history, training_filename, verbose=False)
 
@@ -382,11 +382,11 @@ train_loop(nb_epoch=n_epochs, BATCH_SIZE=32,  TRAINING_RATIO=1)
 # train_loop(nb_epoch=n_epochs/2, BATCH_SIZE=32,  TRAINING_RATIO=1)
 
 # save model to file
-model_filename = "GAN_%s/DCGAN.generator.%s.%s.%s.%s.h5" % (
+model_filename = "GAN_%s/DCGAN_AE.generator.%s.%s.%s.%s.h5" % (
     level, dsid, level, preselection, systematic)
 generator.save(model_filename)
 print "INFO: generator model saved to file", model_filename
 
-training_filename = "GAN_%s/DCGAN.training_history.%s.%s.%s.%s.root" % (
+training_filename = "GAN_%s/DCGAN_AE.training_history.%s.%s.%s.%s.root" % (
     level, dsid, level, preselection, systematic)
 hf.save_training_history(history, training_filename)

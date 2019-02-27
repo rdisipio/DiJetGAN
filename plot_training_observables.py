@@ -151,9 +151,6 @@ for h in _h.values():
     SetTH1FStyle(h, color=kBlack, markersize=0,
                  markerstyle=20, linewidth=3)
 
-c = TCanvas("c", "C", 1200, 1200)
-c.Divide(4, 4)
-
 generator = load_model(model_filename,
                        custom_objects={'mmd_loss': mmd_loss})
 
@@ -188,17 +185,17 @@ events = scaler.inverse_transform(events)
 
 _h['ljet1_pt'].Reset()
 _h['ljet1_eta'].Reset()
-_h['ljet1_E'].Reset()
+#_h['ljet1_E'].Reset()
 _h['ljet1_m'].Reset()
 
 _h['ljet2_pt'].Reset()
 _h['ljet2_eta'].Reset()
-_h['ljet2_E'].Reset()
+#_h['ljet2_E'].Reset()
 _h['ljet2_m'].Reset()
 
 _h['jj_pt'].Reset()
 _h['jj_eta'].Reset()
-_h['jj_E'].Reset()
+#_h['jj_E'].Reset()
 _h['jj_m'].Reset()
 
 for i in range(n_examples):
@@ -282,6 +279,9 @@ def PrintChi2(hname):
     return chi2, ndf
 
 
+c = TCanvas("c", "C", 1200, 1200)
+c.Divide(3, 3)
+
 chi2_tot = 0.
 ndf_tot = 0
 c.cd(1)
@@ -301,13 +301,6 @@ chi2_tot += chi2
 ndf_tot += ndf
 
 c.cd(3)
-_h_mc['ljet1_E'].Draw("h")
-_h['ljet1_E'].Draw("h same")
-chi2, ndf = PrintChi2('ljet1_E')
-chi2_tot += chi2
-ndf_tot += ndf
-
-c.cd(4)
 _h_mc['ljet1_m'].Draw("h")
 _h['ljet1_m'].Draw("h same")
 chi2, ndf = PrintChi2('ljet1_m')
@@ -317,7 +310,7 @@ ndf_tot += ndf
 #################
 # 2nd leading jet
 
-c.cd(5)
+c.cd(4)
 #_h_mc['ljet2_pt'].SetMinimum(1e-2)
 # gPad.SetLogy(1)
 _h_mc['ljet2_pt'].Draw("h")
@@ -326,21 +319,14 @@ chi2, ndf = PrintChi2('ljet2_pt')
 chi2_tot += chi2
 ndf_tot += ndf
 
-c.cd(6)
+c.cd(5)
 _h_mc['ljet2_eta'].Draw("h")
 _h['ljet2_eta'].Draw("h same")
 chi2, ndf = PrintChi2('ljet2_eta')
 chi2_tot += chi2
 ndf_tot += ndf
 
-c.cd(7)
-_h_mc['ljet2_E'].Draw("h")
-_h['ljet2_E'].Draw("h same")
-chi2, ndf = PrintChi2('ljet2_E')
-chi2_tot += chi2
-ndf_tot += ndf
-
-c.cd(8)
+c.cd(6)
 _h_mc['ljet2_m'].Draw("h")
 _h['ljet2_m'].Draw("h same")
 chi2, ndf = PrintChi2('ljet2_m')
@@ -350,7 +336,7 @@ ndf_tot += ndf
 ####################
 # Dijet system
 
-c.cd(9)
+c.cd(7)
 #_h_mc['jj_pt'].SetMinimum(1e-2)
 # gPad.SetLogy(1)
 _h_mc['jj_pt'].Draw("h")
@@ -359,21 +345,14 @@ chi2, ndf = PrintChi2('jj_pt')
 chi2_tot += chi2
 ndf_tot += ndf
 
-c.cd(10)
+c.cd(8)
 _h_mc['jj_eta'].Draw("h")
 _h['jj_eta'].Draw("h same")
 chi2, ndf = PrintChi2('jj_eta')
 chi2_tot += chi2
 ndf_tot += ndf
 
-c.cd(11)
-_h_mc['jj_E'].Draw("h")
-_h['jj_E'].Draw("h same")
-chi2, ndf = PrintChi2('jj_E')
-chi2_tot += chi2
-ndf_tot += ndf
-
-c.cd(12)
+c.cd(9)
 _h_mc['jj_m'].Draw("h")
 _h['jj_m'].Draw("h same")
 chi2, ndf = PrintChi2('jj_m')
@@ -384,33 +363,26 @@ ndf_tot += ndf
 #######################
 # Angular variables
 
-c.cd(13)
-_h_mc['jj_dEta'].Draw("h")
-_h['jj_dEta'].Draw("h same")
-chi2, ndf = PrintChi2('jj_dEta')
-chi2_tot += chi2
-ndf_tot += ndf
+# c.cd(13)
+#_h_mc['jj_dEta'].Draw("h")
+#_h['jj_dEta'].Draw("h same")
+#chi2, ndf = PrintChi2('jj_dEta')
+#chi2_tot += chi2
+#ndf_tot += ndf
 
-c.cd(14)
-_h_mc['jj_dPhi'].Draw("h")
-_h['jj_dPhi'].Draw("h same")
-chi2, ndf = PrintChi2('jj_dPhi')
-chi2_tot += chi2
-ndf_tot += ndf
+# c.cd(14)
+#_h_mc['jj_dPhi'].Draw("h")
+#_h['jj_dPhi'].Draw("h same")
+#chi2, ndf = PrintChi2('jj_dPhi')
+#chi2_tot += chi2
+#ndf_tot += ndf
 
-c.cd(15)
-_h_mc['jj_dR'].Draw("h")
-_h['jj_dR'].Draw("h same")
-chi2, ndf = PrintChi2('jj_dR')
-chi2_tot += chi2
-ndf_tot += ndf
-
-c.cd(16)
-_h_mc['jj_dM'].Draw("h")
-_h['jj_dM'].Draw("h same")
-chi2, ndf = PrintChi2('jj_dM')
-chi2_tot += chi2
-ndf_tot += ndf
+# c.cd(15)
+#_h_mc['jj_dR'].Draw("h")
+#_h['jj_dR'].Draw("h same")
+#chi2, ndf = PrintChi2('jj_dR')
+#chi2_tot += chi2
+#ndf_tot += ndf
 
 c.cd()
 
