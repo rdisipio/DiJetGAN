@@ -107,16 +107,17 @@ SetHistogramStyle(d_acc_r, color=kBlue, linewidth=3)
 
 SetHistogramStyle(g_loss, color=kGreen-1, linewidth=3)
 
-c = TCanvas("C", "C", 2400, 1200)
+c = TCanvas("C", "C", 1600, 1200)
 
 gPad.Divide(1, 2)
-gPad.SetLeftMargin(0.05)
-gPad.SetTopMargin(0.05)
-gPad.SetBottomMargin(0.10)
-gPad.SetRightMargin(0.05)
 
 # Loss (orig)
 c.cd(1)
+gPad.SetLeftMargin(0.10)
+gPad.SetTopMargin(0.05)
+gPad.SetBottomMargin(0.15)
+gPad.SetRightMargin(0.07)
+
 frame_d_loss.Draw()
 g_loss.Draw("l_same")
 #d_loss_f.Draw("l same")
@@ -141,6 +142,11 @@ gPad.RedrawAxis()
 
 # Acc (orig)
 c.cd(2)
+gPad.SetLeftMargin(0.10)
+gPad.SetTopMargin(0.05)
+gPad.SetBottomMargin(0.15)
+gPad.SetRightMargin(0.07)
+
 frame_d_acc.Draw()
 d_acc_f.Draw("l same")
 d_acc_r.Draw("l same")

@@ -71,6 +71,9 @@ X_train = scaler.transform(X_train)
 print "INFO: X_train after standardization:"
 print X_train
 
+if not os.path.exists("GAN_%s/" % level):
+    os.makedirs("GAN_%s/" % level)
+
 scaler_filename = "GAN_%s/scaler.%s.pkl" % (level,level)
 with open(scaler_filename, "wb") as file_scaler:
     pickle.dump(scaler, file_scaler)

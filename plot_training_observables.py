@@ -162,24 +162,9 @@ n_features = generator.layers[-1].output_shape[1]
 #n_latent = decoder.layers[0].input_shape[1]
 #print "INFO: decoder: (%i) -> (%i)" % (n_latent, n_features)
 
-# read in input file
-import pandas as pd
-from sklearn.preprocessing import MinMaxScaler
-from features import header
-infilename = "csv/mg5_dijet_ht500.ptcl.pt250.nominal.csv"
-level = infilename.split("/")[-1].split('.')[1]
-data = pd.read_csv(infilename, delimiter=',', names=header)
-idx = np.random.randint(0, len(data), size=n_examples)
-X_jj = data[["jj_M"]].values[idx]
-scaler_jj = MinMaxScaler([-1, 1])
-X_jj = scaler_jj.fit_transform(X_jj)
-#X_jj = np.random.uniform(800, 2000, size=(n_examples, 1))
-#print "INFO: conditional labels:"
-#print X_jj
-
 X_noise = np.random.uniform(
     0, 1, size=[n_examples, GAN_noise_size])
-events = generator.predict([X_noise, X_jj])
+events = generator.predict(X_noise)
 #events = decoder.predict(events)
 events = scaler.inverse_transform(events)
 
@@ -358,31 +343,6 @@ _h['jj_m'].Draw("h same")
 chi2, ndf = PrintChi2('jj_m')
 chi2_tot += chi2
 ndf_tot += ndf
-
-
-#######################
-# Angular variables
-
-# c.cd(13)
-#_h_mc['jj_dEta'].Draw("h")
-#_h['jj_dEta'].Draw("h same")
-#chi2, ndf = PrintChi2('jj_dEta')
-#chi2_tot += chi2
-#ndf_tot += ndf
-
-# c.cd(14)
-#_h_mc['jj_dPhi'].Draw("h")
-#_h['jj_dPhi'].Draw("h same")
-#chi2, ndf = PrintChi2('jj_dPhi')
-#chi2_tot += chi2
-#ndf_tot += ndf
-
-# c.cd(15)
-#_h_mc['jj_dR'].Draw("h")
-#_h['jj_dR'].Draw("h same")
-#chi2, ndf = PrintChi2('jj_dR')
-#chi2_tot += chi2
-#ndf_tot += ndf
 
 c.cd()
 
