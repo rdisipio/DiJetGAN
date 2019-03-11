@@ -212,7 +212,7 @@ l = TLatex()
 l.SetNDC()
 l.SetTextFont(42)
 l.SetTextSize(0.03)
-txt = "5p func: #chi^{2}/NDF = %.1f/%i = %.1f" % (
+txt = "3p func: #chi^{2}/NDF = %.1f/%i = %.1f" % (
     chi2_fit, ndf_fit, chi2_o_ndf_fit)
 l.DrawLatex(0.3, 0.87, txt)
 txt = "GAN: #chi^{2}/NDF = %.1f/%i = %.1f" % (
