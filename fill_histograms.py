@@ -73,6 +73,9 @@ _h['jj_dR'] = TH1F(
 _h['jj_dM'] = TH1F(
     "jj_dM",   ";Dijet system #Delta M;Events / Bin Width",  20, -200, 200 )
 
+_h['jj_m_tail'] = TH1F(
+    "jj_m_tail",  ";Dijet system m [TeV];Events / Bin Width", 100, 0., 10. )
+
 _h['ljet1_E_vs_pt'] = TH2F(
     "ljet1_E_vs_pt",  ";Leading large-R jet p_{T} [GeV];Leading large-R jet E [GeV]", 20, 200., 800., 25, 0., 2000)
 _h['ljet1_m_vs_pt'] = TH2F(
@@ -167,6 +170,8 @@ for ientry in range(n_entries):
     _h['jj_dEta'].Fill(jj.dEta, w)
     _h['jj_dR'].Fill(jj.dR, w )
     _h['jj_dM'].Fill(jj.dM/GeV, w )
+
+    _h['jj_m_tail'].Fill(jj.M()/TeV, w)
 
     _h['ljet1_E_vs_pt'].Fill(lj1.Pt()/GeV, lj1.E()/GeV, w)
     _h['ljet1_m_vs_pt'].Fill(lj1.Pt()/GeV, lj1.M()/GeV, w)
