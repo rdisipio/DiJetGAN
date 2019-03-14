@@ -43,6 +43,18 @@ def Normalize(h, sf=1.0):
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 
+def RemoveBeforeCut(h, xmin):
+    h2 = h.Clone(h.GetName()+"_chi2")
+    nmin = h.FindBin(xmin)
+    for i in range(h.GetNbinsX()):
+        if i < nmin:
+            h2.SetBinContent(i+1, 0.)
+            h2.SetBinError(i+1, 0.)
+    return h2
+
+#~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+
 def SetTH1FStyle(h, color=kBlack, linewidth=1, linestyle=kSolid, fillcolor=0, fillstyle=0, markerstyle=21, markersize=1.3, fill_alpha=0):
     '''Set the style with a long list of parameters'''
 
@@ -69,7 +81,7 @@ level = model_filename.split('/')[-1].split('.')[-5]
 epoch = model_filename.split('/')[-1].split('.')[-2].split('_')[-1]
 epoch = int(epoch)
 
-n_examples = 1000000
+n_examples = 2000
 if len(sys.argv) > 2:
     n_examples = int(sys.argv[2])
 
@@ -84,19 +96,27 @@ print "INFO: loading scaler from", scaler_filename
 with open(scaler_filename, "rb") as file_scaler:
     scaler = pickle.load(file_scaler)
 
-mc_filename = "histograms/histograms.%s.%s.%s.MC.root" % (
+mc_filename_large = "histograms/histograms.%s.%s.%s.MC_large.root" % (
     dsid, level, preselection)
-f_mc = TFile.Open(mc_filename)
-h_mc = f_mc.Get(obs+"_tail")
+mc_filename_small = "histograms/histograms.%s.%s.%s.MC_small.root" % (
+    dsid, level, preselection)
 
-h_gan = h_mc.Clone(obs+"_gan")
+f_mc_large = TFile.Open(mc_filename_large)
+h_mc_large = f_mc_large.Get(obs+"_tail").Clone(obs+"_mc_large")
+
+f_mc_small = TFile.Open(mc_filename_small)
+h_mc_small = f_mc_small.Get(obs+"_tail").Clone(obs+"_mc_small")
+
+h_gan = h_mc_large.Clone(obs+"_gan")
 h_gan.Reset()
 
 SetTH1FStyle(h_gan, color=kBlack, markersize=0,
              markerstyle=20, linewidth=3)
 
-SetTH1FStyle(h_mc,  color=kGray+2, fillstyle=1001,
+SetTH1FStyle(h_mc_large,  color=kGray+2, fillstyle=1001,
              fillcolor=kGray, linewidth=3, markersize=0)
+SetTH1FStyle(h_mc_small,  color=kGray+2, fillstyle=1001,
+             fillcolor=kGray+1, linewidth=3, markersize=0, fill_alpha=0.5)
 
 generator = load_model(model_filename)
 
@@ -108,11 +128,13 @@ n_features = generator.layers[-1].output_shape[1]
 #n_latent = decoder.layers[0].input_shape[1]
 #print "INFO: decoder: (%i) -> (%i)" % (n_latent, n_features)
 
+print "INFO: generating %i events..." % n_examples
 X_noise = np.random.uniform(
     0, 1, size=[n_examples, GAN_noise_size])
 events = generator.predict(X_noise)
 #events = decoder.predict(events)
 events = scaler.inverse_transform(events)
+print "INFO: done."
 
 for i in range(n_examples):
 
@@ -148,8 +170,15 @@ for i in range(n_examples):
     h_gan.Fill(jj.M()/TeV)
 
 # Normalize(h_mc)
-area_mc = h_mc.Integral()
-Normalize(h_gan, area_mc)
+m_jj_cut = 3.0
+bin_xmin = h_mc_large.FindBin(m_jj_cut)
+bin_xmax = h_mc_large.FindBin(10)
+area_mc_large = h_mc_large.Integral(bin_xmin, bin_xmax)
+area_gan = h_gan.Integral(bin_xmin, bin_xmax)
+sf = area_mc_large / area_gan
+#Normalize(h_gan, area_mc)
+h_gan.Scale(sf)
+Normalize(h_mc_small, area_mc_large)
 
 
 def PrintChi2(h_mc, h_gan):
@@ -157,7 +186,7 @@ def PrintChi2(h_mc, h_gan):
     ndf = ctypes.c_int(0)
     igood = ctypes.c_int(0)
     #chi2 = _h_mc[hname].Chi2Test(_h[hname], "WW CHI2/NDF")
-    h_mc.Chi2TestX(h_gan, chi2, ndf, igood, "WW")
+    h_mc.Chi2TestX(h_gan, chi2, ndf, igood, "UU NORM")
     ndf = ndf.value
 
     return chi2, ndf
@@ -165,9 +194,9 @@ def PrintChi2(h_mc, h_gan):
 
 c = TCanvas("c", "C", 1600, 1200)
 
-h_mc.Draw("h")
+h_mc_large.Draw("h")
 
-h_mc.SetMaximum(1e6)
+h_mc_large.SetMaximum(1e6)
 gPad.SetLogy(True)
 
 # fit_func = TF1(
@@ -193,7 +222,9 @@ fit_func.SetParameter(2, 1e1)
 
 fit_func.SetLineColor(kRed)
 
-fit_res = h_mc.Fit("fit_func", "R S  ", "", 1., 10.)
+# Fit function on small MC sample
+fit_res = h_mc_large.Fit("fit_func", "R S ", "", 1., 10.)
+h_fit = h_mc_large.GetFunction("fit_func")
 chi2_fit = fit_res.Chi2()
 ndf_fit = fit_res.Ndf()
 chi2_o_ndf_fit = chi2_fit / ndf_fit
@@ -201,9 +232,14 @@ print "RESULT: 3-params fit: chi2=%.2f ndf=%i chi2/ndf=%.3f" % (
     chi2_fit, ndf_fit, chi2_o_ndf_fit)
 
 
+#h_mc_small.Draw("h same")
 h_gan.Draw("h same")
+# h_fit.Draw("same")
 
-chi2_gan, ndf_gan = PrintChi2(h_mc, h_gan)
+h_gan_chi2 = RemoveBeforeCut(h_gan, m_jj_cut)
+h_mc_chi2 = RemoveBeforeCut(h_mc_large, m_jj_cut)
+
+chi2_gan, ndf_gan = PrintChi2(h_mc_chi2, h_gan_chi2)
 
 chi2_o_ndf_gan = chi2_gan / ndf_gan
 print "RESULT: GAN: epoch %i : chi2/ndf = %.1f / %i = %.1f" % (
@@ -212,12 +248,15 @@ l = TLatex()
 l.SetNDC()
 l.SetTextFont(42)
 l.SetTextSize(0.03)
-txt = "3p func: #chi^{2}/NDF = %.1f/%i = %.1f" % (
-    chi2_fit, ndf_fit, chi2_o_ndf_fit)
-l.DrawLatex(0.3, 0.87, txt)
-txt = "GAN: #chi^{2}/NDF = %.1f/%i = %.1f" % (
+txt = "GAN [%i TeV, %i TeV]: #chi^{2}/NDF = %.1f/%i = %.1f" % (
+    m_jj_cut, h_mc_large.GetXaxis().GetXmax(),
     chi2_gan, ndf_gan, chi2_o_ndf_gan)
-l.DrawLatex(0.3, 0.82, txt)
+l.DrawLatex(0.3, 0.87, txt)
+# txt = "3p func: #chi^{2}/NDF = %.1f/%i = %.1f" % (
+#    chi2_fit, ndf_fit, chi2_o_ndf_fit)
+#l.DrawLatex(0.3, 0.87, txt)
+
+gPad.RedrawAxis()
 
 imgname = "img/%s/extrapolation_%s_%s_%s_%s_epoch_%05i.png" % (
     level, obs, dsid, level, preselection, epoch)
