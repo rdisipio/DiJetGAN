@@ -184,7 +184,19 @@ for ientry in range(n_entries):
             tree.GetLeaf("Jet.Phi").GetValue(1),
             tree.GetLeaf("Jet.Mass").GetValue(1))
 
+    # more sanity checks
+    if ljet1.M() < 0.: continue
+    if ljet2.M() < 0.: continue
+
     jj = ljet1 + ljet2
+
+    # apply further selection cuts?
+#    if jj.M() < 1500.: continue
+    if "ttbar" in dsid:
+       if ljet1.Pt() < 350.: continue
+       if ljet2.Pt() < 350.: continue
+       if ljet1.M() > 500.: continue
+       if ljet2.M() > 500.: continue
 
     b_ljet1_pt[0] = ljet1.Pt()
     b_ljet1_eta[0] = ljet1.Eta()

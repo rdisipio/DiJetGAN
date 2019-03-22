@@ -3,6 +3,7 @@
 import os
 import sys
 import argparse
+import time
 
 from ROOT import *
 from array import array
@@ -120,9 +121,11 @@ print "INFO: generating %i events..." % n_events
 X_noise = np.random.uniform(0, 1, size=[n_events, GAN_noise_size])
 #X_noise = np.random.uniform(-1,1,size=[ n_events, GAN_noise_size])
 #X_noise = np.random.normal( 0., 1, size=[ n_events, GAN_noise_size] )
+time_start = time.time()
 X_generated = generator.predict(X_noise)
-
-print "INFO: generated %i events" % n_events
+time_end = time.time()
+time_diff = time_end - time_start
+print "INFO: generated %i events in %i sec" % (n_events, time_diff)
 
 X_generated = scaler.inverse_transform(X_generated)
 

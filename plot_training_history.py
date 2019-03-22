@@ -69,9 +69,11 @@ frame_d_acc = TH1F(
     "frame_d_acc",  ";Training Epoch;Discriminator Accuracy", 10, 0, n_epochs)
 
 #hmax = 1.6
-hmax = 2.5
+#hmax = 2.5
+hmax = 1.1
+hmin = 0.4
 frame_d_loss.SetMaximum(hmax)
-frame_d_loss.SetMinimum(0)
+frame_d_loss.SetMinimum(hmin)
 frame_d_loss.GetXaxis().SetTitleSize(0.07)
 frame_d_loss.GetYaxis().SetTitleSize(0.07)
 frame_d_loss.GetXaxis().SetLabelSize(0.07)
@@ -89,9 +91,11 @@ frame_d_acc.GetYaxis().SetLabelSize(0.07)
 frame_d_acc.GetYaxis().SetTitleOffset(0.7)
 frame_d_acc.GetXaxis().SetTitleOffset(1.0)
 
-hmax = 1.6
+#hmax = 1.6
+hmax = 1.1
+hmin = 0.4
 frame_g_loss.SetMaximum(hmax)
-frame_g_loss.SetMinimum(0)
+frame_g_loss.SetMinimum(hmin)
 frame_g_loss.GetXaxis().SetTitleSize(0.07)
 frame_g_loss.GetYaxis().SetTitleSize(0.07)
 frame_g_loss.GetXaxis().SetLabelSize(0.07)
@@ -119,10 +123,10 @@ gPad.SetBottomMargin(0.15)
 gPad.SetRightMargin(0.07)
 
 frame_d_loss.Draw()
-g_loss.Draw("l_same")
+d_loss.Draw("l_same")
 #d_loss_f.Draw("l same")
 #d_loss_r.Draw("l same")
-d_loss.Draw("l same")
+g_loss.Draw("l same")
 
 leg1 = TLegend(0.65, 0.90, 0.90, 0.90)
 leg1.SetNColumns(1)

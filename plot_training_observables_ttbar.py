@@ -76,10 +76,10 @@ if len(sys.argv) > 2:
 #systematic = "nominal"
 
 # GAN_ptcl/DCGAN.generator.mg5_ttbar_ht700.ptcl.pt250.nominal.epoch_90000.h5
-dsid         = model_filename.split("/")[-1].split('.')[2]
-level        = model_filename.split("/")[-1].split('.')[3]
+dsid = model_filename.split("/")[-1].split('.')[2]
+level = model_filename.split("/")[-1].split('.')[3]
 preselection = model_filename.split("/")[-1].split('.')[4]
-systematic   = model_filename.split("/")[-1].split('.')[5]
+systematic = model_filename.split("/")[-1].split('.')[5]
 
 scaler_filename = "GAN_%s/scaler.%s.pkl" % (level, level)
 # scaler_filename = "lorentz/scaler.%s.pkl" % ( level ) # DCGAN_AE
@@ -89,40 +89,40 @@ with open(scaler_filename, "rb") as file_scaler:
 
 _h = {}
 _h['ljet1_pt'] = TH1F(
-    "ljet1_pt", ";Leading large-R jet p_{T} [GeV];Events / Bin Width", 20,  200.,  800)
+    "ljet1_pt", ";Leading large-R jet p_{T} [TeV];Events / Bin Width", 25,  0.5,  1.5)
 _h['ljet1_eta'] = TH1F(
     "ljet1_eta", ";Leading large-R jet #eta;Events / Bin Width", 25, -2.5, 2.5)
 _h['ljet1_E'] = TH1F(
     "ljet1_E",  ";Leading large-R jet E [GeV];Events / Bin Width", 25, 0., 1500)
 _h['ljet1_m'] = TH1F(
-    "ljet1_m",  ";Leading large-R jet m [GeV];Events / Bin Width", 30, 0., 300.)
+    "ljet1_m",  ";Leading large-R jet m [GeV];Events / Bin Width", 50, 0., 500.)
 
 _h['ljet2_pt'] = TH1F(
-    "ljet2_pt", ";2nd leading large-R jet p_{T} [GeV];Events / Bin Width", 20,  200.,  600)
+    "ljet2_pt", ";2nd leading large-R jet p_{T} [TeV];Events / Bin Width", 25, 0.5, 1.5)
 _h['ljet2_eta'] = TH1F(
     "ljet2_eta", ";2nd leading large-R jet #eta;Events / Bin Width", 25, -2.5, 2.5)
 _h['ljet2_E'] = TH1F(
     "ljet2_E",  ";2nd leading large-R jet E [GeV];Events / Bin Width", 25, 0., 1500)
 _h['ljet2_m'] = TH1F(
-    "ljet2_m",  ";2nd leading large-R jet m [GeV];Events / Bin Width", 30, 0., 300.)
+    "ljet2_m",  ";2nd leading large-R jet m [GeV];Events / Bin Width", 50, 0., 500.)
 
 _h['jj_pt'] = TH1F(
-    "jj_pt", ";Dijet system p_{T} [GeV];Events / Bin Width", 15, 0., 300)
+    "jj_pt", ";t#bar{t} system p_{T} [GeV];Events / Bin Width", 15, 0., 300)
 _h['jj_eta'] = TH1F(
-    "jj_eta", ";Dijet system #eta;Events / Bin Width", 30, -6.0, 6.0)
+    "jj_eta", ";t#bar{t} system #eta;Events / Bin Width", 30, -6.0, 6.0)
 _h['jj_E'] = TH1F(
-    "jj_E",  ";Dijet system E [GeV];Events / Bin Width", 15, 0., 3000)
+    "jj_E",  ";t#bar{t} system E [GeV];Events / Bin Width", 15, 0., 3000)
 _h['jj_m'] = TH1F(
-    "jj_m",  ";Dijet system m [GeV];Events / Bin Width", 20, 0., 2.)
+    "jj_m",  ";t#bar{t} system m [GeV];Events / Bin Width", 30, 0., 3.)
 _h['jj_dM'] = TH1F(
-    "jj_dM",   ";Dijet system #Delta M;Events / Bin Width",  20, -200, 200)
+    "jj_dM",   ";t#bar{t} system #Delta M;Events / Bin Width",  20, -200, 200)
 
 _h['jj_dPhi'] = TH1F(
-    "jj_dPhi", ";Dijet system #Delta#phi;Events / Bin Width", 16, pi/2., pi)
+    "jj_dPhi", ";t#bar{t} system #Delta#phi;Events / Bin Width", 16, pi/2., pi)
 _h['jj_dEta'] = TH1F(
-    "jj_dEta", ";Dijet system #Delta#eta;Events / Bin Width", 30, -3., 3.)
+    "jj_dEta", ";t#bar{t} system #Delta#eta;Events / Bin Width", 30, -3., 3.)
 _h['jj_dR'] = TH1F(
-    "jj_dR",   ";Dijet system #Delta R;Events / Bin Width",   15, 2., 5)
+    "jj_dR",   ";t#bar{t} system #Delta R;Events / Bin Width",   15, 2., 5)
 
 mc_filename = "histograms/histograms.%s.%s.%s.MC.root" % (
     dsid, level, preselection)
@@ -228,12 +228,12 @@ for i in range(n_examples):
     jj.dR = lj1.DeltaR(lj2)
     jj.dM = lj1.M() - lj2.M()
 
-    _h['ljet1_pt'].Fill(lj1.Pt()/GeV)
+    _h['ljet1_pt'].Fill(lj1.Pt()/TeV)
     _h['ljet1_eta'].Fill(lj1.Eta())
     _h['ljet1_E'].Fill(lj1.E()/GeV)
     _h['ljet1_m'].Fill(lj1.M()/GeV)
 
-    _h['ljet2_pt'].Fill(lj2.Pt()/GeV)
+    _h['ljet2_pt'].Fill(lj2.Pt()/TeV)
     _h['ljet2_eta'].Fill(lj2.Eta())
     _h['ljet2_E'].Fill(lj2.E()/GeV)
     _h['ljet2_m'].Fill(lj2.M()/GeV)
@@ -324,7 +324,7 @@ chi2_tot += chi2
 ndf_tot += ndf
 
 ####################
-# Dijet system
+# t#bar{t} system
 
 c.cd(7)
 #_h_mc['jj_pt'].SetMinimum(1e-2)
@@ -355,9 +355,9 @@ imgname = "img/%s/training_%s_%s_%s_epoch_%05i.png" % (
     level, dsid, level, preselection, epoch)
 c.SaveAs(imgname)
 
-#imgname = "img/%s/training_%s_%s_%s.gif++5" % (
+# imgname = "img/%s/training_%s_%s_%s.gif++5" % (
 #    level, dsid, level, preselection)
-#c.Print(imgname)
+# c.Print(imgname)
 
 chi2_o_ndf = chi2_tot / ndf_tot
 print "RESULT: epoch %i : chi2/ndf = %.1f / %i = %.1f" % (
