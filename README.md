@@ -24,9 +24,11 @@ mkdir -p ntuples_MC
 ./delphes2tree.py -i filelists/mg5_dijet_ht500.delphes.pt250.txt -l ptcl
 ```
 
-For your convenience, these files can be downloaded from these URLs:
-* https://dijetgan.s3.ca-central-1.amazonaws.com/ntuples_MC/
-* https://dijetgan.s3.ca-central-1.amazonaws.com/ntuples_GAN/
+For your convenience, these files can be downloaded from these URLs with `curl` or `wget`:
+```
+wget https://dijetgan.s3.ca-central-1.amazonaws.com/ntuples_MC/
+wget https://dijetgan.s3.ca-central-1.amazonaws.com/ntuples_GAN/
+```
 
 Now it is possible to convert ROOT file to CSV. This operation includes some pre-processing, e.g. all jets are phi-rotated by the same amount
 so that the leading jet phi is always zero:
@@ -41,7 +43,9 @@ ls ntuples_MC/tree.mg5_dijet_ht500.reco.pt250.nominal.root > filelists/mg5_dijet
 ```
 
 Again, for your convenience, you can download these files from this URL:
-* https://dijetgan.s3.ca-central-1.amazonaws.com/csv/
+```
+wget https://dijetgan.s3.ca-central-1.amazonaws.com/csv/
+```
 
 ## Initialize scaler
 ```
