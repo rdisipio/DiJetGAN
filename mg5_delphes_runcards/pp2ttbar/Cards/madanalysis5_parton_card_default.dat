@@ -1,0 +1,116 @@
+# Uncomment the line below to skip this analysis altogether
+# @MG5aMC skip_analysis
+
+@MG5aMC stdout_lvl=INFO
+
+@MG5aMC inputs = *.lhe
+@MG5aMC analysis_name = analysis1
+
+# Multiparticle definition
+define vl = 12 14 16
+define vl~ = -16 -14 -12
+define invisible = ve ve~ vm vm~ vt vt~ vl vl~
+
+# Histogram drawer (options: matplotlib or root)
+set main.graphic_render = root
+
+# Global event variables
+plot THT   40 0 500 [logY]
+plot MET   40 0 500 [logY]
+plot SQRTS 40 0 500 [logY]
+# PT and ETA distributions of all particles
+plot  PT(t~[1]) 40 0  500 [logY interstate]
+plot ETA(t~[1]) 40 -10 10 [logY interstate]
+plot  PT(t[1]) 40 0  500 [logY interstate]
+plot ETA(t[1]) 40 -10 10 [logY interstate]
+# Invariant-mass distributions
+plot M(t~[1] t[1]) 40 0  500 [logY allstate]
+# Angular distance distributions
+plot DELTAR(t~[1],t[1]) 40 0 10 [logY allstate]
+# PT and ETA distributions of all particles
+plot  PT(b~[1]) 40 0  500 [logY]
+plot ETA(b~[1]) 40 -10 10 [logY]
+plot  PT(b[1]) 40 0  500 [logY]
+plot ETA(b[1]) 40 -10 10 [logY]
+plot  PT(j[1]) 40 0  500 [logY]
+plot ETA(j[1]) 40 -10 10 [logY]
+plot  PT(j[2]) 40 0  500 [logY]
+plot ETA(j[2]) 40 -10 10 [logY]
+plot  PT(j[3]) 40 0  500 [logY]
+plot ETA(j[3]) 40 -10 10 [logY]
+plot  PT(j[4]) 40 0  500 [logY]
+plot ETA(j[4]) 40 -10 10 [logY]
+# Invariant-mass distributions
+plot M(b[1] j[1]) 40 0  500 [logY ]
+plot M(b[1] j[1] j[2]) 40 0  500 [logY ]
+plot M(b[1] j[1] j[2] j[3]) 40 0  500 [logY ]
+plot M(b[1] j[1] j[2] j[3] j[4]) 40 0  500 [logY ]
+plot M(b[1] j[1] j[2] j[4]) 40 0  500 [logY ]
+plot M(b[1] j[1] j[3]) 40 0  500 [logY ]
+plot M(b[1] j[1] j[3] j[4]) 40 0  500 [logY ]
+plot M(b[1] j[1] j[4]) 40 0  500 [logY ]
+plot M(b[1] j[2]) 40 0  500 [logY ]
+plot M(b[1] j[2] j[3]) 40 0  500 [logY ]
+plot M(b[1] j[2] j[3] j[4]) 40 0  500 [logY ]
+plot M(b[1] j[2] j[4]) 40 0  500 [logY ]
+plot M(b[1] j[3]) 40 0  500 [logY ]
+plot M(b[1] j[3] j[4]) 40 0  500 [logY ]
+plot M(b[1] j[4]) 40 0  500 [logY ]
+plot M(b~[1] b[1]) 40 0  500 [logY ]
+plot M(b~[1] b[1] j[1]) 40 0  500 [logY ]
+plot M(b~[1] b[1] j[1] j[2]) 40 0  500 [logY ]
+plot M(b~[1] b[1] j[1] j[2] j[3]) 40 0  500 [logY ]
+plot M(b~[1] b[1] j[1] j[2] j[3] j[4]) 40 0  500 [logY ]
+plot M(b~[1] b[1] j[1] j[2] j[4]) 40 0  500 [logY ]
+plot M(b~[1] b[1] j[1] j[3]) 40 0  500 [logY ]
+plot M(b~[1] b[1] j[1] j[3] j[4]) 40 0  500 [logY ]
+plot M(b~[1] b[1] j[1] j[4]) 40 0  500 [logY ]
+plot M(b~[1] b[1] j[2]) 40 0  500 [logY ]
+plot M(b~[1] b[1] j[2] j[3]) 40 0  500 [logY ]
+plot M(b~[1] b[1] j[2] j[3] j[4]) 40 0  500 [logY ]
+plot M(b~[1] b[1] j[2] j[4]) 40 0  500 [logY ]
+plot M(b~[1] b[1] j[3]) 40 0  500 [logY ]
+plot M(b~[1] b[1] j[3] j[4]) 40 0  500 [logY ]
+plot M(b~[1] b[1] j[4]) 40 0  500 [logY ]
+plot M(b~[1] j[1]) 40 0  500 [logY ]
+plot M(b~[1] j[1] j[2]) 40 0  500 [logY ]
+plot M(b~[1] j[1] j[2] j[3]) 40 0  500 [logY ]
+plot M(b~[1] j[1] j[2] j[3] j[4]) 40 0  500 [logY ]
+plot M(b~[1] j[1] j[2] j[4]) 40 0  500 [logY ]
+plot M(b~[1] j[1] j[3]) 40 0  500 [logY ]
+plot M(b~[1] j[1] j[3] j[4]) 40 0  500 [logY ]
+plot M(b~[1] j[1] j[4]) 40 0  500 [logY ]
+plot M(b~[1] j[2]) 40 0  500 [logY ]
+plot M(b~[1] j[2] j[3]) 40 0  500 [logY ]
+plot M(b~[1] j[2] j[3] j[4]) 40 0  500 [logY ]
+plot M(b~[1] j[2] j[4]) 40 0  500 [logY ]
+plot M(b~[1] j[3]) 40 0  500 [logY ]
+plot M(b~[1] j[3] j[4]) 40 0  500 [logY ]
+plot M(b~[1] j[4]) 40 0  500 [logY ]
+plot M(j[1] j[2]) 40 0  500 [logY ]
+plot M(j[1] j[2] j[3]) 40 0  500 [logY ]
+plot M(j[1] j[2] j[3] j[4]) 40 0  500 [logY ]
+plot M(j[1] j[2] j[4]) 40 0  500 [logY ]
+plot M(j[1] j[3]) 40 0  500 [logY ]
+plot M(j[1] j[3] j[4]) 40 0  500 [logY ]
+plot M(j[1] j[4]) 40 0  500 [logY ]
+plot M(j[2] j[3]) 40 0  500 [logY ]
+plot M(j[2] j[3] j[4]) 40 0  500 [logY ]
+plot M(j[2] j[4]) 40 0  500 [logY ]
+plot M(j[3] j[4]) 40 0  500 [logY ]
+# Angular distance distributions
+plot DELTAR(b[1],j[1]) 40 0 10 [logY ]
+plot DELTAR(b[1],j[2]) 40 0 10 [logY ]
+plot DELTAR(b[1],j[3]) 40 0 10 [logY ]
+plot DELTAR(b[1],j[4]) 40 0 10 [logY ]
+plot DELTAR(b~[1],b[1]) 40 0 10 [logY ]
+plot DELTAR(b~[1],j[1]) 40 0 10 [logY ]
+plot DELTAR(b~[1],j[2]) 40 0 10 [logY ]
+plot DELTAR(b~[1],j[3]) 40 0 10 [logY ]
+plot DELTAR(b~[1],j[4]) 40 0 10 [logY ]
+plot DELTAR(j[1],j[2]) 40 0 10 [logY ]
+plot DELTAR(j[1],j[3]) 40 0 10 [logY ]
+plot DELTAR(j[1],j[4]) 40 0 10 [logY ]
+plot DELTAR(j[2],j[3]) 40 0 10 [logY ]
+plot DELTAR(j[2],j[4]) 40 0 10 [logY ]
+plot DELTAR(j[3],j[4]) 40 0 10 [logY ]
