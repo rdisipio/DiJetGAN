@@ -50,14 +50,8 @@ ls ntuples_MC/tree.mg5_dijet_ht500.reco.pt250.nominal.root > filelists/mg5_dijet
 ./root2csv.py -i filelists/mg5_dijet_ht500.reco.pt250.MC.txt -l reco
 ```
 
-Again, for your convenience, you can download these files from this URL:
-```
-wget https://dijetgan.s3.ca-central-1.amazonaws.com/csv/mg5_dijet_ht500.ptcl.pt250.large.csv
-wget https://dijetgan.s3.ca-central-1.amazonaws.com/csv/mg5_dijet_ht500.reco.pt250.nominal.csv
+Again, for your convenience, you can download these files from this DOI URL: https://doi.org/10.5281/zenodo.14983912
 
-wget https://dijetgan.s3.ca-central-1.amazonaws.com/csv/mg5_ttbar_ht700.ptcl.pt250.nominal.csv
-wget https://dijetgan.s3.ca-central-1.amazonaws.com/csv/mg5_ttbar_ht700.reco.pt250.nominal.csv
-```
 
 ## Initialize scaler
 ```
